@@ -306,6 +306,7 @@ function Navbar() {
             transition:"transform .25s, box-shadow .25s",
             boxShadow:"0 2px 14px rgba(245,166,35,.4)"
           }}
+            onClick={() => navigate("/profile")}
             onMouseOver={e=>{e.currentTarget.style.transform="scale(1.12)";e.currentTarget.style.boxShadow="0 4px 22px rgba(245,166,35,.65)";}}
             onMouseOut={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 2px 14px rgba(245,166,35,.4)";}}
           >

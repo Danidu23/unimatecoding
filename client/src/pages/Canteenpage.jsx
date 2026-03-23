@@ -431,7 +431,7 @@ function Navbar({ cartCount, onCartOpen }) {
     <nav className={`c-nav${scrolled ? " scrolled" : ""}`}>
       {/* Logo + back */}
       <div style={{ display:"flex", alignItems:"center", gap:"14px" }}>
-        <button className="btn-back" onClick={() => navigate("/Dashboard")}>
+        <button className="btn-back" onClick={() => navigate("/dashboard")}>
           <ArrowLeft size={14}/> Back
         </button>
         <div style={{ width:"1px", height:"22px", background:"rgba(255,255,255,.12)" }}/>
@@ -448,7 +448,7 @@ function Navbar({ cartCount, onCartOpen }) {
       <div className="desktop-nav" style={{ display:"flex", gap:"clamp(18px,3vw,32px)" }}>
         {["Dashboard","Canteen","Lost & Found","Sports","Clubs","Orders"].map((item,i) => (
           <a key={i} href="#" className={`nav-lnk${item==="Canteen"?" active":""}`}
-            onClick={e => { e.preventDefault(); if(item==="Dashboard") navigate("/Dashboard"); }}>
+            onClick={e => { e.preventDefault(); if(item==="Dashboard") navigate("/dashboard"); }}>
             {item}
           </a>
         ))}
@@ -468,6 +468,7 @@ function Navbar({ cartCount, onCartOpen }) {
           transition:"transform .25s, box-shadow .25s",
           boxShadow:"0 2px 14px rgba(245,166,35,.4)"
         }}
+          onClick={() => navigate("/profile")}
           onMouseOver={e => { e.currentTarget.style.transform="scale(1.12)"; e.currentTarget.style.boxShadow="0 4px 22px rgba(245,166,35,.65)"; }}
           onMouseOut={e =>  { e.currentTarget.style.transform="scale(1)";    e.currentTarget.style.boxShadow="0 2px 14px rgba(245,166,35,.4)"; }}
         >
