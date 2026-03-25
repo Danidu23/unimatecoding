@@ -1,35 +1,57 @@
 export const mockItems = [
   {
     id: 1,
-    title: 'Apple AirPods Pro',
+    title: 'Black Leather Wallet',
     status: 'UNCLAIMED',
-    category: 'Electronics',
-    location: 'Main Library - 2nd Floor',
+    category: 'Wallets & ID',
+    location: 'Main Library - 1st Floor Study Hall',
     date: '2026-03-24',
-    reporter: 'Anonymous Student',
-    description: 'Found a pair of Apple AirPods Pro in a white charging case. They were left on a desk near the computer lab section on the 2nd floor of the Main Library. The case has a small scratch on the back.',
-    image: '/assets/items/airpods.jpg'
+    reporter: 'Library Help Desk',
+    description: 'Black leather wallet found near the study cubicles. Contains a student ID card holder and several card slots. Owner can claim by verifying card details and wallet interior layout.',
+    image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=1200&q=80'
   },
   {
     id: 2,
     title: 'Blue Hydro Flask',
     status: 'CLAIMED',
     category: 'Other',
-    location: 'Basement Canteen',
+    location: 'Sports Complex - Bleachers',
     date: '2026-03-22',
-    reporter: 'Canteen Staff',
-    description: 'A blue Hydro Flask water bottle was left at one of the tables in the basement canteen. It has a few stickers on it, including one of a mountain range.',
-    image: '/assets/items/hydro_flask.jpg'
+    reporter: 'Sports Unit Staff',
+    description: 'Blue Hydro Flask with mountain stickers and a dent near the base. Claimant must identify sticker order and cap color to complete handover.',
+    image: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=1200&q=80'
   },
   {
     id: 3,
-    title: 'Introduction to Psychology Textbook',
+    title: 'Calculus Textbook',
     status: 'UNCLAIMED',
     category: 'Books & Notes',
-    location: 'New Building - Lecture Hall 3',
+    location: 'Block A - Lecture Room 04',
+    date: '2026-03-23',
+    reporter: 'Mathematics Faculty Office',
+    description: 'A calculus textbook with highlighted formulas and handwritten notes on the first page. Owner should confirm chapter markings and margin notes.',
+    image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=1200&q=80'
+  },
+  {
+    id: 4,
+    title: 'Campus Keys with Lanyard',
+    status: 'UNCLAIMED',
+    category: 'Keys',
+    location: 'Canteen Entrance Gate',
+    date: '2026-03-22',
+    reporter: 'Student Union Volunteer',
+    description: 'A set of silver keys attached to a navy campus lanyard was found near the canteen entrance gate. Claim requires key ring count and keyhead patterns.',
+    image: 'https://images.unsplash.com/photo-1582139329536-e7284fece509?w=1200&q=80'
+  },
+  {
+    id: 5,
+    title: 'Apple AirPods Pro',
+    status: 'CLAIMED',
+    category: 'Electronics',
+    location: 'IT Faculty - Lab Corridor',
     date: '2026-03-25',
-    reporter: 'Jane Doe',
-    description: 'A copy of "Introduction to Psychology" was found in lecture hall 3 of the new building after the 10am class. There is some highlighting in the first few chapters.',
-    image: '/assets/items/book.jpg'
+    reporter: 'Lab Assistant',
+    description: 'AirPods Pro in white charging case found outside the networking lab. Claim has been approved after matching serial number and case engraving.',
+    image: 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=1200&q=80'
   }
 ];
