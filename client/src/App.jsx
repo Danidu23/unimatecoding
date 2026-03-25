@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Dashboard from './pages/Dashboard'
+import ServicesPage from './pages/ServicesPage'
 import Canteenpage from './pages/Canteenpage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -51,6 +52,15 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["student"]}>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/services"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <ServicesPage />
             </ProtectedRoute>
           }
         />

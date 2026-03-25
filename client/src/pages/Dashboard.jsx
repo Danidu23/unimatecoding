@@ -215,6 +215,7 @@ const GLOBAL_CSS = `
    HERO
 ═══════════════════════════════════════════════════════════════════════════ */
 function Hero() {
+  const navigate = useNavigate();
   return (
     <section style={{
       width:"100%", minHeight:"100vh",
@@ -250,7 +251,7 @@ function Hero() {
       </p>
 
       <div className="u-fadeUp hero-btns" style={{display:"flex",gap:"16px",flexWrap:"wrap",justifyContent:"center",animationDelay:".34s"}}>
-        <button className="btn-primary" style={{fontSize:"15px",padding:"15px 32px"}}>Explore Services <ArrowRight size={16}/></button>
+        <button className="btn-primary" onClick={() => navigate("/services")} style={{fontSize:"15px",padding:"15px 32px"}}>Explore Services <ArrowRight size={16}/></button>
         <button className="btn-ghost"   style={{fontSize:"15px",padding:"15px 32px"}}><Play size={15} fill="white"/> How It Works</button>
       </div>
 
