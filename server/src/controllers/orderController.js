@@ -9,7 +9,11 @@ const {
 
 const createOrder = async (req, res) => {
   try {
-    const { items, paymentMethod, pickupDate, slipUrl } = req.body;
+    let { items, paymentMethod, pickupDate } = req.body;
+
+    if (typeof items === 'string') {
+      items = JSON.parse(items);
+    }
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
@@ -42,18 +46,21 @@ const createOrder = async (req, res) => {
     const parsedPickupDate = new Date(pickupDate);
 
     let ruleError = null;
+    let slipUrl = '';
 
     if (paymentMethod === 'cash') {
       ruleError = validateCashOrder(parsedPickupDate);
     } else if (paymentMethod === 'bank_transfer') {
       ruleError = validateBankTransferOrder(parsedPickupDate);
 
-      if (!slipUrl) {
+      if (!req.file) {
         return res.status(400).json({
           success: false,
           message: 'Payment slip is required for bank transfer preorder',
         });
       }
+
+      slipUrl = `/uploads/payment-slips/${req.file.filename}`;
     }
 
     if (ruleError) {
@@ -110,7 +117,7 @@ const createOrder = async (req, res) => {
       orderStatus: 'pending',
       orderDate: new Date(),
       pickupDate: parsedPickupDate,
-      slipUrl: paymentMethod === 'bank_transfer' ? slipUrl : '',
+      slipUrl,
     });
 
     return res.status(201).json({
