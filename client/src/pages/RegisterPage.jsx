@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight, AlertCircle, CheckCircle2, GraduationCap, Users, Briefcase } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight, AlertCircle, CheckCircle2, GraduationCap } from "lucide-react";
 import unimateLogo from "../assets/unimatelogo.png";
+import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
@@ -26,7 +28,6 @@ const CSS = `
     min-height:100vh; display:flex; align-items:stretch; background:#07091a;
   }
 
-  /* ── Left panel ── */
   .left-panel {
     flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;
     padding:clamp(32px,6vw,64px); position:relative; overflow:hidden;
@@ -39,7 +40,6 @@ const CSS = `
     pointer-events:none;
   }
 
-  /* ── Right panel (form) ── */
   .right-panel {
     width:clamp(360px,48%,560px); display:flex; flex-direction:column;
     justify-content:center; padding:clamp(28px,4vw,52px) clamp(28px,5vw,56px);
@@ -47,7 +47,6 @@ const CSS = `
     position:relative; overflow-y:auto;
   }
 
-  /* ── Input ── */
   .field-wrap { position:relative; margin-bottom:14px; }
   .field-icon  { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:rgba(255,255,255,.35); pointer-events:none; display:flex; }
   .field-input {
@@ -66,11 +65,9 @@ const CSS = `
   .toggle-eye { position:absolute; right:13px; top:50%; transform:translateY(-50%); background:none; border:none; color:rgba(255,255,255,.35); cursor:pointer; display:flex; padding:4px; transition:color .2s; }
   .toggle-eye:hover { color:rgba(255,255,255,.7); }
 
-  /* ── Password strength ── */
   .strength-bar { display:flex; gap:4px; margin-top:6px; }
   .strength-seg { flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,.1); transition:background .3s; }
 
-  /* ── Submit ── */
   .btn-submit {
     width:100%; display:flex; align-items:center; justify-content:center; gap:8px;
     background:#F5A623; color:#07091a; border:none; border-radius:12px;
@@ -85,29 +82,14 @@ const CSS = `
   .btn-submit:hover::after { transform:translateX(100%); }
   .btn-submit:disabled { opacity:.55; cursor:not-allowed; transform:none; }
 
-  /* ── Error/success boxes ── */
   .error-box { display:flex; align-items:center; gap:8px; background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.25); border-radius:10px; padding:10px 14px; margin-bottom:14px; font-size:13px; color:#f87171; line-height:1.5; animation:fadeUp .3s ease both; }
   .success-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:600; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px); animation:fadeIn .3s ease; }
   .success-card { background:#0d1130; border:1.5px solid rgba(245,166,35,.2); border-radius:28px; padding:40px 36px; text-align:center; max-width:380px; width:90%; animation:popIn .4s cubic-bezier(.22,.68,0,1.2); }
 
-  /* ── Divider ── */
   .or-divider { display:flex; align-items:center; gap:12px; margin:18px 0; }
   .or-line { flex:1; height:1px; background:rgba(255,255,255,.08); }
   .or-text  { font-size:12px; color:rgba(255,255,255,.35); font-weight:600; white-space:nowrap; }
 
-  /* ── Role selector ── */
-  .role-btn {
-    flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;
-    padding:10px 8px; border-radius:12px;
-    border:1.5px solid rgba(255,255,255,.1);
-    background:rgba(255,255,255,.04); cursor:pointer;
-    transition:all .22s; color:rgba(255,255,255,.55);
-    font-size:12px; font-weight:700; font-family:'Manrope',sans-serif;
-  }
-  .role-btn:hover { border-color:rgba(245,166,35,.35); color:#F5A623; background:rgba(245,166,35,.06); }
-  .role-btn.active { border-color:#F5A623; background:rgba(245,166,35,.12); color:#F5A623; }
-
-  /* ── Responsive ── */
   @media (max-width:768px) {
     .page-wrap { flex-direction:column; }
     .left-panel { min-height:180px; padding:28px 24px; flex:none; }
@@ -118,10 +100,10 @@ const CSS = `
 const getStrength = pw => {
   if (!pw) return 0;
   let s = 0;
-  if (pw.length >= 8)               s++;
-  if (/[A-Z]/.test(pw))             s++;
-  if (/[0-9]/.test(pw))             s++;
-  if (/[^A-Za-z0-9]/.test(pw))      s++;
+  if (pw.length >= 8) s++;
+  if (/[A-Z]/.test(pw)) s++;
+  if (/[0-9]/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
   return s;
 };
 
@@ -130,21 +112,35 @@ const STRENGTH_COLORS = ["", "#ef4444", "#f59e0b", "#3b82f6", "#22c55e"];
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name:"", email:"", phone:"", password:"", confirm:"", role:"student" });
-  const [showPw, setShowPw]   = useState(false);
-  const [showCf, setShowCf]   = useState(false);
-  const [error, setError]     = useState("");
+  const { login } = useAuth();
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirm: "",
+  });
+
+  const [showPw, setShowPw] = useState(false);
+  const [showCf, setShowCf] = useState(false);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const set = (k, v) => { setForm(p => ({...p, [k]:v})); setError(""); };
+  const set = (k, v) => {
+    setForm(p => ({ ...p, [k]: v }));
+    setError("");
+  };
+
   const strength = getStrength(form.password);
 
   const validate = () => {
-    if (!form.name.trim())              return "Please enter your full name.";
-    if (!form.email.includes("@"))      return "Please enter a valid email address.";
-    if (form.phone && !/^\d{10}$/.test(form.phone.replace(/\s/g,""))) return "Phone number must be 10 digits.";
-    if (form.password.length < 6)       return "Password must be at least 6 characters.";
+    if (!form.name.trim()) return "Please enter your full name.";
+    if (!form.email.includes("@")) return "Please enter a valid email address.";
+    if (!form.phone.trim()) return "Please enter your phone number.";
+    if (form.phone && !/^\d{10}$/.test(form.phone.replace(/\s/g, ""))) return "Phone number must be 10 digits.";
+    if (form.password.length < 8) return "Password must be at least 8 characters.";
     if (form.password !== form.confirm) return "Passwords do not match.";
     return null;
   };
@@ -154,26 +150,40 @@ export default function RegisterPage() {
     const err = validate();
     if (err) return setError(err);
 
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 1400));
-    setLoading(false);
-    setSuccess(true);
-    setTimeout(() => navigate("/dashboard"), 2200);
+    try {
+      setLoading(true);
+
+      const res = await api.post("/auth/register", {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+      });
+
+      login(res.data.data);
+      setSuccess(true);
+
+      setTimeout(() => navigate("/dashboard"), 1800);
+    } catch (err) {
+      setError(err.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <style>{CSS}</style>
       <div className="page-wrap">
-
-        {/* ── Left branding ── */}
         <div className="left-panel">
           <div style={{ position:"absolute", top:"15%", left:"50%", transform:"translateX(-50%)", width:"500px", height:"260px", background:"radial-gradient(ellipse,rgba(245,166,35,.1) 0%,transparent 68%)", animation:"glow 5s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={{ position:"absolute", bottom:"20%", right:"8%", width:"260px", height:"260px", background:"radial-gradient(ellipse,rgba(100,120,255,.07) 0%,transparent 68%)", animation:"glow 7s ease-in-out infinite 2s", pointerEvents:"none" }}/>
 
           <div style={{ position:"relative", textAlign:"center", maxWidth:"400px" }}>
             <div style={{ marginBottom:"32px" }}>
-              <img src={unimateLogo} alt="Unimate"
+              <img
+                src={unimateLogo}
+                alt="Unimate"
                 style={{ height:"52px", width:"auto", objectFit:"contain", animation:"float 3.5s ease-in-out infinite" }}
                 onError={e => { e.target.style.display="none"; e.target.nextSibling.style.display="flex"; }}
               />
@@ -197,7 +207,6 @@ export default function RegisterPage() {
               Create your free account and start pre-ordering meals, booking events, and managing campus life.
             </p>
 
-            {/* Steps */}
             {[
               { num:"1", label:"Create your account" },
               { num:"2", label:"Verify your student email" },
@@ -213,11 +222,8 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* ── Right form ── */}
         <div className="right-panel">
           <div style={{ animation:"fadeUp .6s ease both" }}>
-
-            {/* Header */}
             <div style={{ marginBottom:"24px", textAlign:"left" }}>
               <div style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(245,166,35,.1)", border:"1px solid rgba(245,166,35,.2)", borderRadius:"100px", padding:"4px 12px", marginBottom:"14px" }}>
                 <GraduationCap size={12} color="#F5A623"/>
@@ -231,73 +237,76 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* Error */}
             {error && (
               <div className="error-box">
                 <AlertCircle size={16} style={{ flexShrink:0 }}/> {error}
               </div>
             )}
 
-            {/* Role selector */}
-            <div style={{ marginBottom:"18px" }}>
-              <label style={{ fontSize:"12px", fontWeight:700, color:"rgba(255,255,255,.55)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"6px", marginBottom:"8px" }}>
-                <Users size={13} color="rgba(255,255,255,.4)"/> I am a
-              </label>
-              <div style={{ display:"flex", gap:"8px" }}>
-                {[
-                  { val:"student",  label:"Student",  icon:<GraduationCap size={20} /> },
-                  { val:"lecturer", label:"Lecturer",  icon:<Users size={20} /> },
-                  { val:"staff",    label:"Staff",     icon:<Briefcase size={20} /> },
-                ].map(r => (
-                  <button key={r.val} type="button" className={`role-btn${form.role===r.val?" active":""}`}
-                    onClick={() => set("role", r.val)}>
-                    <span style={{ display:"flex", color:"inherit" }}>{r.icon}</span>
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Form */}
             <form onSubmit={handleSubmit} noValidate>
-
-              {/* Name */}
-              <label style={{ fontSize:"12px", fontWeight:700, color:"rgba(255,255,255,.55)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"6px", marginBottom:"6px" }}><User size={13} color="rgba(255,255,255,.4)"/> Full Name</label>
+              <label style={{ fontSize:"12px", fontWeight:700, color:"rgba(255,255,255,.55)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"6px", marginBottom:"6px" }}>
+                <User size={13} color="rgba(255,255,255,.4)"/> Full Name
+              </label>
               <div className="field-wrap">
                 <span className="field-icon"><User size={16}/></span>
-                <input className="field-input" type="text" placeholder="Kamal Perera"
-                  value={form.name} onChange={e => set("name", e.target.value)} autoComplete="name"/>
+                <input
+                  className="field-input"
+                  type="text"
+                  placeholder="Kamal Perera"
+                  value={form.name}
+                  onChange={e => set("name", e.target.value)}
+                  autoComplete="name"
+                />
               </div>
 
-              {/* Email */}
-              <label style={{ fontSize:"12px", fontWeight:700, color:"rgba(255,255,255,.55)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"6px", marginBottom:"6px" }}><Mail size={13} color="rgba(255,255,255,.4)"/> Email Address</label>
+              <label style={{ fontSize:"12px", fontWeight:700, color:"rgba(255,255,255,.55)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"6px", marginBottom:"6px" }}>
+                <Mail size={13} color="rgba(255,255,255,.4)"/> Email Address
+              </label>
               <div className="field-wrap">
                 <span className="field-icon"><Mail size={16}/></span>
-                <input className={`field-input${form.email && !form.email.includes("@") ? " error" : form.email.includes("@") ? " valid" : ""}`}
-                  type="email" placeholder="yourname@slit.lk"
-                  value={form.email} onChange={e => set("email", e.target.value)} autoComplete="email"/>
+                <input
+                  className={`field-input${form.email && !form.email.includes("@") ? " error" : form.email.includes("@") ? " valid" : ""}`}
+                  type="email"
+                  placeholder="yourname@slit.lk"
+                  value={form.email}
+                  onChange={e => set("email", e.target.value)}
+                  autoComplete="email"
+                />
               </div>
 
-              {/* Phone */}
-              <label style={{ fontSize:"12px", fontWeight:700, color:"rgba(255,255,255,.55)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"6px", marginBottom:"6px" }}><Phone size={13} color="rgba(255,255,255,.4)"/> Phone <span style={{ color:"rgba(255,255,255,.3)", fontWeight:400, textTransform:"none" }}>(optional)</span></label>
+              <label style={{ fontSize:"12px", fontWeight:700, color:"rgba(255,255,255,.55)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"6px", marginBottom:"6px" }}>
+                <Phone size={13} color="rgba(255,255,255,.4)"/> Phone
+              </label>
               <div className="field-wrap">
                 <span className="field-icon"><Phone size={16}/></span>
-                <input className="field-input" type="tel" placeholder="07X XXX XXXX"
-                  value={form.phone} onChange={e => set("phone", e.target.value)} autoComplete="tel"/>
+                <input
+                  className="field-input"
+                  type="tel"
+                  placeholder="07X XXX XXXX"
+                  value={form.phone}
+                  onChange={e => set("phone", e.target.value)}
+                  autoComplete="tel"
+                />
               </div>
 
-              {/* Password */}
-              <label style={{ fontSize:"12px", fontWeight:700, color:"rgba(255,255,255,.55)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"6px", marginBottom:"6px" }}><Lock size={13} color="rgba(255,255,255,.4)"/> Password</label>
+              <label style={{ fontSize:"12px", fontWeight:700, color:"rgba(255,255,255,.55)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"6px", marginBottom:"6px" }}>
+                <Lock size={13} color="rgba(255,255,255,.4)"/> Password
+              </label>
               <div className="field-wrap" style={{ marginBottom:"6px" }}>
                 <span className="field-icon"><Lock size={16}/></span>
-                <input className="field-input has-toggle" type={showPw ? "text" : "password"} placeholder="Min. 6 characters"
-                  value={form.password} onChange={e => set("password", e.target.value)} autoComplete="new-password"/>
+                <input
+                  className="field-input has-toggle"
+                  type={showPw ? "text" : "password"}
+                  placeholder="Min. 8 characters"
+                  value={form.password}
+                  onChange={e => set("password", e.target.value)}
+                  autoComplete="new-password"
+                />
                 <button type="button" className="toggle-eye" onClick={() => setShowPw(v => !v)}>
                   {showPw ? <EyeOff size={16}/> : <Eye size={16}/>}
                 </button>
               </div>
 
-              {/* Strength bar */}
               {form.password && (
                 <div style={{ marginBottom:"14px" }}>
                   <div className="strength-bar">
@@ -311,20 +320,24 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              {/* Confirm password */}
-              <label style={{ fontSize:"12px", fontWeight:700, color:"rgba(255,255,255,.55)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"6px", marginBottom:"6px" }}><Lock size={13} color="rgba(255,255,255,.4)"/> Confirm Password</label>
+              <label style={{ fontSize:"12px", fontWeight:700, color:"rgba(255,255,255,.55)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"6px", marginBottom:"6px" }}>
+                <Lock size={13} color="rgba(255,255,255,.4)"/> Confirm Password
+              </label>
               <div className="field-wrap">
                 <span className="field-icon"><Lock size={16}/></span>
                 <input
                   className={`field-input has-toggle${form.confirm && form.confirm !== form.password ? " error" : form.confirm && form.confirm === form.password ? " valid" : ""}`}
-                  type={showCf ? "text" : "password"} placeholder="Re-enter your password"
-                  value={form.confirm} onChange={e => set("confirm", e.target.value)} autoComplete="new-password"/>
+                  type={showCf ? "text" : "password"}
+                  placeholder="Re-enter your password"
+                  value={form.confirm}
+                  onChange={e => set("confirm", e.target.value)}
+                  autoComplete="new-password"
+                />
                 <button type="button" className="toggle-eye" onClick={() => setShowCf(v => !v)}>
                   {showCf ? <EyeOff size={16}/> : <Eye size={16}/>}
                 </button>
               </div>
 
-              {/* Submit */}
               <button type="submit" className="btn-submit" disabled={loading}>
                 {loading ? (
                   <div style={{ width:"18px", height:"18px", border:"2px solid rgba(7,9,26,.3)", borderTopColor:"#07091a", borderRadius:"50%", animation:"spin 0.7s linear infinite" }}/>
@@ -339,13 +352,15 @@ export default function RegisterPage() {
             </div>
 
             <Link to="/login" style={{ textDecoration:"none", display:"block" }}>
-              <button type="button" style={{
-                width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:"8px",
-                background:"rgba(255,255,255,.05)", border:"1.5px solid rgba(255,255,255,.1)",
-                borderRadius:"12px", padding:"12px", fontSize:"14px", fontWeight:700,
-                fontFamily:"Manrope,sans-serif", color:"rgba(255,255,255,.8)", cursor:"pointer",
-                transition:"all .22s"
-              }}
+              <button
+                type="button"
+                style={{
+                  width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:"8px",
+                  background:"rgba(255,255,255,.05)", border:"1.5px solid rgba(255,255,255,.1)",
+                  borderRadius:"12px", padding:"12px", fontSize:"14px", fontWeight:700,
+                  fontFamily:"Manrope,sans-serif", color:"rgba(255,255,255,.8)", cursor:"pointer",
+                  transition:"all .22s"
+                }}
                 onMouseOver={e => { e.currentTarget.style.borderColor="rgba(245,166,35,.4)"; e.currentTarget.style.color="#F5A623"; e.currentTarget.style.background="rgba(245,166,35,.06)"; }}
                 onMouseOut={e  => { e.currentTarget.style.borderColor="rgba(255,255,255,.1)"; e.currentTarget.style.color="rgba(255,255,255,.8)"; e.currentTarget.style.background="rgba(255,255,255,.05)"; }}
               >
@@ -363,7 +378,6 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Success overlay */}
       {success && (
         <div className="success-overlay">
           <div className="success-card">

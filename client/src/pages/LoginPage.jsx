@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, GraduationCap, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, GraduationCap } from "lucide-react";
 import unimateLogo from "../assets/unimatelogo.png";
+import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
@@ -118,6 +120,8 @@ const CSS = `
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [form, setForm]       = useState({ email:"", password:"" });
   const [showPw, setShowPw]   = useState(false);
   const [error, setError]     = useState("");
@@ -126,24 +130,29 @@ export default function LoginPage() {
 
   const set = (k, v) => { setForm(p => ({...p, [k]:v})); setError(""); };
 
-  const handleSubmit = async e => {
-    e.preventDefault();
-    if (!form.email)    return triggerError("Please enter your email address.");
-    if (!form.password) return triggerError("Please enter your password.");
-    if (!form.email.includes("@")) return triggerError("Please enter a valid email address.");
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
+  if (!form.email) return triggerError("Please enter your email address.");
+  if (!form.password) return triggerError("Please enter your password.");
+  if (!form.email.includes("@")) return triggerError("Please enter a valid email address.");
+
+  try {
     setLoading(true);
-    // Simulate API call
-    await new Promise(r => setTimeout(r, 1200));
-    setLoading(false);
 
-    // Demo: any credentials work — replace with real auth
-    if (form.password.length < 4) {
-      triggerError("Invalid email or password. Please try again.");
-    } else {
-      navigate("/dashboard");
-    }
-  };
+    const res = await api.post("/auth/login", {
+      email: form.email,
+      password: form.password,
+    });
+
+    login(res.data.data);
+    navigate("/dashboard");
+  } catch (err) {
+    triggerError(err.response?.data?.message || "Login failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const triggerError = msg => {
     setError(msg);
