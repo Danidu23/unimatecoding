@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
 import {
   ArrowLeft, ShoppingCart, Search, Clock, Star, Plus, Minus,
   X, MapPin, Timer, ChevronRight, CheckCircle, Bell, User,
@@ -387,7 +388,7 @@ const MENU = [
     ]
   },
   {
-    category: "Choupsy & Sides", icon: <Zap size={14}/>,
+    category: "Chopsuey & Sides", icon: <Zap size={14}/>,
     items: [
       { id:22, name:"Chicken Choupsy",         price:320, rating:4.8, img:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80", tags:["pop","spicy"], desc:"Crispy noodles with chicken in sweet chilli sauce", cal:560, time:"12 min" },
       { id:23, name:"Vegetable Choupsy",       price:260, rating:4.5, img:"https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=400&q=80", tags:["veg","pop"],  desc:"Crispy noodles with mixed vegetables & soy sauce",  cal:440, time:"10 min" },
@@ -407,6 +408,108 @@ const MENU = [
     ]
   },
 ];
+
+const CATEGORY_LABELS = {
+  rice_curry: "Rice & Curry",
+  kottu: "Kottu",
+  fried_rice: "Fried Rice",
+  additional_curries: "Additional Curries",
+  meats: "Meats",
+  chopsuey_sides: "Chopsuey & Sides",
+  beverages: "Beverages",
+};
+
+const CATEGORY_ORDER = [
+  "rice_curry",
+  "kottu",
+  "fried_rice",
+  "additional_curries",
+  "meats",
+  "chopsuey_sides",
+  "beverages",
+];
+
+const BACKEND_TAG_TO_UI = {
+  popular: "pop",
+  veg: "veg",
+  spicy: "spicy",
+  new: "new",
+  "best seller": "pop",
+  bestseller: "pop",
+  "chef's pick": "new",
+  "chef pick": "new",
+};
+
+const CATEGORY_ICONS = {
+  "Rice & Curry": <UtensilsCrossed size={14}/> ,
+  "Kottu": <Zap size={14}/> ,
+  "Fried Rice": <UtensilsCrossed size={14}/> ,
+  "Additional Curries": <Soup size={14}/> ,
+  "Meats": <Beef size={14}/> ,
+  "Chopsuey & Sides": <Zap size={14}/> ,
+  "Beverages": <CupSoda size={14}/> ,
+};
+
+const MENU_ITEM_META = MENU.flatMap(section =>
+  section.items.map(item => ({
+    ...item,
+    category: section.category,
+  }))
+).reduce((acc, item) => {
+  acc[item.name.toLowerCase()] = item;
+  return acc;
+}, {});
+
+const FALLBACK_ITEM_IMAGE = "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400&q=80";
+
+function normalizeBackendTags(tags = []) {
+  return tags
+    .map(tag => BACKEND_TAG_TO_UI[String(tag).trim().toLowerCase()])
+    .filter(Boolean);
+}
+
+function transformBackendMenu(items = []) {
+  const grouped = CATEGORY_ORDER.map((categoryKey) => ({
+    category: CATEGORY_LABELS[categoryKey],
+    icon: CATEGORY_ICONS[CATEGORY_LABELS[categoryKey]],
+    items: [],
+  }));
+
+  items.forEach((item) => {
+    const groupIndex = CATEGORY_ORDER.indexOf(item.category);
+    if (groupIndex === -1) return;
+
+    const meta = MENU_ITEM_META[item.name?.toLowerCase()] || {};
+
+    grouped[groupIndex].items.push({
+      id: item._id,
+      name: item.name,
+      price: item.price,
+      rating: meta.rating || 4.5,
+      img: meta.img || FALLBACK_ITEM_IMAGE,
+      tags: normalizeBackendTags(item.tags),
+      isAvailable: item.isAvailable !== false,
+      desc: item.description || meta.desc || "Freshly prepared item from the main canteen.",
+      cal: meta.cal,
+      time: meta.time || "8 min",
+    });
+  });
+
+  grouped.forEach((group) => {
+    group.items.sort((a, b) => {
+      const aPopular = a.tags.includes("pop") ? 1 : 0;
+      const bPopular = b.tags.includes("pop") ? 1 : 0;
+
+      if (aPopular !== bPopular) {
+        return bPopular - aPopular;
+      }
+
+      return a.name.localeCompare(b.name);
+    });
+  });
+
+  return grouped.filter(group => group.items.length > 0);
+}
 
 const TAGS = {
   spicy: { label:<><Flame size={9}/> Spicy</>,    cls:"tag-spicy" },
@@ -626,17 +729,22 @@ function CanteenSelector({ onSelect }) {
 /* ─────────────────────────────────────────────────────────────────────────────
    MENU PAGE
 ───────────────────────────────────────────────────────────────────────────── */
-function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
-  const [activeCategory, setActiveCategory] = useState(MENU[0].category);
+function MenuPage({ canteen, cart, onAdd, onRemove, onBack, menuSections, menuLoading, menuError }) {
+  const [activeCategory, setActiveCategory] = useState("");
   const [search, setSearch] = useState("");
   const sectionRefs = useRef({});
 
   const getQty = id => cart.find(c => c.id===id)?.qty || 0;
-  const allItems = MENU.flatMap(cat => cat.items.map(i => ({...i, category:cat.category})));
-  const searchResults = search ? allItems.filter(i =>
-    i.name.toLowerCase().includes(search.toLowerCase()) ||
-    i.desc.toLowerCase().includes(search.toLowerCase())
-  ) : null;
+  const allItems = useMemo(
+    () => menuSections.flatMap(cat => cat.items.map(i => ({ ...i, category: cat.category }))),
+    [menuSections]
+  );
+  const searchResults = search
+    ? allItems.filter(i =>
+        i.name.toLowerCase().includes(search.toLowerCase()) ||
+        i.desc.toLowerCase().includes(search.toLowerCase())
+      )
+    : null;
 
   const goToCategory = cat => {
     setActiveCategory(cat);
@@ -646,7 +754,7 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
 
   useEffect(() => {
     const fn = () => {
-      for (const cat of MENU.map(c => c.category)) {
+      for (const cat of menuSections.map(c => c.category)) {
         const el = sectionRefs.current[cat];
         if (!el) continue;
         const r = el.getBoundingClientRect();
@@ -655,7 +763,13 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
     };
     window.addEventListener("scroll", fn, { passive:true });
     return () => window.removeEventListener("scroll", fn);
-  }, []);
+  }, [menuSections]);
+
+  useEffect(() => {
+    if (menuSections.length > 0 && !menuSections.some(section => section.category === activeCategory)) {
+      setActiveCategory(menuSections[0].category);
+    }
+  }, [menuSections, activeCategory]);
 
   return (
     <div style={{ width:"100%", background:"#07091a", minHeight:"calc(100vh - 66px)" }}>
@@ -704,7 +818,7 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
         </div>
         {!search && (
           <div className="cat-scroll">
-            {MENU.map((cat,i) => (
+            {menuSections.map((cat,i) => (
               <button key={i} className={`cat-pill${activeCategory===cat.category?" active":""}`}
                 onClick={() => goToCategory(cat.category)}>
                 <span style={{ display:"flex", alignItems:"center" }}>{cat.icon}</span>
@@ -717,6 +831,18 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
 
       {/* Menu content */}
       <div style={{ maxWidth:"1100px", margin:"0 auto", padding:"32px clamp(20px,6vw,60px) 120px" }}>
+
+        {menuLoading && (
+          <div style={{ marginBottom:"16px", padding:"14px 16px", borderRadius:"12px", background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.08)", color:"rgba(255,255,255,.65)", fontSize:"13px" }}>
+            Loading main canteen menu...
+          </div>
+        )}
+
+        {menuError && (
+          <div style={{ marginBottom:"16px", padding:"14px 16px", borderRadius:"12px", background:"rgba(239,68,68,.08)", border:"1px solid rgba(239,68,68,.2)", color:"#f87171", fontSize:"13px" }}>
+            {menuError}
+          </div>
+        )}
 
         {/* Search results */}
         {search && (
@@ -740,7 +866,7 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
         )}
 
         {/* Category sections */}
-        {!search && MENU.map((cat,ci) => (
+        {!search && menuSections.map((cat,ci) => (
           <div key={ci} ref={el => sectionRefs.current[cat.category]=el} style={{ marginBottom:"40px" }}>
             {/* Section header */}
             <div className="sec-head">
@@ -766,12 +892,29 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
 /* ── Single menu item ─────────────────────────────────────────────────────── */
 function MenuItem({ item, qty, onAdd, onRemove }) {
   return (
-    <div className="menu-item">
+    <div
+      className="menu-item"
+      style={{
+        opacity: item.isAvailable === false ? 0.45 : 1,
+      }}
+    >
       {/* Text */}
       <div style={{ flex:1, minWidth:0 }}>
-        {item.tags.length > 0 && (
+        {(item.tags.length > 0 || item.isAvailable === false) && (
           <div style={{ display:"flex", gap:"5px", flexWrap:"wrap", marginBottom:"6px" }}>
-            {item.tags.map(t => <span key={t} className={`tag ${TAGS[t]?.cls}`}>{TAGS[t]?.label}</span>)}
+            {item.tags.map(t => (
+              <span key={t} className={`tag ${TAGS[t]?.cls}`}>
+                {TAGS[t]?.label}
+              </span>
+            ))}
+            {item.isAvailable === false && (
+              <span
+                className="tag"
+                style={{ background:"rgba(255,255,255,.10)", color:"rgba(255,255,255,.72)" }}
+              >
+                Unavailable
+              </span>
+            )}
           </div>
         )}
         <h4 style={{ fontSize:"15px", fontWeight:800, color:"#fff", fontFamily:"Manrope,sans-serif", marginBottom:"5px", lineHeight:1.3 }}>{item.name}</h4>
@@ -795,13 +938,39 @@ function MenuItem({ item, qty, onAdd, onRemove }) {
         <img className="menu-item-img" src={item.img} alt={item.name}
           onError={e => { e.target.src="https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400&q=80"; }}
         />
-        {qty === 0 ? (
-          <button className="add-btn" onClick={() => onAdd(item)}><Plus size={16}/></button>
+        {item.isAvailable === false ? (
+          <button
+            type="button"
+            disabled
+            style={{
+              minWidth:"96px",
+              height:"34px",
+              borderRadius:"999px",
+              background:"rgba(255,255,255,.08)",
+              color:"rgba(255,255,255,.55)",
+              fontSize:"12px",
+              fontWeight:800,
+              fontFamily:"Manrope,sans-serif",
+              cursor:"not-allowed",
+            }}
+          >
+            Unavailable
+          </button>
+        ) : qty === 0 ? (
+          <button className="add-btn" onClick={() => onAdd(item)}>
+            <Plus size={16}/>
+          </button>
         ) : (
           <div className="qty-row">
-            <button className="qty-btn qty-minus" onClick={() => onRemove(item.id)}><Minus size={12}/></button>
-            <span style={{ fontSize:"15px", fontWeight:900, color:"#fff", fontFamily:"Manrope,sans-serif", minWidth:"18px", textAlign:"center" }}>{qty}</span>
-            <button className="qty-btn qty-plus"  onClick={() => onAdd(item)}><Plus size={12}/></button>
+            <button className="qty-btn qty-minus" onClick={() => onRemove(item.id)}>
+              <Minus size={12}/>
+            </button>
+            <span style={{ fontSize:"15px", fontWeight:900, color:"#fff", fontFamily:"Manrope,sans-serif", minWidth:"18px", textAlign:"center" }}>
+              {qty}
+            </span>
+            <button className="qty-btn qty-plus" onClick={() => onAdd(item)}>
+              <Plus size={12}/>
+            </button>
           </div>
         )}
       </div>
@@ -1316,6 +1485,25 @@ export default function CanteenPage() {
   const [lastOrder, setLastOrder]     = useState([]);
   const [payMethod, setPayMethod]     = useState(null);
   const [orderId, setOrderId]         = useState(null);
+  const [mainMenuSections, setMainMenuSections] = useState(transformBackendMenu([]));
+  const [menuLoading, setMenuLoading] = useState(false);
+  const [menuError, setMenuError] = useState("");
+
+  const fetchMainCanteenMenu = async () => {
+    try {
+      setMenuLoading(true);
+      setMenuError("");
+
+      const res = await api.get("/menu");
+      const transformed = transformBackendMenu(res.data?.data || []);
+      setMainMenuSections(transformed);
+    } catch (err) {
+      setMenuError(err.response?.data?.message || "Failed to load main canteen menu.");
+      setMainMenuSections(transformBackendMenu([]));
+    } finally {
+      setMenuLoading(false);
+    }
+  };
 
   const addToCart = item => setCart(prev => {
     const ex = prev.find(c => c.id===item.id);
@@ -1326,6 +1514,12 @@ export default function CanteenPage() {
     if (!ex) return prev;
     return ex.qty===1 ? prev.filter(c => c.id!==id) : prev.map(c => c.id===id ? {...c,qty:c.qty-1} : c);
   });
+
+  useEffect(() => {
+    if (view === "menu" && canteen?.id === 1) {
+      fetchMainCanteenMenu();
+    }
+  }, [view, canteen]);
 
   // Cart → open payment modal
   const handleCheckout = () => {
@@ -1352,6 +1546,8 @@ export default function CanteenPage() {
   const handleSelectCanteen = c => { setCanteen(c); setCart([]); setView("menu"); window.scrollTo({top:0,behavior:"instant"}); };
   const handleBackToSelect  = () => { setView("select"); setCart([]); window.scrollTo({top:0,behavior:"instant"}); };
 
+  const currentMenuSections = canteen?.id === 1 && mainMenuSections.length > 0 ? mainMenuSections : MENU;
+
   const cartCount = cart.reduce((s,i) => s+i.qty, 0);
   const cartTotal = cart.reduce((s,i) => s+i.price*i.qty, 0) + 10;
 
@@ -1363,7 +1559,18 @@ export default function CanteenPage() {
 
         <div style={{ paddingTop:"66px" }}>
           {view==="select" && <CanteenSelector onSelect={handleSelectCanteen}/>}
-          {view==="menu"   && canteen && <MenuPage canteen={canteen} cart={cart} onAdd={addToCart} onRemove={removeFromCart} onBack={handleBackToSelect}/>}
+          {view==="menu"   && canteen && (
+            <MenuPage
+              canteen={canteen}
+              cart={cart}
+              onAdd={addToCart}
+              onRemove={removeFromCart}
+              onBack={handleBackToSelect}
+              menuSections={currentMenuSections}
+              menuLoading={canteen?.id === 1 ? menuLoading : false}
+              menuError={canteen?.id === 1 ? menuError : ""}
+            />
+          )}
         </div>
 
         {cartOpen && (
