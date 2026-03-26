@@ -270,12 +270,14 @@ export default function LoginPage() {
 
               {/* Forgot password */}
               <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:"24px", marginTop:"-8px" }}>
-                <a href="#" style={{ fontSize:"13px", color:"#F5A623", fontWeight:600, textDecoration:"none", transition:"opacity .2s" }}
+                <Link
+                  to="/forgot-password"
+                  style={{ fontSize:"13px", color:"#F5A623", fontWeight:600, textDecoration:"none", transition:"opacity .2s" }}
                   onMouseOver={e => e.currentTarget.style.opacity=".75"}
                   onMouseOut={e => e.currentTarget.style.opacity="1"}
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
 
               {/* Submit */}

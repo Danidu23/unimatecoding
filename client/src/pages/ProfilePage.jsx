@@ -267,6 +267,9 @@ export default function ProfilePage() {
   const [showPwModal, setShowPwModal] = useState(false);
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
   const [showPw, setShowPw] = useState({ current: false, next: false, confirm: false });
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState("");
+  const [pwSuccess, setPwSuccess] = useState("");
 
   const [notif, setNotif] = useState({
     orderUpdates: true,
@@ -281,6 +284,13 @@ export default function ProfilePage() {
   });
 
   const [orders, setOrders] = useState([]);
+
+  const resetPasswordModal = () => {
+  setPw({ current: "", next: "", confirm: "" });
+  setShowPw({ current: false, next: false, confirm: false });
+  setPwError("");
+  setPwSuccess("");
+};
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -356,6 +366,51 @@ export default function ProfilePage() {
     }
   };
 
+  const handleChangePassword = async () => {
+  setPwError("");
+  setPwSuccess("");
+
+  if (!pw.current || !pw.next || !pw.confirm) {
+    setPwError("Please fill all password fields.");
+    return;
+  }
+
+  if (pw.next.length < 8) {
+    setPwError("New password must be at least 8 characters.");
+    return;
+  }
+
+  if (pw.next !== pw.confirm) {
+    setPwError("New password and confirm password do not match.");
+    return;
+  }
+
+  if (pw.current === pw.next) {
+    setPwError("New password must be different from current password.");
+    return;
+  }
+
+  try {
+    setPwLoading(true);
+
+    const res = await api.put("/auth/change-password", {
+      currentPassword: pw.current,
+      newPassword: pw.next,
+    });
+
+    setPwSuccess(res.data.message || "Password changed successfully.");
+
+    setTimeout(() => {
+      resetPasswordModal();
+      setShowPwModal(false);
+    }, 1200);
+  } catch (err) {
+    setPwError(err.response?.data?.message || "Failed to change password.");
+  } finally {
+    setPwLoading(false);
+  }
+};
+
   const toggleNotif = (k) => setNotif((p) => ({ ...p, [k]: !p[k] }));
 
   const doLogout = () => {
@@ -426,7 +481,14 @@ export default function ProfilePage() {
                   <span style={{ transform: "rotate(180deg)" }}>➜</span>
                 </button>
 
-                <button className="qa-btn" type="button" onClick={() => setShowPwModal(true)}>
+                <button
+                  className="qa-btn"
+                  type="button"
+                  onClick={() => {
+                    resetPasswordModal();
+                    setShowPwModal(true);
+                  }}
+                >
                   <span className="qa-left">
                     <Lock size={16} color="#F5A623" />
                     Change Password
@@ -711,7 +773,14 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="quick-actions" style={{ marginTop: 0 }}>
-                    <button className="qa-btn" type="button" onClick={() => setShowPwModal(true)}>
+                    <button
+                      className="qa-btn"
+                      type="button"
+                      onClick={() => {
+                        resetPasswordModal();
+                        setShowPwModal(true);
+                      }}
+                    >
                       <span className="qa-left">
                         <Lock size={16} color="#F5A623" />
                         Change Password
@@ -742,10 +811,53 @@ export default function ProfilePage() {
                 <Lock size={18} color="#F5A623" />
                 Change Password
               </div>
-              <button className="btn btn-ghost" type="button" onClick={() => setShowPwModal(false)}>
+              <button className="btn btn-ghost" type="button" onClick={() => {
+                resetPasswordModal();
+                setShowPwModal(false);
+              }}>
                 <X size={16} />
               </button>
             </div>
+            
+            {pwError && (
+              <div
+                style={{
+                  marginBottom: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "10px 12px",
+                  borderRadius: "12px",
+                  background: "rgba(239,68,68,.10)",
+                  border: "1px solid rgba(239,68,68,.22)",
+                  color: "#f87171",
+                  fontSize: 13,
+                }}
+              >
+                <AlertCircle size={15} />
+                {pwError}
+              </div>
+            )}
+
+            {pwSuccess && (
+              <div
+                style={{
+                  marginBottom: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "10px 12px",
+                  borderRadius: "12px",
+                  background: "rgba(34,197,94,.10)",
+                  border: "1px solid rgba(34,197,94,.22)",
+                  color: "#4ade80",
+                  fontSize: 13,
+                }}
+              >
+                <CheckCircle2 size={15} />
+                {pwSuccess}
+              </div>
+            )}
 
             <div className="list">
               {[
@@ -783,17 +895,15 @@ export default function ProfilePage() {
             </div>
 
             <div className="btn-row" style={{ marginTop: 18, justifyContent: "flex-end" }}>
-              <button className="btn btn-ghost" type="button" onClick={() => setShowPwModal(false)}>
+              <button className="btn btn-ghost" type="button" onClick={() => {
+                resetPasswordModal();
+                setShowPwModal(false);
+              }}>
                 Cancel
               </button>
-              <button className="btn btn-primary" type="button">
-                Update Password
+              <button className="btn btn-primary" type="button" onClick={handleChangePassword} disabled={pwLoading}>
+                {pwLoading ? "Updating..." : "Update Password"}
               </button>
-            </div>
-
-            <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,.42)", fontSize: 12 }}>
-              <AlertCircle size={14} />
-              Change password backend integration comes next.
             </div>
           </div>
         </div>
