@@ -1,40 +1,57 @@
 const mongoose = require('mongoose');
 
+const MENU_CATEGORIES = [
+  'rice_curry',
+  'kottu',
+  'fried_rice',
+  'additional_curries',
+  'meats',
+  'chopsuey_sides',
+  'beverages',
+];
+
 const menuItemSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Item name is required'],
+      required: true,
       trim: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
     },
     description: {
       type: String,
       default: '',
       trim: true,
     },
-    price: {
-      type: Number,
-      required: [true, 'Price is required'],
-      min: [0, 'Price must be 0 or more'],
-    },
     category: {
       type: String,
-      required: [true, 'Category is required'],
-      trim: true,
+      required: true,
+      enum: MENU_CATEGORIES,
     },
-    image: {
-      type: String,
-      default: '',
-      trim: true,
+    tags: {
+      type: [String],
+      default: [],
     },
     isAvailable: {
       type: Boolean,
       default: true,
     },
+    canteen: {
+      type: String,
+      default: 'main',
+      enum: ['main'],
+    },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-module.exports = mongoose.model('MenuItem', menuItemSchema);
+const MenuItem = mongoose.model('MenuItem', menuItemSchema);
+
+module.exports = {
+  MenuItem,
+  MENU_CATEGORIES,
+};

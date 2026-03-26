@@ -1,4 +1,4 @@
-const MenuItem = require('../models/MenuItem');
+const { MenuItem, MENU_CATEGORIES } = require('../models/MenuItem');
 
 const getMenuItems = async (req, res) => {
   try {
@@ -13,6 +13,8 @@ const getMenuItems = async (req, res) => {
     if (available !== undefined) {
       filter.isAvailable = available === 'true';
     }
+
+    filter.canteen = 'main';
 
     const menuItems = await MenuItem.find(filter).sort({ createdAt: -1 });
 
@@ -31,7 +33,7 @@ const getMenuItems = async (req, res) => {
 
 const createMenuItem = async (req, res) => {
   try {
-    const { name, description, price, category, image } = req.body;
+    const { name, description, price, category, tags, isAvailable } = req.body;
 
     const errors = {};
 
@@ -41,6 +43,10 @@ const createMenuItem = async (req, res) => {
     }
     if (!category) errors.category = 'Category is required';
 
+    if (category && !MENU_CATEGORIES.includes(category)) {
+      errors.category = 'Invalid category';
+    }
+
     if (Object.keys(errors).length > 0) {
       return res.status(400).json({
         success: false,
@@ -49,13 +55,16 @@ const createMenuItem = async (req, res) => {
       });
     }
 
+    const normalizedTags = Array.isArray(tags) ? tags : [];
+
     const menuItem = await MenuItem.create({
       name,
       description: description || '',
       price,
       category,
-      image: image || '',
-      isAvailable: true,
+      tags: normalizedTags,
+      isAvailable: typeof isAvailable === 'boolean' ? isAvailable : true,
+      canteen: 'main',
     });
 
     return res.status(201).json({
@@ -74,7 +83,7 @@ const createMenuItem = async (req, res) => {
 const updateMenuItem = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, price, category, image } = req.body;
+    const { name, description, price, category, tags, isAvailable } = req.body;
 
     const menuItem = await MenuItem.findById(id);
 
@@ -85,11 +94,19 @@ const updateMenuItem = async (req, res) => {
       });
     }
 
+    if (category !== undefined && !MENU_CATEGORIES.includes(category)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid category',
+      });
+    }
+
     if (name !== undefined) menuItem.name = name;
     if (description !== undefined) menuItem.description = description;
     if (price !== undefined) menuItem.price = price;
     if (category !== undefined) menuItem.category = category;
-    if (image !== undefined) menuItem.image = image;
+    if (tags !== undefined) menuItem.tags = Array.isArray(tags) ? tags : [];
+    if (isAvailable !== undefined) menuItem.isAvailable = isAvailable;
 
     const updatedMenuItem = await menuItem.save();
 
