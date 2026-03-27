@@ -4,6 +4,7 @@ const router = express.Router();
 
 const {
   createOrder,
+  getPaymentReference,
   getMyOrdersFromOrdersRoute,
   getOrderById,
   cancelOrder,
@@ -44,6 +45,7 @@ const handleSlipUpload = (req, res, next) => {
   });
 };
 
+router.get('/payment-reference', protect, requireStudent, getPaymentReference);
 router.post('/', protect, requireStudent, handleSlipUpload, createOrder);
 router.get('/my', protect, requireStudent, getMyOrdersFromOrdersRoute);
 router.get('/', protect, requireStaff, getAllOrders);

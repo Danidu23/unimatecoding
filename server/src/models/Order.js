@@ -67,6 +67,11 @@ const orderSchema = new mongoose.Schema(
       ],
       required: true,
     },
+    paymentReference: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     orderStatus: {
       type: String,
       enum: ['pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled'],

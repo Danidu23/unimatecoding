@@ -18,10 +18,12 @@ import {
   Eye,
   EyeOff,
   UtensilsCrossed,
+  PackageCheck,
 } from "lucide-react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import AppHeader from "../components/AppHeader";
+import OrderTrackingModal from "../components/OrderTrackingModal";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap');
@@ -255,6 +257,51 @@ const CSS = `
   }
 `;
 
+const formatPaymentMethod = (method) => {
+  switch (method) {
+    case "cash":
+      return "Cash";
+    case "bank_transfer":
+      return "Bank Transfer";
+    default:
+      return method || "—";
+  }
+};
+
+const formatPaymentStatus = (status) => {
+  switch (status) {
+    case "pay_on_pickup":
+      return "Pay on Pickup";
+    case "payment_submitted":
+      return "Payment Submitted";
+    case "payment_verified":
+      return "Payment Verified";
+    case "payment_rejected":
+      return "Payment Rejected";
+    default:
+      return status || "—";
+  }
+};
+
+const formatOrderStatus = (status) => {
+  switch (status) {
+    case "pending":
+      return "Pending";
+    case "confirmed":
+      return "Confirmed";
+    case "preparing":
+      return "Preparing";
+    case "ready":
+      return "Ready for Pickup";
+    case "completed":
+      return "Completed";
+    case "cancelled":
+      return "Cancelled";
+    default:
+      return status || "—";
+  }
+};
+
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -271,6 +318,15 @@ export default function ProfilePage() {
   const [pwError, setPwError] = useState("");
   const [pwSuccess, setPwSuccess] = useState("");
 
+  const [cancelLoadingId, setCancelLoadingId] = useState("");
+  const [cancelError, setCancelError] = useState("");
+
+  const [trackingOrderId, setTrackingOrderId] = useState("");
+  const [trackedOrder, setTrackedOrder] = useState(null);
+  const [trackingOpen, setTrackingOpen] = useState(false);
+  const [trackingLoading, setTrackingLoading] = useState(false);
+  const [trackingError, setTrackingError] = useState("");
+
   const [notif, setNotif] = useState({
     orderUpdates: true,
     promotions: false,
@@ -286,11 +342,20 @@ export default function ProfilePage() {
   const [orders, setOrders] = useState([]);
 
   const resetPasswordModal = () => {
-  setPw({ current: "", next: "", confirm: "" });
-  setShowPw({ current: false, next: false, confirm: false });
-  setPwError("");
-  setPwSuccess("");
-};
+    setPw({ current: "", next: "", confirm: "" });
+    setShowPw({ current: false, next: false, confirm: false });
+    setPwError("");
+    setPwSuccess("");
+  };
+
+  const fetchMyOrders = async () => {
+    try {
+      const res = await api.get("/orders/my");
+      setOrders(res.data?.data || []);
+    } catch (err) {
+      console.error("Failed to load orders:", err);
+    }
+  };
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -299,7 +364,7 @@ export default function ProfilePage() {
 
         const [profileRes, ordersRes] = await Promise.all([
           api.get("/users/me"),
-          api.get("/users/me/orders"),
+          api.get("/orders/my"),
         ]);
 
         const profile = profileRes.data.data;
@@ -366,7 +431,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleChangePassword = async () => {
+const handleChangePassword = async () => {
   setPwError("");
   setPwSuccess("");
 
@@ -408,6 +473,38 @@ export default function ProfilePage() {
     setPwError(err.response?.data?.message || "Failed to change password.");
   } finally {
     setPwLoading(false);
+  }
+};
+
+const handleCancelOrder = async (orderId) => {
+  try {
+    setCancelLoadingId(orderId);
+    setCancelError("");
+
+    await api.patch(`/orders/${orderId}/cancel`);
+
+    await fetchMyOrders();
+  } catch (err) {
+    setCancelError(err.response?.data?.message || "Failed to cancel order.");
+  } finally {
+    setCancelLoadingId("");
+  }
+};
+
+const handleTrackOrder = async (orderId) => {
+  try {
+    setTrackingLoading(true);
+    setTrackingError("");
+    setTrackingOrderId(orderId);
+    setTrackingOpen(true);
+
+    const res = await api.get(`/orders/${orderId}`);
+    setTrackedOrder(res.data?.data || null);
+  } catch (err) {
+    setTrackingError(err.response?.data?.message || "Failed to load order tracking.");
+    setTrackedOrder(null);
+  } finally {
+    setTrackingLoading(false);
   }
 };
 
@@ -654,6 +751,22 @@ export default function ProfilePage() {
                     My Orders
                   </div>
                 </div>
+                {cancelError && (
+                  <div
+                    style={{
+                      marginBottom: "14px",
+                      padding: "10px 12px",
+                      borderRadius: "10px",
+                      background: "rgba(239,68,68,.10)",
+                      border: "1px solid rgba(239,68,68,.22)",
+                      color: "#f87171",
+                      fontSize: "12px",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {cancelError}
+                  </div>
+                )}
 
                 <div className="list">
                   {orders.length === 0 ? (
@@ -683,7 +796,7 @@ export default function ProfilePage() {
                           </p>
 
                           <p style={{ fontSize: "12px", color: "rgba(255,255,255,.45)" }}>
-                            {order.paymentMethod} · {order.paymentStatus}
+                            {formatPaymentMethod(order.paymentMethod)} • {formatPaymentStatus(order.paymentStatus)}
                           </p>
 
                           <p style={{ fontSize: "11px", color: "rgba(255,255,255,.3)", marginTop: "2px" }}>
@@ -695,6 +808,50 @@ export default function ProfilePage() {
                               Reason: {order.cancellationReason}
                             </p>
                           ) : null}
+
+                          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleTrackOrder(order._id)}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                padding: "8px 12px",
+                                borderRadius: "10px",
+                                border: "1px solid rgba(245,166,35,.25)",
+                                background: "rgba(245,166,35,.08)",
+                                color: "#F5A623",
+                                fontSize: "12px",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                              }}
+                            >
+                              <PackageCheck size={14} />
+                              Track Order
+                            </button>
+
+                            {order.orderStatus === "pending" && order.paymentMethod === "cash" && (
+                              <button
+                                type="button"
+                                onClick={() => handleCancelOrder(order._id)}
+                                disabled={cancelLoadingId === order._id}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: "10px",
+                                  border: "1px solid rgba(239,68,68,.25)",
+                                  background: "rgba(239,68,68,.08)",
+                                  color: "#f87171",
+                                  fontSize: "12px",
+                                  fontWeight: 700,
+                                  cursor: cancelLoadingId === order._id ? "not-allowed" : "pointer",
+                                  opacity: cancelLoadingId === order._id ? 0.6 : 1,
+                                }}
+                              >
+                                {cancelLoadingId === order._id ? "Cancelling..." : "Cancel Order"}
+                              </button>
+                            )}
+                          </div>
                         </div>
 
                         <span
@@ -723,7 +880,7 @@ export default function ProfilePage() {
                                 : "#60a5fa",
                           }}
                         >
-                          {order.orderStatus}
+                          {formatOrderStatus(order.orderStatus)}
                         </span>
                       </div>
                     ))
@@ -802,6 +959,23 @@ export default function ProfilePage() {
           </main>
         </div>
       </div>
+
+      {trackingOpen && (
+        <OrderTrackingModal
+          orderId={trackedOrder?._id || trackingOrderId}
+          canteenName="Main Canteen"
+          payMethod={trackedOrder?.paymentMethod || ""}
+          trackedOrder={trackedOrder}
+          trackingLoading={trackingLoading}
+          trackingError={trackingError}
+          onClose={() => {
+            setTrackingOpen(false);
+            setTrackedOrder(null);
+            setTrackingError("");
+            setTrackingOrderId("");
+          }}
+        />
+      )}
 
       {showPwModal && (
         <div className="overlay">

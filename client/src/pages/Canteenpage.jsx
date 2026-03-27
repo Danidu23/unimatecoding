@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../api/axios";
 import {
   ArrowLeft, ShoppingCart, Search, Clock, Star, Plus, Minus,
@@ -1072,15 +1072,37 @@ const BANK = {
   branch: "Maradana Branch",
   account: "8001234567",
   name: "SLIT Canteen Services",
-  ref: "Use your Order ID as reference",
 };
 
-function PaymentModal({ order, canteen, onConfirm, onClose }) {
+function PaymentModal({ order, canteen, onConfirm, onClose, placingOrder, orderError }) {
   const [method, setMethod] = useState(null);
   const [copied, setCopied] = useState(false);
   const [receipt, setReceipt] = useState(null);
+  const [paymentReference, setPaymentReference] = useState("");
+  const [loadingReference, setLoadingReference] = useState(false);
+  useEffect(() => {
+    const fetchPaymentReference = async () => {
+      try {
+        setLoadingReference(true);
+        const res = await api.get("/orders/payment-reference");
+        setPaymentReference(res.data?.data?.paymentReference || "");
+      } catch (error) {
+        setPaymentReference("");
+      } finally {
+        setLoadingReference(false);
+      }
+    };
+
+    if (method === "bank_transfer" && !paymentReference) {
+      fetchPaymentReference();
+    }
+
+    if (method !== "bank_transfer") {
+      setReceipt(null);
+      setPaymentReference("");
+    }
+  }, [method]);
   const total = order.reduce((s,i) => s+i.price*i.qty, 0) + 10;
-  const orderId = useRef("#CN" + Math.floor(1000+Math.random()*9000)).current;
 
   const copyAccount = () => {
     navigator.clipboard.writeText(BANK.account).then(() => {
@@ -1089,7 +1111,9 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
     });
   };
 
-  const canConfirm = method === "collect" || method === "bank";
+  const canConfirm =
+    method === "cash" ||
+    (method === "bank_transfer" && receipt && paymentReference && !loadingReference);
 
   return (
     <div className="modal-bg" onClick={onClose}>
@@ -1114,7 +1138,7 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
 
         <div style={{ padding:"0 26px 24px" }}>
           {/* Pay when collect */}
-          <div className={`pay-opt${method==="collect"?" selected":""}`} onClick={() => setMethod("collect")}>
+          <div className={`pay-opt${method==="cash"?" selected":""}`} onClick={() => setMethod("cash")}>
             <div className="pay-opt-icon">
               <HandCoins size={20} color="#F5A623"/>
             </div>
@@ -1124,14 +1148,14 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
             </div>
             <div style={{
               width:"18px", height:"18px", borderRadius:"50%", flexShrink:0,
-              border: method==="collect" ? "5px solid #F5A623" : "2px solid rgba(255,255,255,.2)",
-              background: method==="collect" ? "#F5A623" : "transparent",
+              border: method==="cash" ? "5px solid #F5A623" : "2px solid rgba(255,255,255,.2)",
+              background: method==="cash" ? "#F5A623" : "transparent",
               transition:"all .2s"
             }}/>
           </div>
 
           {/* Bank transfer */}
-          <div className={`pay-opt${method==="bank"?" selected":""}`} onClick={() => setMethod("bank")}>
+          <div className={`pay-opt${method==="bank_transfer"?" selected":""}`} onClick={() => setMethod("bank_transfer")}>
             <div className="pay-opt-icon">
               <Banknote size={20} color="#F5A623"/>
             </div>
@@ -1141,14 +1165,14 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
             </div>
             <div style={{
               width:"18px", height:"18px", borderRadius:"50%", flexShrink:0,
-              border: method==="bank" ? "5px solid #F5A623" : "2px solid rgba(255,255,255,.2)",
-              background: method==="bank" ? "#F5A623" : "transparent",
+              border: method==="bank_transfer" ? "5px solid #F5A623" : "2px solid rgba(255,255,255,.2)",
+              background: method==="bank_transfer" ? "#F5A623" : "transparent",
               transition:"all .2s"
             }}/>
           </div>
 
           {/* Bank details — shown when bank selected */}
-          {method === "bank" && (
+          {method === "bank_transfer" && (
             <div style={{ background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.09)", borderRadius:"14px", padding:"16px", marginBottom:"16px", animation:"trackReveal .3s ease both" }}>
               <p style={{ fontSize:"11px", fontWeight:800, color:"#F5A623", fontFamily:"Manrope,sans-serif", letterSpacing:"1px", textTransform:"uppercase", marginBottom:"14px" }}>Bank Details</p>
               {[
@@ -1156,7 +1180,7 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
                 ["Branch",      BANK.branch],
                 ["Account No.", BANK.account],
                 ["Account Name",BANK.name],
-                ["Reference",   orderId],
+                ["Reference",   loadingReference ? "Generating..." : paymentReference || "Not available"],
               ].map(([l,v],i) => (
                 <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: i<4 ? "10px":"0" }}>
                   <span style={{ fontSize:"12px", color:"rgba(255,255,255,.4)" }}>{l}</span>
@@ -1175,13 +1199,15 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
                 </div>
               ))}
               <div style={{ marginTop:"12px", paddingTop:"12px", borderTop:"1px solid rgba(255,255,255,.07)", display:"flex", alignItems:"flex-start", gap:"6px" }}>
-                <span style={{ fontSize:"11px", color:"#F5A623", lineHeight:1.7 }}>⚠ Transfer Rs. {total} and use your Order ID <strong>{orderId}</strong> as the payment reference. Your order will be prepared once payment is confirmed.</span>
+              <span style={{ fontSize:"11px", color:"#F5A623", lineHeight:1.7 }}>
+                ⚠ Transfer Rs. {total} and use reference <strong>{loadingReference ? "Generating..." : paymentReference || "Not available"}</strong> in your bank transfer. Your order will be prepared once payment is confirmed.
+              </span>
               </div>
             </div>
           )}
 
           {/* Receipt upload — only for bank transfer */}
-          {method === "bank" && (
+          {method === "bank_transfer" && (
             <div style={{ marginBottom:"14px", animation:"trackReveal .3s ease both" }}>
               <p style={{ fontSize:"11px", fontWeight:800, color:"rgba(255,255,255,.5)", fontFamily:"Manrope,sans-serif", letterSpacing:"1px", textTransform:"uppercase", marginBottom:"8px" }}>
                 Upload Payment Receipt
@@ -1229,15 +1255,44 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
             </div>
           )}
 
+          {orderError && (
+            <div
+              style={{
+                marginTop: "12px",
+                marginBottom: "12px",
+                padding: "10px 12px",
+                borderRadius: "10px",
+                background: "rgba(239,68,68,.10)",
+                border: "1px solid rgba(239,68,68,.22)",
+                color: "#f87171",
+                fontSize: "12px",
+                lineHeight: 1.6,
+              }}
+            >
+              {orderError}
+            </div>
+          )}
+
           {/* Confirm button */}
           <button
             className="btn-primary"
-            style={{ width:"100%", justifyContent:"center", padding:"15px", fontSize:"15px", opacity: canConfirm ? 1 : 0.45, cursor: canConfirm ? "pointer" : "not-allowed" }}
-            onClick={() => canConfirm && onConfirm(method, orderId)}
+            style={{
+              width: "100%",
+              justifyContent: "center",
+              padding: "15px",
+              fontSize: "15px",
+              opacity: canConfirm && !placingOrder ? 1 : 0.45,
+              cursor: canConfirm && !placingOrder ? "pointer" : "not-allowed",
+            }}
+            onClick={() => canConfirm && !placingOrder && onConfirm(method, receipt, paymentReference)}
           >
-            {method === null && "Select a payment method"}
-            {method === "collect" && <><HandCoins size={16}/> Confirm — Pay on Collect</>}
-            {method === "bank" && <><Banknote size={16}/> Confirm — Bank Transfer</>}
+            {placingOrder
+              ? "Placing Order..."
+              : method === null
+              ? "Select a payment method"
+              : method === "cash"
+              ? "Confirm — Pay on Collect"
+              : "Confirm — Bank Transfer"}
           </button>
         </div>
       </div>
@@ -1268,7 +1323,7 @@ function OrderConfirmedModal({ order, canteen, payMethod, orderId, onTrack, onCl
             {[
               ["Order ID",  orderId,                                   "#F5A623"],
               ["Canteen",   canteen?.name||"–",                        "rgba(255,255,255,.8)"],
-              ["Payment",   payMethod==="collect"?"Pay on Collect":"Bank Transfer", payMethod==="bank"?"#60a5fa":"#22c55e"],
+              ["Payment",   payMethod==="cash"?"Pay on Collect":"Bank Transfer", payMethod==="bank_transfer"?"#60a5fa":"#22c55e"],
               ["Total",     `Rs. ${total}`,                            "#F5A623"],
               ["Ready in",  canteen?.waitTime||"10–15 min",            "#22c55e"],
             ].map(([l,v,c],i) => (
@@ -1279,9 +1334,20 @@ function OrderConfirmedModal({ order, canteen, payMethod, orderId, onTrack, onCl
             ))}
           </div>
 
-          {payMethod === "bank" && (
-            <div style={{ background:"rgba(96,165,250,.08)", border:"1px solid rgba(96,165,250,.2)", borderRadius:"8px", padding:"8px 12px", marginBottom:"10px", fontSize:"11px", color:"rgba(255,255,255,.6)", lineHeight:1.65 }}>
-              💳 Please complete your bank transfer using Order ID <strong style={{ color:"#F5A623" }}>{orderId}</strong> as the reference. Your order will be prepared once we confirm receipt.
+          {payMethod === "bank_transfer" && (
+            <div
+              style={{
+                background:"rgba(96,165,250,.08)",
+                border:"1px solid rgba(96,165,250,.2)",
+                borderRadius:"8px",
+                padding:"8px 12px",
+                marginBottom:"10px",
+                fontSize:"11px",
+                color:"rgba(255,255,255,.6)",
+                lineHeight:1.65
+              }}
+            >
+              💳 Your payment slip has been submitted successfully. We’ll verify the payment and start preparing your order once it is confirmed.
             </div>
           )}
 
@@ -1306,49 +1372,69 @@ function OrderConfirmedModal({ order, canteen, payMethod, orderId, onTrack, onCl
 /* ─────────────────────────────────────────────────────────────────────────────
    ORDER TRACKING MODAL
 ───────────────────────────────────────────────────────────────────────────── */
-function TrackingModal({ orderId, canteen, payMethod, onClose }) {
-  const [activeStep, setActiveStep] = useState(1);
+function TrackingModal({ orderId, canteen, payMethod, trackedOrder, trackingLoading, trackingError, onClose }) {
 
-  // Auto-advance steps for demo
-  useEffect(() => {
-    const timers = [
-      setTimeout(() => setActiveStep(2), 3000),
-      setTimeout(() => setActiveStep(3), 7000),
-    ];
-    return () => timers.forEach(clearTimeout);
-  }, []);
+  const getTrackingStepFromStatus = (status) => {
+    switch (status) {
+      case "pending":
+        return 1;
+      case "confirmed":
+        return 2;
+      case "preparing":
+        return 3;
+      case "ready":
+        return 4;
+      case "completed":
+        return 5;
+      case "cancelled":
+        return 0;
+      default:
+        return 1;
+    }
+  };
+
+  const activeStep = getTrackingStepFromStatus(trackedOrder?.orderStatus);
 
   const steps = [
     {
-      icon: <CheckCircle size={15}/>,
+      icon: <CheckCircle size={15} />,
       label: "Order Confirmed",
       sub: "Your order has been received",
-      time: "Just now",
-      done: true,
-    },
-    {
-      icon: payMethod==="bank" ? <Banknote size={15}/> : <HandCoins size={15}/>,
-      label: payMethod==="bank" ? "Payment Verification" : "Payment on Collect",
-      sub: payMethod==="bank" ? "Verifying your bank transfer" : "Pay cash when you collect",
-      time: activeStep >= 2 ? "In progress" : "Pending",
-      done: activeStep >= 2,
+      time: activeStep >= 1 ? "Done" : "Pending",
+      done: activeStep >= 1,
       active: activeStep === 1,
     },
     {
-      icon: <ChefHat size={15}/>,
-      label: "Preparing Your Order",
-      sub: "The canteen is cooking your food",
-      time: activeStep >= 3 ? "In progress" : "Pending",
-      done: activeStep >= 3,
+      icon: payMethod === "bank_transfer" ? <Banknote size={15} /> : <HandCoins size={15} />,
+      label: payMethod === "bank_transfer" ? "Payment Verification" : "Payment on Collect",
+      sub: payMethod === "bank_transfer" ? "Waiting for payment verification" : "Pay cash when you collect",
+      time: activeStep >= 2 ? "In progress" : "Pending",
+      done: activeStep >= 2,
       active: activeStep === 2,
     },
     {
-      icon: <PackageCheck size={15}/>,
-      label: "Ready for Pickup",
-      sub: `Collect from ${canteen?.name||"canteen"}`,
-      time: "Estimated " + (canteen?.waitTime||"10–15 min"),
-      done: false,
+      icon: <ChefHat size={15} />,
+      label: "Preparing Your Order",
+      sub: "The canteen is preparing your food",
+      time: activeStep >= 3 ? "In progress" : "Pending",
+      done: activeStep >= 3,
       active: activeStep === 3,
+    },
+    {
+      icon: <PackageCheck size={15} />,
+      label: "Ready for Pickup",
+      sub: `Collect from ${canteen?.name || "canteen"}`,
+      time: activeStep >= 4 ? "Ready" : "Pending",
+      done: activeStep >= 4,
+      active: activeStep === 4,
+    },
+    {
+      icon: <CheckCircle size={15} />,
+      label: "Completed",
+      sub: "Order picked up successfully",
+      time: activeStep >= 5 ? "Done" : "Pending",
+      done: activeStep >= 5,
+      active: activeStep === 5,
     },
   ];
 
@@ -1369,6 +1455,56 @@ function TrackingModal({ orderId, canteen, payMethod, onClose }) {
             <span style={{ fontSize:"13px", color:"rgba(255,255,255,.45)" }}>{canteen?.name}</span>
           </div>
         </div>
+
+        {trackingLoading && (
+          <div
+            style={{
+              marginTop: "12px",
+              padding: "10px 12px",
+              borderRadius: "10px",
+              background: "rgba(255,255,255,.05)",
+              border: "1px solid rgba(255,255,255,.08)",
+              color: "rgba(255,255,255,.65)",
+              fontSize: "12px",
+            }}
+          >
+            Loading tracking details...
+          </div>
+        )}
+
+        {trackingError && (
+          <div
+            style={{
+              marginTop: "12px",
+              padding: "10px 12px",
+              borderRadius: "10px",
+              background: "rgba(239,68,68,.10)",
+              border: "1px solid rgba(239,68,68,.22)",
+              color: "#f87171",
+              fontSize: "12px",
+              lineHeight: 1.6,
+            }}
+          >
+            {trackingError}
+          </div>
+        )}
+
+        {trackedOrder?.orderStatus === "cancelled" && (
+          <div
+            style={{
+              marginTop: "12px",
+              padding: "10px 12px",
+              borderRadius: "10px",
+              background: "rgba(239,68,68,.10)",
+              border: "1px solid rgba(239,68,68,.22)",
+              color: "#f87171",
+              fontSize: "12px",
+              lineHeight: 1.6,
+            }}
+          >
+            This order has been cancelled.
+          </div>
+        )}
 
         {/* Timeline */}
         <div style={{ padding:"0 22px 16px", display:"flex", flexDirection:"column", gap:"0" }}>
@@ -1474,10 +1610,13 @@ function CancelConfirmModal({ orderId, onConfirmCancel, onDismiss }) {
 ───────────────────────────────────────────────────────────────────────────── */
 export default function CanteenPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [view, setView]               = useState("select");
   const [canteen, setCanteen]         = useState(null);
   const [cart, setCart]               = useState([]);
   const [cartOpen, setCartOpen]       = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
+  const [orderError, setOrderError] = useState("");
 
   // flow: null | "payment" | "confirmed" | "tracking" | "cancelConfirm"
   const [modal, setModal]             = useState(null);
@@ -1488,6 +1627,9 @@ export default function CanteenPage() {
   const [mainMenuSections, setMainMenuSections] = useState(transformBackendMenu([]));
   const [menuLoading, setMenuLoading] = useState(false);
   const [menuError, setMenuError] = useState("");
+  const [trackedOrder, setTrackedOrder] = useState(null);
+  const [trackingLoading, setTrackingLoading] = useState(false);
+  const [trackingError, setTrackingError] = useState("");
 
   const fetchMainCanteenMenu = async () => {
     try {
@@ -1521,23 +1663,157 @@ export default function CanteenPage() {
     }
   }, [view, canteen]);
 
+  const getTodayPickupDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const getTomorrowPickupDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const year = tomorrow.getFullYear();
+    const month = String(tomorrow.getMonth() + 1).padStart(2, "0");
+    const day = String(tomorrow.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
   // Cart → open payment modal
   const handleCheckout = () => {
-    setLastOrder([...cart]);
-    setCart([]);
-    setCartOpen(false);
+    if (cart.length === 0) return;
+    setOrderError("");
+    setLastOrder(cart);
     setModal("payment");
   };
 
-  // Payment confirmed → show order confirmed
-  const handlePayConfirm = (method, id) => {
-    setPayMethod(method);
-    setOrderId(id);
-    setModal("confirmed");
+  const submitCashOrder = async () => {
+    try {
+      setPlacingOrder(true);
+      setOrderError("");
+
+      const payload = {
+        items: cart.map((item) => ({
+          menuItemId: item.id,
+          quantity: item.qty,
+        })),
+        paymentMethod: "cash",
+        pickupDate: getTodayPickupDate(),
+      };
+
+      const res = await api.post("/orders", payload);
+
+      const createdOrder = res.data?.data;
+
+      setOrderId(createdOrder?._id || null);
+      setPayMethod("cash");
+      setModal("confirmed");
+      setCartOpen(false);
+      setCart([]);
+    } catch (err) {
+      setOrderError(err.response?.data?.message || "Failed to place order.");
+    } finally {
+      setPlacingOrder(false);
+    }
   };
 
+  const submitBankTransferOrder = async (receipt, paymentReference) => {
+    try {
+      setPlacingOrder(true);
+      setOrderError("");
+
+      const formData = new FormData();
+
+      formData.append(
+        "items",
+        JSON.stringify(
+          cart.map((item) => ({
+            menuItemId: item.id,
+            quantity: item.qty,
+          }))
+        )
+      );
+
+      formData.append("paymentMethod", "bank_transfer");
+      formData.append("pickupDate", getTomorrowPickupDate());
+      formData.append("paymentReference", paymentReference);
+      formData.append("slip", receipt);
+
+      const res = await api.post("/orders", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const createdOrder = res.data?.data;
+
+      setOrderId(createdOrder?._id || null);
+      setPayMethod("bank_transfer");
+      setModal("confirmed");
+      setCartOpen(false);
+      setCart([]);
+    } catch (err) {
+      setOrderError(err.response?.data?.message || "Failed to place bank transfer order.");
+    } finally {
+      setPlacingOrder(false);
+    }
+  };
+
+  // Payment confirmed → show order confirmed
+  const handlePayConfirm = async (method, receipt, paymentReference) => {
+    if (method === "cash") {
+      await submitCashOrder();
+      return;
+    }
+
+    if (method === "bank_transfer") {
+      await submitBankTransferOrder(receipt, paymentReference);
+      return;
+    }
+  };
+
+  const fetchTrackedOrder = async (orderIdValue) => {
+    try {
+      setTrackingLoading(true);
+      setTrackingError("");
+
+      const res = await api.get(`/orders/${orderIdValue}`);
+      setTrackedOrder(res.data?.data || null);
+    } catch (err) {
+      setTrackingError(err.response?.data?.message || "Failed to load order tracking.");
+      setTrackedOrder(null);
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const queryOrderId = searchParams.get("trackOrderId");
+
+    if (!queryOrderId) return;
+
+    const openTrackedOrderFromQuery = async () => {
+      await fetchTrackedOrder(queryOrderId);
+      setOrderId(queryOrderId);
+      setPayMethod("");
+      setCanteen(CANTEENS[0]);
+      setView("menu");
+      setModal("tracking");
+      setSearchParams({}, { replace: true });
+    };
+
+    openTrackedOrderFromQuery();
+  }, [searchParams]);
+
   // Track My Order clicked
-  const handleTrack = () => setModal("tracking");
+  const handleTrack = async () => {
+    if (!orderId) return;
+    await fetchTrackedOrder(orderId);
+    setModal("tracking");
+  };
 
   // Cancel order flow
   const handleCancelOrder   = () => setModal("cancelConfirm");
@@ -1586,11 +1862,17 @@ export default function CanteenPage() {
           </button>
         )}
 
-        {modal==="payment" && (
+        {modal === "payment" && (
           <PaymentModal
-            order={lastOrder} canteen={canteen}
+            order={lastOrder}
+            canteen={canteen}
             onConfirm={handlePayConfirm}
-            onClose={() => setModal(null)}
+            onClose={() => {
+              setOrderError("");
+              setModal(null);
+            }}
+            placingOrder={placingOrder}
+            orderError={orderError}
           />
         )}
 
@@ -1600,14 +1882,27 @@ export default function CanteenPage() {
             payMethod={payMethod} orderId={orderId}
             onTrack={handleTrack}
             onCancel={handleCancelOrder}
-            onClose={() => setModal(null)}
+            onClose={() => {
+              setModal(null);
+              setTrackedOrder(null);
+              setTrackingError("");
+            }}
           />
         )}
 
-        {modal==="tracking" && (
+        {modal === "tracking" && (
           <TrackingModal
-            orderId={orderId} canteen={canteen} payMethod={payMethod}
-            onClose={() => setModal(null)}
+            orderId={trackedOrder?._id || orderId}
+            canteen={canteen}
+            payMethod={trackedOrder?.paymentMethod || payMethod}
+            trackedOrder={trackedOrder}
+            trackingLoading={trackingLoading}
+            trackingError={trackingError}
+            onClose={() => {
+              setModal(null);
+              setTrackedOrder(null);
+              setTrackingError("");
+            }}
           />
         )}
 

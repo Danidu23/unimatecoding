@@ -1,15 +1,27 @@
 const Order = require('../models/Order');
-const MenuItem = require('../models/MenuItem');
+const { MenuItem } = require('../models/MenuItem');
 const {
   validateCashOrder,
   validateBankTransferOrder,
   canStudentCancel,
   isValidStatusTransition,
 } = require('../utils/orderRules');
+const generatePaymentReference = () => {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const random = Math.floor(100 + Math.random() * 900);
+
+  return `BT-${year}${month}${day}-${hours}${minutes}-${random}`;
+};
 
 const createOrder = async (req, res) => {
   try {
-    let { items, paymentMethod, pickupDate } = req.body;
+    let { items, paymentMethod, pickupDate, paymentReference } = req.body;
 
     if (typeof items === 'string') {
       items = JSON.parse(items);
@@ -40,6 +52,13 @@ const createOrder = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Invalid payment method',
+      });
+    }
+
+    if (paymentMethod === 'bank_transfer' && !paymentReference) {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment reference is required for bank transfer',
       });
     }
 
@@ -113,7 +132,8 @@ const createOrder = async (req, res) => {
       totalAmount,
       paymentMethod,
       paymentStatus:
-        paymentMethod === 'cash' ? 'pay_on_pickup' : 'payment_submitted',
+      paymentMethod === 'cash' ? 'pay_on_pickup' : 'payment_submitted',
+      paymentReference: paymentMethod === 'bank_transfer' ? paymentReference : '',
       orderStatus: 'pending',
       orderDate: new Date(),
       pickupDate: parsedPickupDate,
@@ -128,10 +148,30 @@ const createOrder = async (req, res) => {
           : 'Preorder placed successfully and waiting for payment verification',
       data: order,
     });
+    } catch (error) {
+      console.error("CREATE ORDER ERROR:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Server error while creating order",
+        error: error.message,
+      });
+    }
+};
+
+const getPaymentReference = async (req, res) => {
+  try {
+    const paymentReference = generatePaymentReference();
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        paymentReference,
+      },
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'Server error while creating order',
+      message: "Server error while generating payment reference",
     });
   }
 };
@@ -197,7 +237,7 @@ const getOrderById = async (req, res) => {
 const cancelOrder = async (req, res) => {
   try {
     const { id } = req.params;
-    const { reason } = req.body;
+    const { reason } = req.body || {};
 
     const order = await Order.findById(id);
 
@@ -216,10 +256,17 @@ const cancelOrder = async (req, res) => {
         });
       }
 
+      if (order.paymentMethod === 'bank_transfer') {
+        return res.status(400).json({
+          success: false,
+          message: 'Bank transfer orders cannot be cancelled online after payment submission. Please contact canteen staff.',
+        });
+      }
+
       if (!canStudentCancel(order)) {
         return res.status(400).json({
           success: false,
-          message: 'Student can cancel only pending orders',
+          message: 'Student can cancel only pending cash orders',
         });
       }
 
@@ -249,9 +296,11 @@ const cancelOrder = async (req, res) => {
       data: order,
     });
   } catch (error) {
+    console.error("CANCEL ORDER ERROR:", error);
     return res.status(500).json({
       success: false,
-      message: 'Server error while cancelling order',
+      message: "Server error while cancelling order",
+      error: error.message,
     });
   }
 };
@@ -352,8 +401,11 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   createOrder,
+  getPaymentReference,
   getMyOrdersFromOrdersRoute,
   getOrderById,
   cancelOrder,
