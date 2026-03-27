@@ -146,7 +146,13 @@ export default function LoginPage() {
     });
 
     login(res.data.data);
-    navigate("/dashboard");
+    const user = res.data?.data?.user;
+
+    if (user?.role === "staff") {
+      navigate("/staff");
+    } else {
+      navigate("/canteen");
+    }
   } catch (err) {
     triggerError(err.response?.data?.message || "Login failed");
   } finally {

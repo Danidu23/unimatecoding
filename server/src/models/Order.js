@@ -95,6 +95,11 @@ const orderSchema = new mongoose.Schema(
       enum: ['student', 'staff', null],
       default: null,
     },
+    paymentRejectionReason: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     cancellationReason: {
       type: String,
       default: '',

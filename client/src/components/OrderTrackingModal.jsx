@@ -199,6 +199,24 @@ export default function OrderTrackingModal({
           </div>
         )}
 
+        {trackedOrder?.paymentStatus === "payment_rejected" &&
+          trackedOrder?.paymentRejectionReason && (
+            <div
+              style={{
+                margin: "12px 22px 0",
+                padding: "10px 12px",
+                borderRadius: "10px",
+                background: "rgba(239,68,68,.10)",
+                border: "1px solid rgba(239,68,68,.22)",
+                color: "#f87171",
+                fontSize: "12px",
+                lineHeight: 1.6,
+              }}
+            >
+              Payment was rejected: {trackedOrder.paymentRejectionReason}
+            </div>
+        )}
+
         <div style={{ margin: "12px 22px 0", fontSize: "12px", color: "rgba(255,255,255,.55)" }}>
           Current Status: <strong style={{ color: "#fff" }}>{formatOrderStatus(trackedOrder?.orderStatus)}</strong>
         </div>

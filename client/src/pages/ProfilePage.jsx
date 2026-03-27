@@ -809,6 +809,19 @@ const handleTrackOrder = async (orderId) => {
                             </p>
                           ) : null}
 
+                          {order.paymentStatus === "payment_rejected" && order.paymentRejectionReason ? (
+                            <p
+                              style={{
+                                fontSize: "11px",
+                                color: "#f87171",
+                                marginTop: "6px",
+                                lineHeight: 1.6,
+                              }}
+                            >
+                              Payment Rejected: {order.paymentRejectionReason}
+                            </p>
+                          ) : null}
+
                           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
                             <button
                               type="button"

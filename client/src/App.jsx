@@ -7,6 +7,9 @@ import ProfilePage from './pages/ProfilePage'
 import ProtectedRoute from './components/ProtectedRoute'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+import StaffOrdersPage from './pages/StaffOrdersPage'
+import StaffMenuPage from './pages/StaffMenuPage'
+import StaffHomePage from "./pages/StaffHomePage";
 
 function App() {
   return (
@@ -40,6 +43,33 @@ function App() {
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/staff"
+          element={
+            <ProtectedRoute>
+              <StaffHomePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/staff/orders"
+          element={
+            <ProtectedRoute>
+              <StaffOrdersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/staff/menu"
+          element={
+            <ProtectedRoute>
+              <StaffMenuPage />
             </ProtectedRoute>
           }
         />
