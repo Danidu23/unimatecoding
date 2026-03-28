@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Mail, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
+import { Mail, ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
 import api from "../api/axios";
 
 const CSS = `
@@ -153,8 +153,16 @@ export default function ForgotPasswordPage() {
 
       const res = await api.post("/auth/forgot-password", { email });
 
-      setSuccess(res.data.message || "Reset link generated.");
-      setResetUrl(res.data.resetUrl || "");
+      const message = res.data?.message || "Reset link generated.";
+      const hasResetUrl = !!res.data?.resetUrl;
+
+      if (hasResetUrl) {
+        setSuccess(message);
+        setResetUrl(res.data.resetUrl || "");
+      } else {
+        setError(message);
+      }
+
     } catch (err) {
       setError(err.response?.data?.message || "Failed to process request.");
     } finally {

@@ -193,7 +193,7 @@ const forgotPassword = async (req, res) => {
     if (!user) {
       return res.status(200).json({
         success: true,
-        message: "If an account exists for this email, a reset link has been generated.",
+        message: "No account found for this email.",
       });
     }
 
@@ -209,7 +209,7 @@ const forgotPassword = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "If an account exists for this email, a reset link has been generated.",
+      message: "Password reset link generated",
       resetUrl,
     });
   } catch (error) {
