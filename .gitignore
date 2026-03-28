@@ -11,3 +11,5 @@ build
 
 server/src/uploads/payment-slips
 uploads/payment-slips
+
+.DS_Store
