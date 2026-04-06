@@ -1,10 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarDays, MapPin, Package } from 'lucide-react';
+import ReputationCard from '../components/ReputationCard';
+import { MOCK_REPUTATION } from '../data/lostFoundAdvanced';
 
 export default function MyReports() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('lost');
+  const [reputation, setReputation] = useState(MOCK_REPUTATION);
 
   const tabs = [
     { id: 'lost', label: 'Lost Items' },
@@ -194,6 +197,22 @@ export default function MyReports() {
                 >
                   View Details
                 </button>
+                {activeTab === 'found' ? (
+                  <button
+                    className="btn-outline"
+                    style={{ width: '100%', justifyContent: 'center', marginTop: '8px', padding: '10px 14px', fontSize: '12px' }}
+                    onClick={() =>
+                      setReputation((prev) => ({
+                        ...prev,
+                        itemsReturned: prev.itemsReturned + 1,
+                        points: prev.points + 30,
+                        trustScore: Math.min(100, prev.trustScore + 2)
+                      }))
+                    }
+                  >
+                    Mark As Returned (+Points)
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>
@@ -220,6 +239,10 @@ export default function MyReports() {
       </div>
 
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '22px clamp(20px,6vw,60px) 80px' }}>
+        <div style={{ marginBottom: '18px' }}>
+          <ReputationCard profile={reputation} />
+        </div>
+
         <div style={{ display: 'flex', gap: '18px', borderBottom: '1px solid rgba(255,255,255,.08)', overflowX: 'auto' }}>
           {tabs.map((tab) => (
             <button

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const foundItemSchema = new mongoose.Schema({
   itemName: { type: String, required: true },
@@ -10,4 +10,4 @@ const foundItemSchema = new mongoose.Schema({
   status: { type: String, enum: ['Pending', 'Claimed', 'Verified'], default: 'Pending' }
 }, { timestamps: true });
 
-export default mongoose.models.FoundItem || mongoose.model('FoundItem', foundItemSchema);
+module.exports = mongoose.models.FoundItem || mongoose.model('FoundItem', foundItemSchema);

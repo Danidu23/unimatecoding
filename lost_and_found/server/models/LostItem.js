@@ -1,7 +1,7 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const lostItemSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   itemName: { type: String, required: true },
   category: { type: String, required: true },
   lastSeenLocation: { type: String, required: true },
@@ -12,4 +12,4 @@ const lostItemSchema = new mongoose.Schema({
   status: { type: String, enum: ['Pending', 'Matched', 'Closed'], default: 'Pending' }
 }, { timestamps: true });
 
-export default mongoose.models.LostItem || mongoose.model('LostItem', lostItemSchema);
+module.exports = mongoose.models.LostItem || mongoose.model('LostItem', lostItemSchema);

@@ -1,11 +1,13 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, User, Info, Hand } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, User, Info, Hand, MessageCircle } from 'lucide-react';
 import { mockItems } from '../mockdata'; // Using mock data
+import { dynamicMatchesCache } from '../data/lostFoundAdvanced';
 
 export default function ItemDetails() {
   const { id } = useParams();
-  const item = mockItems.find(i => i.id === parseInt(id));
+  const numericId = parseInt(id);
+  const item = mockItems.find(i => i.id === numericId) || dynamicMatchesCache[numericId];
 
   if (!item) {
     return (
@@ -35,7 +37,7 @@ export default function ItemDetails() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(24px, 5vw, 60px)", alignItems: "flex-start" }}>
           {/* Image Section */}
           <div style={{ borderRadius: "24px", overflow: "hidden", border: "1px solid rgba(255,255,255,.1)", background: "#101222", aspectRatio: "4/3" }}>
-            <img src={item.image} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src={item.image || item.img} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
 
           {/* Details Section */}
@@ -65,6 +67,9 @@ export default function ItemDetails() {
             <div style={{ marginTop: "16px", background: "rgba(245, 166, 35, 0.05)", border: "1px solid rgba(245, 166, 35, 0.2)", borderRadius: "16px", padding: "24px" }}>
               <h4 style={{ fontSize: "18px", fontWeight: 800, color: "#fff", fontFamily: "Manrope,sans-serif", marginBottom: "8px" }}>This Item Might Be Mine</h4>
               <p style={{ fontSize: "14px", color: "rgba(255,255,255,.6)", marginBottom: "20px" }}>Submit a claim request with proof of ownership to replace this item.</p>
+              <Link to="/messages" className="btn-outline" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '12px', textDecoration: 'none', marginBottom: '10px' }}>
+                <MessageCircle size={16} /> Message Reporter
+              </Link>
               <Link to={`/claim/${item.id}`} className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '14px', textDecoration: 'none' }}>
                 <Hand size={18} />
                 Submit a Claim

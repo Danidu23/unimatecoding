@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PackageSearch, UploadCloud, Calendar, MapPin, Tag, Image as ImageIcon, Smartphone, Info } from 'lucide-react';
+import { PackageSearch, UploadCloud, Calendar, MapPin, Tag, Image as ImageIcon, Smartphone, Info, SearchCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
+import PotentialMatchesPanel from '../components/PotentialMatchesPanel';
+import { findPotentialMatches } from '../data/lostFoundAdvanced';
 
 const CATEGORIES = ['Electronics', 'Wallets & ID', 'Books & Notes', 'Clothing', 'Keys', 'Bags & Backpacks', 'Other'];
 const LOCATIONS = [
@@ -15,16 +17,25 @@ export default function ReportLostItem() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [possibleMatches, setPossibleMatches] = useState([]);
 
   const [formData, setFormData] = useState({
     title: '', category: '', location: '', date: '', time: '',
-    contactNo: '+94', desc: '', image: null
+    email: '', contactNo: '+94', desc: '', image: null
   });
+
+  const similarImageCards = [
+    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&q=80',
+    'https://images.unsplash.com/photo-1542751110-97427bbecf20?w=500&q=80',
+    'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=500&q=80'
+  ];
 
   const handleChange = (e) => {
     let { name, value } = e.target;
     if (name === 'contactNo' && !value.startsWith('+94')) value = '+94';
     setFormData(p => ({ ...p, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const handleDrag = (e) => {
@@ -54,14 +65,68 @@ export default function ReportLostItem() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const nextErrors = {};
+
+    if (formData.title.trim().length < 4) nextErrors.title = 'Title must be at least 4 characters.';
+    if (!formData.category) nextErrors.category = 'Please select a category.';
+    if (!formData.location) nextErrors.location = 'Please select a location.';
+    if (!formData.date) nextErrors.date = 'Please choose the lost date.';
+    if (formData.desc.trim().length < 25) nextErrors.desc = 'Description must be at least 25 characters.';
+    if (!/^\+94\d{9}$/.test(formData.contactNo)) nextErrors.contactNo = 'Phone must match +94XXXXXXXXX.';
+    if (!/^IT\d{8}@my\.sliit\.lk$/i.test(formData.email)) nextErrors.email = 'Must be a valid SLIIT email (IT********@my.sliit.lk).';
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const runSmartMatch = () => {
+    if (!formData.title || !formData.location || !formData.date) {
+      toast.error('Add title, location, and date to scan possible matches.');
+      return;
+    }
+    const matches = findPotentialMatches(formData);
+    setPossibleMatches(matches);
+    if (matches.length) {
+      toast.success(`${matches.length} potential matches found.`);
+    } else {
+      toast('No strong matches right now. We will keep scanning.');
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) {
+      toast.error('Please fix form errors before submitting.');
+      return;
+    }
+
     setIsSubmitting(true);
-    setTimeout(() => {
-      toast.success('Lost item reported successfully!');
+    const matches = findPotentialMatches(formData);
+    setPossibleMatches(matches);
+    
+    try {
+      const payload = { ...formData, image: imagePreview };
+      const response = await fetch('http://localhost:5000/api/items/lost', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success('Lost item reported successfully!');
+        navigate('/submission-success', { state: { itemType: 'Lost', possibleMatches: matches.length } });
+      } else {
+        toast.error(result.message || 'Failed to submit report');
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      toast.error('Network error. Please try again.');
+    } finally {
       setIsSubmitting(false);
-      navigate('/submission-success', { state: { itemType: 'Lost' } });
-    }, 1200);
+    }
   };
 
   return (
@@ -88,22 +153,25 @@ export default function ReportLostItem() {
           <div className="form-group">
             <label className="form-label">Item Title*</label>
             <input name="title" value={formData.title} onChange={handleChange} required placeholder="e.g. Blue Dell Laptop, Wallet with ID" className="form-input" />
+            {errors.title ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.title}</span> : null}
           </div>
 
           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: "20px" }}>
             <div className="form-group" style={{ flex: "1 1 calc(50% - 8px)", marginBottom: 0 }}>
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Tag size={13}/> Category*</label>
               <select name="category" value={formData.category} onChange={handleChange} required className="form-select">
-                <option value="" disabled>Select category</option>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                <option value="" disabled style={{ background: "#07091a", color: "#fff" }}>Select category</option>
+                {CATEGORIES.map(c => <option key={c} value={c} style={{ background: "#07091a", color: "#fff" }}>{c}</option>)}
               </select>
+              {errors.category ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.category}</span> : null}
             </div>
             <div className="form-group" style={{ flex: "1 1 calc(50% - 8px)", marginBottom: 0 }}>
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={13}/> Last Seen Location*</label>
               <select name="location" value={formData.location} onChange={handleChange} required className="form-select">
-                <option value="" disabled>Select SLIIT Location</option>
-                {LOCATIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                <option value="" disabled style={{ background: "#07091a", color: "#fff" }}>Select SLIIT Location</option>
+                {LOCATIONS.map(c => <option key={c} value={c} style={{ background: "#07091a", color: "#fff" }}>{c}</option>)}
               </select>
+              {errors.location ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.location}</span> : null}
             </div>
           </div>
 
@@ -111,6 +179,7 @@ export default function ReportLostItem() {
             <div className="form-group" style={{ flex: "1 1 calc(50% - 8px)", marginBottom: 0 }}>
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={13}/> Date Lost*</label>
               <input type="date" name="date" value={formData.date} onChange={handleChange} required max={new Date().toISOString().split('T')[0]} className="form-input" style={{ colorScheme: 'dark' }} />
+              {errors.date ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.date}</span> : null}
             </div>
             <div className="form-group" style={{ flex: "1 1 calc(50% - 8px)", marginBottom: 0 }}>
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Info size={13}/> Approximate Time</label>
@@ -128,6 +197,7 @@ export default function ReportLostItem() {
           <div className="form-group">
             <label className="form-label">Detailed Description*</label>
             <textarea name="desc" value={formData.desc} onChange={handleChange} required placeholder="Provide color, brand, distinct marks, serial numbers, etc." className="form-textarea"></textarea>
+            {errors.desc ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.desc}</span> : null}
           </div>
 
           <div className="form-group">
@@ -153,6 +223,21 @@ export default function ReportLostItem() {
             </div>
           </div>
 
+          <div style={{ marginTop: '8px', border: '1px solid rgba(245,166,35,.2)', borderRadius: '14px', padding: '16px', background: 'rgba(245,166,35,.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "rgba(245,166,35,.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <SearchCheck size={20} color="#F5A623" />
+              </div>
+              <div>
+                <p style={{ fontSize: '14px', color: '#fff', fontWeight: 800, fontFamily: 'Manrope,sans-serif', marginBottom: "2px" }}>Smart Match Scanning</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,.6)' }}>Automatically scans against all found items using your details.</p>
+              </div>
+            </div>
+            <button type="button" className="btn-outline" style={{ padding: '8px 14px', fontSize: '13px' }} onClick={runSmartMatch}>
+              Run Manual Scan
+            </button>
+          </div>
+
           <div className="sec-head" style={{ marginTop: "32px" }}>
             <span style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "16px", fontWeight: 800, color: "#fff", fontFamily: "Manrope,sans-serif" }}>
               <span style={{ color: "#F5A623", display: "flex" }}><Smartphone size={16}/></span> Contact Details
@@ -160,10 +245,17 @@ export default function ReportLostItem() {
             <div className="sec-line" />
           </div>
 
-          <div className="form-group">
-            <label className="form-label">WhatsApp / Phone Number*</label>
-            <input name="contactNo" value={formData.contactNo} onChange={handleChange} required placeholder="+94 XX XXX XXXX" className="form-input" 
-              pattern="^\+94\d{9}$" title="+94 followed by 9 digits" />
+          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+            <div className="form-group" style={{ flex: "1 1 calc(50% - 8px)" }}>
+              <label className="form-label">SLIIT Student Email*</label>
+              <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="IT********@my.sliit.lk" className="form-input" />
+              {errors.email ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.email}</span> : null}
+            </div>
+            <div className="form-group" style={{ flex: "1 1 calc(50% - 8px)" }}>
+              <label className="form-label">WhatsApp / Phone Number*</label>
+              <input name="contactNo" value={formData.contactNo} onChange={handleChange} required placeholder="+94 XX XXX XXXX" className="form-input" pattern="^\+94\d{9}$" title="+94 followed by 9 digits" />
+              {errors.contactNo ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.contactNo}</span> : null}
+            </div>
           </div>
 
           <div style={{ marginTop: "40px" }}>
@@ -171,6 +263,8 @@ export default function ReportLostItem() {
               {isSubmitting ? 'Submitting Report...' : 'Submit Lost Item Report'}
             </button>
           </div>
+
+          <PotentialMatchesPanel items={possibleMatches} onOpenItem={(itemId) => navigate(`/item/${itemId}`)} />
         </form>
       </div>
     </div>

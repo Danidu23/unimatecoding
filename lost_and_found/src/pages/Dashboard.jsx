@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Search, PackageSearch, PackagePlus, ListCheck, ClipboardList, Package, MapPin, Clock, ArrowRight, BellRing, ShieldCheck, BookOpenText, ScanSearch, Sparkles } from 'lucide-react';
-
+import { ChevronRight, Search, PackageSearch, PackagePlus, ListCheck, ClipboardList, Package, MapPin, Clock, ArrowRight, BellRing, ShieldCheck, BookOpenText, ScanSearch, Sparkles, MessageSquare } from 'lucide-react';
 export default function Dashboard() {
   const navigate = useNavigate();
   const today = new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric" });
@@ -42,22 +41,58 @@ export default function Dashboard() {
   ];
 
   const BOTTOM_QUICK_ACTIONS = [
+    { title: "Peer Messaging", subtitle: "Chat directly with finders or owners.", icon: <MessageSquare size={18} color="#F5A623" />, link: "/messages" },
     { title: "Lost Item Alerts", subtitle: "Get instant updates when similar items are found.", icon: <BellRing size={18} color="#F5A623" />, link: "/my-reports" },
     { title: "Verified Claims", subtitle: "Track validated claims and approval stages.", icon: <ShieldCheck size={18} color="#F5A623" />, link: "/my-reports" },
     { title: "Browse by Zones", subtitle: "Filter reports by faculty and hotspot locations.", icon: <MapPin size={18} color="#F5A623" />, link: "/browse" },
     { title: "Campus Handbook", subtitle: "See lost-and-found guidelines and best practices.", icon: <BookOpenText size={18} color="#F5A623" />, link: "/browse" },
-    { title: "Scan Quick Match", subtitle: "Find close matches using category and time clues.", icon: <ScanSearch size={18} color="#F5A623" />, link: "/browse" },
     { title: "Fast Report Wizard", subtitle: "Jump into a streamlined reporting experience.", icon: <Sparkles size={18} color="#F5A623" />, link: "/report-lost" }
   ];
 
-  const RECENT_ITEMS = [
-    { id: 1, type: 'lost', title: 'MacBook Air M1', location: 'New building library', time: '2 hours ago', status: 'pending', img: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80' },
-    { id: 2, type: 'found', title: 'Casio Watch', location: 'Sport Complex', time: '5 hours ago', status: 'verified', img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80' },
-    { id: 3, type: 'lost', title: 'Engineering Notebook', location: 'E-Block Lecture Hall', time: '8 hours ago', status: 'pending', img: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80' },
-    { id: 4, type: 'found', title: 'Blue JBL Earbuds', location: 'Main Canteen', time: '11 hours ago', status: 'verified', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80' },
-    { id: 5, type: 'lost', title: 'Student ID Card', location: 'Library Entrance', time: '1 day ago', status: 'pending', img: 'https://images.unsplash.com/photo-1616627455940-bf6d9eb9fcef?w=800&q=80' },
-    { id: 6, type: 'found', title: 'Black Water Bottle', location: 'Gym Complex', time: '1 day ago', status: 'verified', img: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=800&q=80' },
-  ];
+  const [recentItems, setRecentItems] = useState([]);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const [lostRes, foundRes] = await Promise.all([
+          fetch('http://localhost:5000/api/items/lost'),
+          fetch('http://localhost:5000/api/items/found')
+        ]);
+        const lostData = await lostRes.json();
+        const foundData = await foundRes.json();
+        
+        let combined = [];
+        if (lostData.success) {
+          combined = [...combined, ...lostData.data.map(i => ({
+            id: i._id,
+            type: 'lost',
+            title: i.itemName,
+            location: i.lastSeenLocation,
+            time: new Date(i.createdAt).toLocaleDateString(),
+            status: i.status ? i.status.toLowerCase() : 'pending',
+            img: i.image || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80'
+          }))];
+        }
+        if (foundData.success) {
+          combined = [...combined, ...foundData.data.map(i => ({
+            id: i._id,
+            type: 'found',
+            title: i.itemName,
+            location: i.locationFound,
+            time: new Date(i.createdAt).toLocaleDateString(),
+            status: i.status ? i.status.toLowerCase() : 'pending',
+            img: i.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'
+          }))];
+        }
+        
+        combined.sort((a,b) => new Date(b.time) - new Date(a.time));
+        setRecentItems(combined.slice(0, 5));
+      } catch (e) {
+        console.error('API Fetch error:', e);
+      }
+    };
+    fetchItems();
+  }, []);
 
   return (
     <div style={{ width: "100%", minHeight: "calc(100vh - 66px)", background: "#07091a" }}>
@@ -123,24 +158,21 @@ export default function Dashboard() {
       </div>
 
       {/* ── Quick Actions Grid ── */}
-      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px clamp(20px,6vw,60px)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(265px, 1fr))", gap: "22px" }}>
+      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px clamp(20px,6vw,60px)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 420px), 1fr))", gap: "32px" }}>
         {QUICK_ACTIONS.map((action, i) => (
-          <div key={i} className="hero-action-card" style={{ animation: `fadeUp .45s cubic-bezier(.22,.68,0,1.2) ${i * 0.1}s both`, cursor: "pointer" }} onClick={() => navigate(action.link)}>
-            <div style={{ position: "relative", borderRadius: "14px", overflow: "hidden", height: "168px", border: "1px solid rgba(255,255,255,.08)", marginBottom: "14px" }}>
-              <img src={action.img} alt={action.title} className="grid-item-img" style={{ height: "100%" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(7,9,26,.92) 5%, rgba(7,9,26,.15) 55%)" }} />
-              <div style={{ position: "absolute", left: "12px", bottom: "12px", display: "inline-flex", alignItems: "center", gap: "7px", background: "rgba(245,166,35,.14)", border: "1px solid rgba(245,166,35,.3)", borderRadius: "100px", padding: "4px 10px" }}>
-                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#F5A623" }} />
-                <span style={{ fontSize: "11px", color: "#F5A623", fontWeight: 700, fontFamily: "Manrope,sans-serif" }}>{action.accent}</span>
-              </div>
-              <div style={{ position: "absolute", top: "12px", right: "12px", width: "42px", height: "42px", borderRadius: "12px", background: "rgba(7,9,26,.65)", border: "1px solid rgba(255,255,255,.18)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
-                {action.icon}
+          <div key={i} className="hero-action-card" style={{ animation: `fadeUp .45s cubic-bezier(.22,.68,0,1.2) ${i * 0.1}s both`, cursor: "pointer", display: "flex", flexDirection: "column" }} onClick={() => navigate(action.link)}>
+            <div style={{ position: "relative", borderRadius: "16px", overflow: "hidden", height: "240px", border: "1px solid rgba(255,255,255,.08)", marginBottom: "20px", background: "rgba(0,0,0,0.2)" }}>
+              <img src={action.img} alt={action.title} className="grid-item-img" style={{ height: "100%", width: "100%", objectFit: "cover" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(7,9,26,.95) 5%, rgba(7,9,26,.1) 65%)" }} />
+              <div style={{ position: "absolute", left: "16px", bottom: "16px", display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(245,166,35,.15)", border: "1px solid rgba(245,166,35,.35)", borderRadius: "100px", padding: "6px 14px" }}>
+                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#F5A623" }} />
+                <span style={{ fontSize: "12px", color: "#F5A623", fontWeight: 800, fontFamily: "Manrope,sans-serif" }}>{action.accent}</span>
               </div>
             </div>
-            <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#fff", fontFamily: "Manrope,sans-serif", margin: 0 }}>{action.title}</h3>
-            <p style={{ fontSize: "13px", color: "rgba(255,255,255,.45)", lineHeight: 1.6 }}>{action.subtitle}</p>
-            <button className="btn-outline" style={{ marginTop: "auto", alignSelf: "flex-start", padding: "9px 14px", fontSize: "12px" }}>
-              Open Action <ArrowRight size={14} />
+            <h3 style={{ fontSize: "23px", fontWeight: 800, color: "#fff", fontFamily: "Manrope,sans-serif", margin: "0 0 10px 0" }}>{action.title}</h3>
+            <p style={{ fontSize: "15px", color: "rgba(255,255,255,.55)", lineHeight: 1.6, marginBottom: "20px" }}>{action.subtitle}</p>
+            <button className="btn-outline" style={{ marginTop: "auto", alignSelf: "flex-start", padding: "10px 18px", fontSize: "14px" }}>
+              Open Action <ArrowRight size={16} />
             </button>
           </div>
         ))}
@@ -213,17 +245,33 @@ export default function Dashboard() {
             </button>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "14px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "16px" }}>
             {BOTTOM_QUICK_ACTIONS.map((quick, i) => (
-              <div key={quick.title} className="bottom-quick-card" style={{ animation: `fadeUp .5s cubic-bezier(.22,.68,0,1.2) ${i * .08}s both` }} onClick={() => navigate(quick.link)}>
-                <div style={{ width: "40px", height: "40px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(245,166,35,.14)", border: "1px solid rgba(245,166,35,.28)" }}>
+              <div key={quick.title} className="bottom-quick-card" style={{ 
+                animation: `fadeUp .5s cubic-bezier(.22,.68,0,1.2) ${i * .08}s both`, 
+                cursor: "pointer",
+                display: "flex", 
+                alignItems: "center", 
+                gap: "18px", 
+                background: "rgba(255,255,255,.02)", 
+                border: "1px solid rgba(255,255,255,.06)", 
+                borderRadius: "16px", 
+                padding: "20px", 
+                transition: "all 0.3s ease",
+                position: "relative",
+                overflow: "hidden"
+              }} 
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,.05)'; e.currentTarget.style.borderColor = 'rgba(245,166,35,.3)' }} 
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.06)' }}
+              onClick={() => navigate(quick.link)}>
+                <div style={{ width: "48px", height: "48px", borderRadius: "14px", display: "flex", flexShrink: 0, alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, rgba(245,166,35,.2), rgba(245,166,35,.05))", border: "1px solid rgba(245,166,35,.2)" }}>
                   {quick.icon}
                 </div>
-                <h4 style={{ fontSize: "16px", color: "#fff", fontWeight: 800, fontFamily: "Manrope,sans-serif", margin: "12px 0 6px" }}>{quick.title}</h4>
-                <p style={{ fontSize: "12px", color: "rgba(255,255,255,.58)", lineHeight: 1.6 }}>{quick.subtitle}</p>
-                <span style={{ marginTop: "10px", display: "inline-flex", alignItems: "center", gap: "6px", color: "#F5A623", fontSize: "12px", fontWeight: 700, fontFamily: "Manrope,sans-serif" }}>
-                  Launch <ChevronRight size={13} />
-                </span>
+                <div style={{ flex: 1 }}>
+                  <h4 style={{ fontSize: "16px", color: "#fff", fontWeight: 800, fontFamily: "Manrope,sans-serif", margin: "0 0 6px 0" }}>{quick.title}</h4>
+                  <p style={{ fontSize: "13px", color: "rgba(255,255,255,.55)", lineHeight: 1.5, margin: 0 }}>{quick.subtitle}</p>
+                </div>
+                <ChevronRight size={18} color="rgba(255,255,255,.2)" style={{ flexShrink: 0, transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#F5A623"} onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,.2)"} />
               </div>
             ))}
           </div>

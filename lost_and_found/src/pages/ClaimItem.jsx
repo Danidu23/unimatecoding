@@ -1,21 +1,32 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { UploadCloud, AlertCircle, Hand } from 'lucide-react';
+import { UploadCloud, AlertCircle, Hand, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { mockItems } from '../mockdata';
+import { dynamicMatchesCache } from '../data/lostFoundAdvanced';
 
 export default function ClaimItem() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const item = mockItems.find(i => i.id === parseInt(id));
+  const numericId = parseInt(id);
+  const item = mockItems.find(i => i.id === numericId) || dynamicMatchesCache[numericId];
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
-  const [formData, setFormData] = useState({ explanation: '', identifier: '', image: null });
+  const [claimStatus, setClaimStatus] = useState('PENDING');
+  const [errors, setErrors] = useState({});
+  const [formData, setFormData] = useState({
+    explanation: '',
+    color: '',
+    brand: '',
+    identifier: '',
+    image: null
+  });
 
   const handleChange = (e) => {
     setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
+    setErrors((prev) => ({ ...prev, [e.target.name]: '' }));
   };
 
   const handleDrag = (e) => {
@@ -45,17 +56,31 @@ export default function ClaimItem() {
     reader.readAsDataURL(file);
   };
 
+  const validate = () => {
+    const next = {};
+    if (formData.explanation.trim().length < 20) next.explanation = 'Please provide at least 20 characters.';
+    if (!formData.color.trim()) next.color = 'Color is required.';
+    if (!formData.brand.trim()) next.brand = 'Brand is required.';
+    if (formData.identifier.trim().length < 4) next.identifier = 'Unique identifier is required.';
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.explanation.trim() || !formData.identifier.trim()) {
-      toast.error('Please fill out all required fields.');
+    if (!validate()) {
+      toast.error('Please fill all verification fields correctly.');
       return;
     }
+
     setIsSubmitting(true);
     setTimeout(() => {
+      const statuses = ['PENDING', 'APPROVED', 'REJECTED'];
+      const picked = statuses[Math.floor(Math.random() * statuses.length)];
+      setClaimStatus(picked);
       toast.success('Claim request submitted successfully!');
       setIsSubmitting(false);
-      navigate('/submission-success', { state: { message: 'Your claim has been submitted.', itemType: 'Claim' } });
+      navigate('/submission-success', { state: { message: `Your claim has been submitted. Status: ${picked}`, itemType: 'Claim' } });
     }, 1200);
   };
 
@@ -90,11 +115,26 @@ export default function ClaimItem() {
           <div className="form-group">
             <label className="form-label">Why does this item belong to you?*</label>
             <textarea name="explanation" value={formData.explanation} onChange={handleChange} required placeholder="Provide context on when and where you lost it..." className="form-textarea"></textarea>
+            {errors.explanation ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.explanation}</span> : null}
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <div className="form-group" style={{ flex: '1 1 180px' }}>
+              <label className="form-label">Color*</label>
+              <input name="color" value={formData.color} onChange={handleChange} placeholder="e.g. Matte Black" className="form-input" />
+              {errors.color ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.color}</span> : null}
+            </div>
+            <div className="form-group" style={{ flex: '1 1 180px' }}>
+              <label className="form-label">Brand*</label>
+              <input name="brand" value={formData.brand} onChange={handleChange} placeholder="e.g. Dell, Apple, Casio" className="form-input" />
+              {errors.brand ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.brand}</span> : null}
+            </div>
           </div>
 
           <div className="form-group">
             <label className="form-label">Unique Identifier Description*</label>
             <input name="identifier" value={formData.identifier} onChange={handleChange} required placeholder="e.g., Sticker on back, specific scratch, wallpaper" className="form-input" />
+            {errors.identifier ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.identifier}</span> : null}
           </div>
 
           <div className="form-group">
@@ -127,6 +167,13 @@ export default function ClaimItem() {
             <button type="submit" disabled={isSubmitting} className="btn-primary" style={{ width: "100%", justifyContent: "center", padding: "16px", fontSize: "16px" }}>
               {isSubmitting ? 'Submitting...' : 'Submit Claim'}
             </button>
+          </div>
+
+          <div style={{ marginTop: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,.1)', background: 'rgba(255,255,255,.02)', padding: '12px 14px' }}>
+            <p style={{ color: 'rgba(255,255,255,.55)', fontSize: '12px', marginBottom: '8px' }}>Claim Verification Status</p>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', borderRadius: '999px', padding: '4px 10px', fontSize: '11px', fontWeight: 800, border: `1px solid ${claimStatus === 'APPROVED' ? 'rgba(34,197,94,.4)' : claimStatus === 'REJECTED' ? 'rgba(239,68,68,.4)' : 'rgba(245,166,35,.4)'}`, color: claimStatus === 'APPROVED' ? '#22c55e' : claimStatus === 'REJECTED' ? '#ef4444' : '#F5A623', background: claimStatus === 'APPROVED' ? 'rgba(34,197,94,.12)' : claimStatus === 'REJECTED' ? 'rgba(239,68,68,.12)' : 'rgba(245,166,35,.12)' }}>
+              <ShieldCheck size={12} /> {claimStatus}
+            </span>
           </div>
         </form>
       </div>

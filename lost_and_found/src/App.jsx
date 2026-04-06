@@ -10,6 +10,9 @@ import ItemDetails from './pages/ItemDetails';
 import ClaimItem from './pages/ClaimItem';
 import MyReports from './pages/MyReports';
 import SubmissionSuccess from './pages/SubmissionSuccess';
+import Messages from './pages/Messages';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminLogin from './pages/AdminLogin';
 
 function App() {
   return (
@@ -30,7 +33,10 @@ function App() {
           <Route path="item/:id" element={<ItemDetails />} />
           <Route path="claim/:id" element={<ClaimItem />} />
           <Route path="my-reports" element={<MyReports />} />
+          <Route path="messages" element={<Messages />} />
           <Route path="submission-success" element={<SubmissionSuccess />} />
+          <Route path="admin" element={<AdminDashboard />} />
+          <Route path="admin-login" element={<AdminLogin />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Clock, X, Filter, ChevronRight, PackageSearch } from 'lucide-react';
+import { LOCATION_FILTERS, mapLocationToZone } from '../data/lostFoundAdvanced';
 
 const CATEGORIES = ['All', 'Electronics', 'Wallets & ID', 'Books & Notes', 'Clothing', 'Keys', 'Bags & Backpacks', 'Other'];
 
@@ -17,12 +18,15 @@ export default function BrowseItems() {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeType, setActiveType] = useState('all');
+  const [locationZone, setLocationZone] = useState('ALL');
 
   const filteredItems = MOCK_ITEMS.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase()) || item.desc.toLowerCase().includes(search.toLowerCase()) || item.location.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
     const matchesType = activeType === 'all' || item.type === activeType;
-    return matchesSearch && matchesCategory && matchesType;
+    const mapped = mapLocationToZone(item.location);
+    const matchesZone = locationZone === 'ALL' || mapped === locationZone;
+    return matchesSearch && matchesCategory && matchesType && matchesZone;
   });
 
   return (
@@ -77,6 +81,35 @@ export default function BrowseItems() {
 
         </div>
 
+        <div style={{ maxWidth: '1100px', margin: '12px auto 0', display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {LOCATION_FILTERS.map((zone) => (
+              <button
+                key={zone}
+                onClick={() => setLocationZone(zone)}
+                style={{
+                  borderRadius: '999px',
+                  padding: '7px 12px',
+                  border: `1px solid ${locationZone === zone ? 'rgba(245,166,35,.5)' : 'rgba(255,255,255,.16)'}`,
+                  background: locationZone === zone ? 'rgba(245,166,35,.14)' : 'rgba(255,255,255,.04)',
+                  color: locationZone === zone ? '#F5A623' : 'rgba(255,255,255,.62)',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  letterSpacing: '.2px'
+                }}
+              >
+                {zone}
+              </button>
+            ))}
+          </div>
+
+          <select className="form-select" value={locationZone} onChange={(e) => setLocationZone(e.target.value)} style={{ maxWidth: '200px', margin: 0, padding: '8px 10px' }}>
+            {LOCATION_FILTERS.map((zone) => (
+              <option key={zone} value={zone}>{zone}</option>
+            ))}
+          </select>
+        </div>
+
         <div style={{ maxWidth: "1100px", margin: "16px auto 0" }}>
           <div className="cat-scroll">
             {CATEGORIES.map(cat => (
@@ -105,7 +138,7 @@ export default function BrowseItems() {
             <Search size={48} style={{ display: "block", margin: "0 auto 16px", color: "rgba(255,255,255,.15)" }} />
             <p style={{ fontSize: "18px", fontWeight: 800, color: "#fff", fontFamily: "Manrope,sans-serif", marginBottom: "6px" }}>No items found</p>
             <p style={{ fontSize: "14px", color: "rgba(255,255,255,.4)" }}>We couldn't find anything matching your filters.</p>
-            <button className="btn-outline" style={{ marginTop: "24px" }} onClick={() => { setSearch(''); setActiveCategory('All'); setActiveType('all'); }}>
+            <button className="btn-outline" style={{ marginTop: "24px" }} onClick={() => { setSearch(''); setActiveCategory('All'); setActiveType('all'); setLocationZone('ALL'); }}>
               Clear Filters
             </button>
           </div>
@@ -124,6 +157,7 @@ export default function BrowseItems() {
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
                     <span className="tag" style={{ background: "rgba(255,255,255,.1)", color: "#fff" }}>{item.category}</span>
                     <span className={`tag ${item.status === 'verified' ? 'tag-verified' : 'tag-pending'}`}>{item.status}</span>
+                    {mapLocationToZone(item.location) !== 'ALL' ? <span className="tag" style={{ background: 'rgba(245,166,35,.14)', color: '#F5A623', border: '1px solid rgba(245,166,35,.25)' }}>{mapLocationToZone(item.location)}</span> : null}
                   </div>
                   
                   <h3 style={{ fontSize: "18px", fontWeight: 900, color: "#fff", fontFamily: "Manrope,sans-serif", marginBottom: "6px" }}>{item.title}</h3>
