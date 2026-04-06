@@ -2,82 +2,98 @@ const Slot = require('../models/Slot');
 const Booking = require('../models/Booking');
 const FacilityService = require('../models/FacilityService');
 
-// @desc    Get available slots
+// Helper function to generate slots for a facility on a specific date
+const generateSlotsHelper = async (facilityServiceId, date) => {
+    const facility = await FacilityService.findById(facilityServiceId);
+    if (!facility) {
+        throw new Error('Facility not found');
+    }
+
+    const openTime = facility.operatingHours.open; // e.g., "08:00"
+    const closeTime = facility.operatingHours.close; // e.g., "20:00"
+    const duration = facility.slotDurationMinutes; // e.g., 60
+
+    let openHour = parseInt(openTime.split(':')[0]);
+    let openMin = parseInt(openTime.split(':')[1]);
+    const closeHour = parseInt(closeTime.split(':')[0]);
+    const closeMin = parseInt(closeTime.split(':')[1]);
+
+    let currentTotalMins = openHour * 60 + openMin;
+    const closeTotalMins = closeHour * 60 + closeMin;
+
+    const generatedSlots = [];
+
+    while (currentTotalMins + duration <= closeTotalMins) {
+        const sh = Math.floor(currentTotalMins / 60).toString().padStart(2, '0');
+        const sm = (currentTotalMins % 60).toString().padStart(2, '0');
+        const startTime = `${sh}:${sm}`;
+        
+        currentTotalMins += duration;
+        
+        const eh = Math.floor(currentTotalMins / 60).toString().padStart(2, '0');
+        const em = (currentTotalMins % 60).toString().padStart(2, '0');
+        const endTime = `${eh}:${em}`;
+
+        // Check if slot already exists
+        const exists = await Slot.findOne({ facilityServiceId, date, startTime });
+        if (!exists) {
+            generatedSlots.push({
+                facilityServiceId,
+                date,
+                startTime,
+                endTime,
+                capacity: facility.capacity,
+                status: 'available'
+            });
+        }
+    }
+
+    if (generatedSlots.length > 0) {
+        return await Slot.insertMany(generatedSlots);
+    }
+    return [];
+};
+
+// @desc    Get available slots (automatically generates if none exist)
 // @route   GET /api/slots
 // @access  Public / Student
 const getSlots = async (req, res) => {
     try {
         const { date, facilityServiceId } = req.query;
-        let query = {};
-        
-        if (date) query.date = date;
-        if (facilityServiceId) query.facilityServiceId = facilityServiceId;
+        if (!facilityServiceId || !date) {
+            return res.status(400).json({ message: 'facilityServiceId and date are required' });
+        }
 
-        const slots = await Slot.find(query).sort({ startTime: 1 });
+        let slots = await Slot.find({ facilityServiceId, date }).sort({ startTime: 1 });
+        
+        // If no slots exist for this date, auto-generate them
+        if (slots.length === 0) {
+            await generateSlotsHelper(facilityServiceId, date);
+            // Fetch again after generation
+            slots = await Slot.find({ facilityServiceId, date }).sort({ startTime: 1 });
+        }
+
         res.json(slots);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Generate slots for a facility
+// @desc    Generate slots for a facility (Admin/Staff manual trigger)
 // @route   POST /api/slots/generate
 // @access  Admin/Staff
 const generateSlots = async (req, res) => {
     try {
         const { facilityServiceId, date } = req.body;
+        const created = await generateSlotsHelper(facilityServiceId, date);
         
-        const facility = await FacilityService.findById(facilityServiceId);
-        if (!facility) {
-            return res.status(404).json({ message: 'Facility not found' });
-        }
-
-        const openTime = facility.operatingHours.open; // e.g., "08:00"
-        const closeTime = facility.operatingHours.close; // e.g., "20:00"
-        const duration = facility.slotDurationMinutes; // e.g., 60
-
-        let openHour = parseInt(openTime.split(':')[0]);
-        let openMin = parseInt(openTime.split(':')[1]);
-        const closeHour = parseInt(closeTime.split(':')[0]);
-        const closeMin = parseInt(closeTime.split(':')[1]);
-
-        let currentTotalMins = openHour * 60 + openMin;
-        const closeTotalMins = closeHour * 60 + closeMin;
-
-        const generatedSlots = [];
-
-        while (currentTotalMins + duration <= closeTotalMins) {
-            const sh = Math.floor(currentTotalMins / 60).toString().padStart(2, '0');
-            const sm = (currentTotalMins % 60).toString().padStart(2, '0');
-            const startTime = `${sh}:${sm}`;
-            
-            currentTotalMins += duration;
-            
-            const eh = Math.floor(currentTotalMins / 60).toString().padStart(2, '0');
-            const em = (currentTotalMins % 60).toString().padStart(2, '0');
-            const endTime = `${eh}:${em}`;
-
-            // Check if slot already exists
-            const exists = await Slot.findOne({ facilityServiceId, date, startTime });
-            if (!exists) {
-                generatedSlots.push({
-                    facilityServiceId,
-                    date,
-                    startTime,
-                    endTime,
-                    capacity: facility.capacity,
-                    status: 'available'
-                });
-            }
-        }
-
-        if (generatedSlots.length > 0) {
-            const created = await Slot.insertMany(generatedSlots);
+        if (created.length > 0) {
             res.status(201).json(created);
         } else {
-            res.status(200).json({ message: 'Slots already exist or no slots to generate' });
+            // If some exist, return what exists for that date
+            const existing = await Slot.find({ facilityServiceId, date }).sort({ startTime: 1 });
+            res.status(200).json(existing.length > 0 ? existing : { message: 'No slots to generate' });
         }
-
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

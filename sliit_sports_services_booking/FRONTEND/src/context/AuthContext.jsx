@@ -28,7 +28,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('sports_user', JSON.stringify(data));
       return data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Invalid email or password');
+      if (!error.response) {
+        throw new Error('Server unreachable. Please ensure the backend is running.');
+      }
+      throw new Error(error.response.data?.message || 'Invalid email or password');
     }
   };
 
