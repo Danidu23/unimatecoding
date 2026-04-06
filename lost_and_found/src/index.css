@@ -34,6 +34,7 @@ button { font-family:inherit; cursor:pointer; border:none; }
 @keyframes slideInUp     { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
 @keyframes popIn         { from{transform:scale(.65);opacity:0} to{transform:scale(1);opacity:1} }
 @keyframes wiggle        { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg)} 75%{transform:rotate(10deg)} }
+@keyframes cardGlowPulse { 0%,100%{box-shadow:0 0 0 rgba(245,166,35,0)} 50%{box-shadow:0 8px 34px rgba(245,166,35,.2)} }
 
 /* ── Navbar ── */
 .c-nav {
@@ -161,6 +162,39 @@ button { font-family:inherit; cursor:pointer; border:none; }
 }
 .grid-item:hover .grid-item-img { transform:scale(1.02); }
 
+.hero-action-card {
+  display:flex; flex-direction:column; gap:8px;
+  background:linear-gradient(170deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
+  border:1.5px solid rgba(255,255,255,.09);
+  border-radius:20px;
+  padding:16px;
+  min-height:360px;
+  transition:transform .3s cubic-bezier(.22,.68,0,1.2), border-color .24s, box-shadow .24s, background .24s;
+}
+.hero-action-card:hover {
+  transform:translateY(-5px);
+  border-color:rgba(245,166,35,.45);
+  background:linear-gradient(170deg, rgba(245,166,35,.08), rgba(255,255,255,.03));
+  box-shadow:0 12px 50px rgba(245,166,35,.12);
+  animation:cardGlowPulse 1.4s ease-in-out;
+}
+.hero-action-card:hover .grid-item-img { transform:scale(1.08); }
+
+.bottom-quick-card {
+  cursor:pointer;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;
+  padding:16px;
+  transition:all .24s cubic-bezier(.22,.68,0,1.2);
+}
+.bottom-quick-card:hover {
+  border-color:rgba(245,166,35,.42);
+  background:rgba(245,166,35,.07);
+  transform:translateY(-3px);
+  box-shadow:0 10px 30px rgba(245,166,35,.12);
+}
+
 /* ── Tags ── */
 .tag { display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; font-family:'Manrope',sans-serif; }
 .tag-pending { background:rgba(245,166,35,.15); color:#F5A623; border: 1px solid rgba(245,166,35,.3); }
@@ -212,4 +246,5 @@ button { font-family:inherit; cursor:pointer; border:none; }
   .desktop-nav { display:none !important; }
   .card-row { flex-direction:column; }
   .card-row img { width:100% !important; height:200px; }
+  .hero-action-card { min-height:unset; }
 }

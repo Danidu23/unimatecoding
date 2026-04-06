@@ -1,21 +1,62 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Search, PackageSearch, PackagePlus, ListCheck, ClipboardList, Package, MapPin, Clock } from 'lucide-react';
+import { ChevronRight, Search, PackageSearch, PackagePlus, ListCheck, ClipboardList, Package, MapPin, Clock, ArrowRight, BellRing, ShieldCheck, BookOpenText, ScanSearch, Sparkles } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const today = new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric" });
 
   const QUICK_ACTIONS = [
-    { title: "Report Lost Item", subtitle: "Did you lose something? Let us know.", icon: <PackageSearch size={22} color="#F5A623"/>, link: "/report-lost" },
-    { title: "Report Found Item", subtitle: "Found an item? Help return it.", icon: <PackagePlus size={22} color="#F5A623"/>, link: "/report-found" },
-    { title: "Browse Items", subtitle: "Search through reported items.", icon: <Search size={22} color="#F5A623"/>, link: "/browse" },
-    { title: "My Reports", subtitle: "Check the status of your claims.", icon: <ClipboardList size={22} color="#F5A623"/>, link: "/my-reports" }
+    {
+      title: "Report Lost Item",
+      subtitle: "Create a detailed lost-item report in under a minute.",
+      icon: <PackageSearch size={22} color="#F5A623"/>,
+      link: "/report-lost",
+      accent: "Lost Priority",
+      img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1400&q=80&auto=format&fit=crop"
+    },
+    {
+      title: "Report Found Item",
+      subtitle: "Upload item details and help the rightful owner recover it.",
+      icon: <PackagePlus size={22} color="#F5A623"/>,
+      link: "/report-found",
+      accent: "Recovery Flow",
+      img: "https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1400&q=80&auto=format&fit=crop"
+    },
+    {
+      title: "Browse Items",
+      subtitle: "Scan current reports using location and category clues.",
+      icon: <Search size={22} color="#F5A623"/>,
+      link: "/browse",
+      accent: "Smart Search",
+      img: "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=1400&q=80&auto=format&fit=crop"
+    },
+    {
+      title: "My Reports",
+      subtitle: "Track your submissions, claim status, and verification updates.",
+      icon: <ClipboardList size={22} color="#F5A623"/>,
+      link: "/my-reports",
+      accent: "Status Center",
+      img: "https://images.unsplash.com/photo-1542626991-cbc4e32524cc?w=1400&q=80&auto=format&fit=crop"
+    }
+  ];
+
+  const BOTTOM_QUICK_ACTIONS = [
+    { title: "Lost Item Alerts", subtitle: "Get instant updates when similar items are found.", icon: <BellRing size={18} color="#F5A623" />, link: "/my-reports" },
+    { title: "Verified Claims", subtitle: "Track validated claims and approval stages.", icon: <ShieldCheck size={18} color="#F5A623" />, link: "/my-reports" },
+    { title: "Browse by Zones", subtitle: "Filter reports by faculty and hotspot locations.", icon: <MapPin size={18} color="#F5A623" />, link: "/browse" },
+    { title: "Campus Handbook", subtitle: "See lost-and-found guidelines and best practices.", icon: <BookOpenText size={18} color="#F5A623" />, link: "/browse" },
+    { title: "Scan Quick Match", subtitle: "Find close matches using category and time clues.", icon: <ScanSearch size={18} color="#F5A623" />, link: "/browse" },
+    { title: "Fast Report Wizard", subtitle: "Jump into a streamlined reporting experience.", icon: <Sparkles size={18} color="#F5A623" />, link: "/report-lost" }
   ];
 
   const RECENT_ITEMS = [
     { id: 1, type: 'lost', title: 'MacBook Air M1', location: 'New building library', time: '2 hours ago', status: 'pending', img: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80' },
     { id: 2, type: 'found', title: 'Casio Watch', location: 'Sport Complex', time: '5 hours ago', status: 'verified', img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80' },
+    { id: 3, type: 'lost', title: 'Engineering Notebook', location: 'E-Block Lecture Hall', time: '8 hours ago', status: 'pending', img: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80' },
+    { id: 4, type: 'found', title: 'Blue JBL Earbuds', location: 'Main Canteen', time: '11 hours ago', status: 'verified', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80' },
+    { id: 5, type: 'lost', title: 'Student ID Card', location: 'Library Entrance', time: '1 day ago', status: 'pending', img: 'https://images.unsplash.com/photo-1616627455940-bf6d9eb9fcef?w=800&q=80' },
+    { id: 6, type: 'found', title: 'Black Water Bottle', location: 'Gym Complex', time: '1 day ago', status: 'verified', img: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=800&q=80' },
   ];
 
   return (
@@ -82,14 +123,25 @@ export default function Dashboard() {
       </div>
 
       {/* ── Quick Actions Grid ── */}
-      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px clamp(20px,6vw,60px)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px" }}>
+      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px clamp(20px,6vw,60px)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(265px, 1fr))", gap: "22px" }}>
         {QUICK_ACTIONS.map((action, i) => (
-          <div key={i} className="grid-item" style={{ animation: `fadeUp .4s cubic-bezier(.22,.68,0,1.2) ${i * 0.1}s both`, cursor: "pointer" }} onClick={() => navigate(action.link)}>
-            <div style={{ width: "46px", height: "46px", borderRadius: "12px", background: "rgba(245,166,35,.12)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "8px" }}>
-              {action.icon}
+          <div key={i} className="hero-action-card" style={{ animation: `fadeUp .45s cubic-bezier(.22,.68,0,1.2) ${i * 0.1}s both`, cursor: "pointer" }} onClick={() => navigate(action.link)}>
+            <div style={{ position: "relative", borderRadius: "14px", overflow: "hidden", height: "168px", border: "1px solid rgba(255,255,255,.08)", marginBottom: "14px" }}>
+              <img src={action.img} alt={action.title} className="grid-item-img" style={{ height: "100%" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(7,9,26,.92) 5%, rgba(7,9,26,.15) 55%)" }} />
+              <div style={{ position: "absolute", left: "12px", bottom: "12px", display: "inline-flex", alignItems: "center", gap: "7px", background: "rgba(245,166,35,.14)", border: "1px solid rgba(245,166,35,.3)", borderRadius: "100px", padding: "4px 10px" }}>
+                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#F5A623" }} />
+                <span style={{ fontSize: "11px", color: "#F5A623", fontWeight: 700, fontFamily: "Manrope,sans-serif" }}>{action.accent}</span>
+              </div>
+              <div style={{ position: "absolute", top: "12px", right: "12px", width: "42px", height: "42px", borderRadius: "12px", background: "rgba(7,9,26,.65)", border: "1px solid rgba(255,255,255,.18)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+                {action.icon}
+              </div>
             </div>
             <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#fff", fontFamily: "Manrope,sans-serif", margin: 0 }}>{action.title}</h3>
             <p style={{ fontSize: "13px", color: "rgba(255,255,255,.45)", lineHeight: 1.6 }}>{action.subtitle}</p>
+            <button className="btn-outline" style={{ marginTop: "auto", alignSelf: "flex-start", padding: "9px 14px", fontSize: "12px" }}>
+              Open Action <ArrowRight size={14} />
+            </button>
           </div>
         ))}
       </div>
@@ -102,9 +154,12 @@ export default function Dashboard() {
             Recently Reported
           </span>
           <div className="sec-line" />
+          <button className="btn-outline" style={{ padding: "8px 14px", fontSize: "12px" }} onClick={() => navigate('/browse')}>
+            See All <ChevronRight size={14} />
+          </button>
         </div>
 
-        {RECENT_ITEMS.map((item, i) => (
+        {RECENT_ITEMS.slice(0, 5).map((item, i) => (
           <div key={item.id} className="card-row" style={{ animation: `fadeUp .55s cubic-bezier(.22,.68,0,1.2) ${i * .13}s both` }} onClick={() => navigate(`/item/${item.id}`)}>
             <div style={{ width: "clamp(140px,26%,210px)", flexShrink: 0, overflow: "hidden", position: "relative" }}>
               <img src={item.img} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -144,6 +199,35 @@ export default function Dashboard() {
             </div>
           </div>
         ))}
+
+        <div style={{ marginTop: "12px", border: "1px solid rgba(245,166,35,.2)", background: "linear-gradient(140deg, rgba(245,166,35,.1), rgba(255,255,255,.03))", borderRadius: "20px", padding: "26px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap", marginBottom: "18px" }}>
+            <div>
+              <h3 style={{ fontSize: "23px", color: "#fff", fontWeight: 900, fontFamily: "Manrope,sans-serif", letterSpacing: "-.5px", marginBottom: "6px" }}>More Quick Actions</h3>
+              <p style={{ color: "rgba(255,255,255,.6)", fontSize: "14px", maxWidth: "560px", lineHeight: 1.6 }}>
+                Fast access tools to report, track, and recover items efficiently while you scroll through the dashboard.
+              </p>
+            </div>
+            <button className="btn-primary" style={{ padding: "10px 16px", fontSize: "13px" }} onClick={() => navigate('/report-lost')}>
+              Start New Report <ArrowRight size={15} />
+            </button>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "14px" }}>
+            {BOTTOM_QUICK_ACTIONS.map((quick, i) => (
+              <div key={quick.title} className="bottom-quick-card" style={{ animation: `fadeUp .5s cubic-bezier(.22,.68,0,1.2) ${i * .08}s both` }} onClick={() => navigate(quick.link)}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(245,166,35,.14)", border: "1px solid rgba(245,166,35,.28)" }}>
+                  {quick.icon}
+                </div>
+                <h4 style={{ fontSize: "16px", color: "#fff", fontWeight: 800, fontFamily: "Manrope,sans-serif", margin: "12px 0 6px" }}>{quick.title}</h4>
+                <p style={{ fontSize: "12px", color: "rgba(255,255,255,.58)", lineHeight: 1.6 }}>{quick.subtitle}</p>
+                <span style={{ marginTop: "10px", display: "inline-flex", alignItems: "center", gap: "6px", color: "#F5A623", fontSize: "12px", fontWeight: 700, fontFamily: "Manrope,sans-serif" }}>
+                  Launch <ChevronRight size={13} />
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
