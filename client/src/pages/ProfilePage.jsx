@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   User,
   Mail,
@@ -304,9 +304,15 @@ const formatOrderStatus = (status) => {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, logout } = useAuth();
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const getInitialTab = () => {
+    const tab = searchParams.get("tab");
+    return ["overview", "orders", "settings"].includes(tab) ? tab : "overview";
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -340,6 +346,22 @@ export default function ProfilePage() {
   });
 
   const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const trackerOrderId = searchParams.get("trackOrderId");
+
+    if (["overview", "orders", "settings"].includes(tab)) {
+      setActiveTab(tab);
+    } else {
+      setActiveTab("overview");
+    }
+
+    if (trackerOrderId) {
+      setActiveTab("orders");
+      handleTrackOrder(trackerOrderId, true);
+    }
+  }, [searchParams]);
 
   const resetPasswordModal = () => {
     setPw({ current: "", next: "", confirm: "" });
@@ -431,82 +453,86 @@ export default function ProfilePage() {
     }
   };
 
-const handleChangePassword = async () => {
-  setPwError("");
-  setPwSuccess("");
+  const handleChangePassword = async () => {
+    setPwError("");
+    setPwSuccess("");
 
-  if (!pw.current || !pw.next || !pw.confirm) {
-    setPwError("Please fill all password fields.");
-    return;
-  }
+    if (!pw.current || !pw.next || !pw.confirm) {
+      setPwError("Please fill all password fields.");
+      return;
+    }
 
-  if (pw.next.length < 8) {
-    setPwError("New password must be at least 8 characters.");
-    return;
-  }
+    if (pw.next.length < 8) {
+      setPwError("New password must be at least 8 characters.");
+      return;
+    }
 
-  if (pw.next !== pw.confirm) {
-    setPwError("New password and confirm password do not match.");
-    return;
-  }
+    if (pw.next !== pw.confirm) {
+      setPwError("New password and confirm password do not match.");
+      return;
+    }
 
-  if (pw.current === pw.next) {
-    setPwError("New password must be different from current password.");
-    return;
-  }
+    if (pw.current === pw.next) {
+      setPwError("New password must be different from current password.");
+      return;
+    }
 
-  try {
-    setPwLoading(true);
+    try {
+      setPwLoading(true);
 
-    const res = await api.put("/auth/change-password", {
-      currentPassword: pw.current,
-      newPassword: pw.next,
-    });
+      const res = await api.put("/auth/change-password", {
+        currentPassword: pw.current,
+        newPassword: pw.next,
+      });
 
-    setPwSuccess(res.data.message || "Password changed successfully.");
+      setPwSuccess(res.data.message || "Password changed successfully.");
 
-    setTimeout(() => {
-      resetPasswordModal();
-      setShowPwModal(false);
-    }, 1200);
-  } catch (err) {
-    setPwError(err.response?.data?.message || "Failed to change password.");
-  } finally {
-    setPwLoading(false);
-  }
-};
+      setTimeout(() => {
+        resetPasswordModal();
+        setShowPwModal(false);
+      }, 1200);
+    } catch (err) {
+      setPwError(err.response?.data?.message || "Failed to change password.");
+    } finally {
+      setPwLoading(false);
+    }
+  };
 
-const handleCancelOrder = async (orderId) => {
-  try {
-    setCancelLoadingId(orderId);
-    setCancelError("");
+  const handleCancelOrder = async (orderId) => {
+    try {
+      setCancelLoadingId(orderId);
+      setCancelError("");
 
-    await api.patch(`/orders/${orderId}/cancel`);
+      await api.patch(`/orders/${orderId}/cancel`);
 
-    await fetchMyOrders();
-  } catch (err) {
-    setCancelError(err.response?.data?.message || "Failed to cancel order.");
-  } finally {
-    setCancelLoadingId("");
-  }
-};
+      await fetchMyOrders();
+    } catch (err) {
+      setCancelError(err.response?.data?.message || "Failed to cancel order.");
+    } finally {
+      setCancelLoadingId("");
+    }
+  };
 
-const handleTrackOrder = async (orderId) => {
-  try {
-    setTrackingLoading(true);
-    setTrackingError("");
-    setTrackingOrderId(orderId);
-    setTrackingOpen(true);
+  const handleTrackOrder = async (orderId, preserveUrl = false) => {
+    try {
+      setTrackingLoading(true);
+      setTrackingError("");
+      setTrackingOrderId(orderId);
+      setTrackingOpen(true);
 
-    const res = await api.get(`/orders/${orderId}`);
-    setTrackedOrder(res.data?.data || null);
-  } catch (err) {
-    setTrackingError(err.response?.data?.message || "Failed to load order tracking.");
-    setTrackedOrder(null);
-  } finally {
-    setTrackingLoading(false);
-  }
-};
+      if (!preserveUrl) {
+        setSearchParams({ tab: "orders", trackOrderId: orderId });
+      }
+
+      const res = await api.get(`/orders/${orderId}`);
+      setTrackedOrder(res.data?.data || null);
+    } catch (err) {
+      setTrackingError(err.response?.data?.message || "Failed to load order tracking.");
+      setTrackedOrder(null);
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
 
   const toggleNotif = (k) => setNotif((p) => ({ ...p, [k]: !p[k] }));
 
@@ -624,7 +650,10 @@ const handleTrackOrder = async (orderId) => {
                   key={key}
                   type="button"
                   className={`tab-btn ${activeTab === key ? "active" : ""}`}
-                  onClick={() => setActiveTab(key)}
+                  onClick={() => {
+                    setActiveTab(key);
+                    setSearchParams({ tab: key });
+                  }}
                 >
                   {label}
                 </button>
@@ -803,12 +832,6 @@ const handleTrackOrder = async (orderId) => {
                             Pickup: {new Date(order.pickupDate).toLocaleDateString()}
                           </p>
 
-                          {order.cancellationReason ? (
-                            <p style={{ fontSize: "11px", color: "#f87171", marginTop: "6px" }}>
-                              Reason: {order.cancellationReason}
-                            </p>
-                          ) : null}
-
                           {order.paymentStatus === "payment_rejected" && order.paymentRejectionReason ? (
                             <p
                               style={{
@@ -819,6 +842,10 @@ const handleTrackOrder = async (orderId) => {
                               }}
                             >
                               Payment Rejected: {order.paymentRejectionReason}
+                            </p>
+                          ) : order.cancellationReason ? (
+                            <p style={{ fontSize: "11px", color: "#f87171", marginTop: "6px" }}>
+                              Reason: {order.cancellationReason}
                             </p>
                           ) : null}
 
@@ -986,6 +1013,7 @@ const handleTrackOrder = async (orderId) => {
             setTrackedOrder(null);
             setTrackingError("");
             setTrackingOrderId("");
+            setSearchParams({ tab: "orders" });
           }}
         />
       )}

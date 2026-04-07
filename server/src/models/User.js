@@ -43,17 +43,11 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre("save", async function () {
-  console.log("PRE SAVE HOOK RUNNING");
-  console.log("isModified(password):", this.isModified("password"));
-  console.log("password before hash:", this.password);
-
   if (!this.isModified("password")) {
     return;
   }
 
   this.password = await bcrypt.hash(this.password, 10);
-
-  console.log("password after hash:", this.password);
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {

@@ -9,7 +9,6 @@ const {
   getOrderById,
   cancelOrder,
   getAllOrders,
-  updatePaymentStatus,
   updateOrderStatus,
 } = require('../controllers/orderController');
 
@@ -52,7 +51,6 @@ router.get('/my', protect, requireStudent, getMyOrdersFromOrdersRoute);
 router.get('/', protect, requireStaff, getAllOrders);
 router.get('/:id', protect, getOrderById);
 router.patch('/:id/cancel', protect, cancelOrder);
-router.patch('/:id/payment-status', protect, requireStaff, updatePaymentStatus);
 router.patch('/:id/status', protect, requireStaff, updateOrderStatus);
 
 module.exports = router;

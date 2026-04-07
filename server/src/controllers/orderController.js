@@ -401,86 +401,6 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-const updatePaymentStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { paymentStatus, paymentRejectionReason } = req.body;
-
-    if (!paymentStatus) {
-      return res.status(400).json({
-        success: false,
-        message: 'paymentStatus is required',
-      });
-    }
-
-    if (
-      !['payment_submitted', 'payment_verified', 'payment_rejected'].includes(paymentStatus)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid payment status',
-      });
-    }
-
-    const order = await Order.findById(id);
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found',
-      });
-    }
-
-    if (order.paymentMethod !== 'bank_transfer') {
-      return res.status(400).json({
-        success: false,
-        message: 'Only bank transfer orders can have payment verification updates',
-      });
-    }
-
-    if (
-      paymentStatus === 'payment_rejected' &&
-      !paymentRejectionReason?.trim()
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: 'Payment rejection reason is required',
-      });
-    }
-
-    order.paymentStatus = paymentStatus;
-
-    if (paymentStatus === 'payment_verified') {
-      order.paymentRejectionReason = '';
-    }
-
-    if (paymentStatus === 'payment_rejected') {
-      order.paymentRejectionReason = paymentRejectionReason.trim();
-
-      if (order.orderStatus !== 'cancelled') {
-        order.orderStatus = 'pending';
-      }
-    }
-
-    if (paymentStatus === 'payment_submitted') {
-      order.paymentRejectionReason = '';
-    }
-
-    await order.save();
-
-    return res.status(200).json({
-      success: true,
-      message: 'Payment status updated successfully',
-      data: order,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: 'Server error while updating payment status',
-    });
-  }
-};
-
 module.exports = {
   createOrder,
   getPaymentReference,
@@ -488,6 +408,5 @@ module.exports = {
   getOrderById,
   cancelOrder,
   getAllOrders,
-  updatePaymentStatus,
   updateOrderStatus,
 };

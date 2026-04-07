@@ -520,6 +520,9 @@ const TAGS = {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    NAVBAR
+
+   Navbar shown at the top of the canteen flow.
+   Handles dashboard back navigation, active nav links, cart shortcut, notifications, and profile access.
 ───────────────────────────────────────────────────────────────────────────── */
 function Navbar({ cartCount, onCartOpen }) {
   const navigate = useNavigate();
@@ -584,6 +587,9 @@ function Navbar({ cartCount, onCartOpen }) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    CANTEEN SELECTOR
+
+   First screen of the flow.
+   Lets the user choose which canteen to open before viewing the menu.
 ───────────────────────────────────────────────────────────────────────────── */
 function CanteenSelector({ onSelect }) {
   const today = new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric" });
@@ -728,6 +734,9 @@ function CanteenSelector({ onSelect }) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    MENU PAGE
+
+   Main menu screen for the selected canteen.
+   Handles search, category navigation, menu rendering, and add/remove cart actions.
 ───────────────────────────────────────────────────────────────────────────── */
 function MenuPage({ canteen, cart, onAdd, onRemove, onBack, menuSections, menuLoading, menuError }) {
   const [activeCategory, setActiveCategory] = useState("");
@@ -889,7 +898,13 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack, menuSections, menuLo
   );
 }
 
-/* ── Single menu item ─────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────── 
+   Single menu item 
+   
+   Single menu item card used inside each category section.
+   Shows tags, availability, price, description, and quantity controls.
+   
+   ─────────────────────────────────────────────────────── */
 function MenuItem({ item, qty, onAdd, onRemove }) {
   return (
     <div
@@ -980,6 +995,9 @@ function MenuItem({ item, qty, onAdd, onRemove }) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    CART PANEL
+
+   Slide-in cart panel.
+   Shows selected items, totals, quantity controls, and the checkout entry point.
 ───────────────────────────────────────────────────────────────────────────── */
 function CartPanel({ cart, canteen, onAdd, onRemove, onClose, onCheckout }) {
   const subtotal = cart.reduce((s,i) => s + i.price*i.qty, 0);
@@ -1066,6 +1084,9 @@ function CartPanel({ cart, canteen, onAdd, onRemove, onClose, onCheckout }) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    PAYMENT MODAL
+
+   Payment selection modal.
+   Supports cash on pickup and bank transfer with receipt upload.
 ───────────────────────────────────────────────────────────────────────────── */
 const BANK = {
   bank: "Bank of Ceylon",
@@ -1302,6 +1323,9 @@ function PaymentModal({ order, canteen, onConfirm, onClose, placingOrder, orderE
 
 /* ─────────────────────────────────────────────────────────────────────────────
    ORDER CONFIRMED MODAL
+
+   Confirmation modal shown after successful order placement.
+   Summarizes the order and gives quick actions like tracking or cancel.
 ───────────────────────────────────────────────────────────────────────────── */
 function OrderConfirmedModal({ order, canteen, payMethod, orderId, onTrack, onClose, onCancel }) {
   const total = order.reduce((s,i) => s+i.price*i.qty, 0) + 10;
@@ -1371,6 +1395,9 @@ function OrderConfirmedModal({ order, canteen, payMethod, orderId, onTrack, onCl
 
 /* ─────────────────────────────────────────────────────────────────────────────
    ORDER TRACKING MODAL
+
+   Order tracking modal.
+   Builds the timeline using current backend order/payment status.
 ───────────────────────────────────────────────────────────────────────────── */
 function TrackingModal({ orderId, canteen, payMethod, trackedOrder, trackingLoading, trackingError, onClose }) {
 
@@ -1609,11 +1636,60 @@ function CancelConfirmModal({ orderId, onConfirmCancel, onDismiss }) {
    ROOT
 ───────────────────────────────────────────────────────────────────────────── */
 export default function CanteenPage() {
+
+  // Router helpers for navigation and URL query state.
+
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [view, setView]               = useState("select");
-  const [canteen, setCanteen]         = useState(null);
-  const [cart, setCart]               = useState([]);
+
+  // Persist only the cart so refresh keeps selected items.
+  
+  const STORAGE_KEYS = {
+    cart: "canteen_cart",
+  };
+
+  const getSavedCanteen = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.canteen);
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      return CANTEENS.find((c) => c.id === parsed.id) || null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Read saved cart from localStorage on first load.
+
+  const getSavedCart = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.cart);
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
+  // Core page state:
+  // - view: selector screen or menu screen
+  // - canteen: currently selected canteen
+  // - cart: current cart items
+
+  const [view, setView]               = useState(() => {
+    const hasTrackedOrder = searchParams.get("trackOrderId");
+    const queryCanteenId = searchParams.get("canteenId");
+    return hasTrackedOrder || queryCanteenId ? "menu" : "select";
+  });
+  const [canteen, setCanteen]         = useState(() => {
+    const queryCanteenId = searchParams.get("canteenId");
+    if (queryCanteenId) {
+      return CANTEENS.find((c) => String(c.id) === queryCanteenId) || null;
+    }
+    return null;
+  });
+  const [cart, setCart]               = useState(() => getSavedCart());
   const [cartOpen, setCartOpen]       = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [orderError, setOrderError] = useState("");
@@ -1624,6 +1700,7 @@ export default function CanteenPage() {
   const [lastOrder, setLastOrder]     = useState([]);
   const [payMethod, setPayMethod]     = useState(null);
   const [orderId, setOrderId]         = useState(null);
+  // Menu data and request state for loading backend-driven main canteen data.
   const [mainMenuSections, setMainMenuSections] = useState(transformBackendMenu([]));
   const [menuLoading, setMenuLoading] = useState(false);
   const [menuError, setMenuError] = useState("");
@@ -1647,6 +1724,8 @@ export default function CanteenPage() {
     }
   };
 
+  // Cart helpers used by menu cards and the cart panel.
+
   const addToCart = item => setCart(prev => {
     const ex = prev.find(c => c.id===item.id);
     return ex ? prev.map(c => c.id===item.id ? {...c,qty:c.qty+1} : c) : [...prev,{...item,qty:1}];
@@ -1657,11 +1736,44 @@ export default function CanteenPage() {
     return ex.qty===1 ? prev.filter(c => c.id!==id) : prev.map(c => c.id===id ? {...c,qty:c.qty-1} : c);
   });
 
+  // Keep cart items after refresh.
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(cart));
+  }, [cart]);
+
+  useEffect(() => {
+
+    // Sync selected canteen/menu view with URL query params.
+    // This keeps refresh behavior predictable without forcing
+    // the page to reopen the last canteen from Dashboard.
+
+    const trackedOrderId = searchParams.get("trackOrderId");
+    const queryCanteenId = searchParams.get("canteenId");
+
+    if (trackedOrderId) return;
+
+    if (queryCanteenId) {
+      const matched = CANTEENS.find((c) => String(c.id) === queryCanteenId) || null;
+      setCanteen(matched);
+      setView(matched ? "menu" : "select");
+      return;
+    }
+
+    setCanteen(null);
+    setView("select");
+  }, [searchParams]);
+
+  // Load backend menu only when the selected canteen is the main canteen.
+  // Other canteens still use fallback local menu data for now.
+
   useEffect(() => {
     if (view === "menu" && canteen?.id === 1) {
       fetchMainCanteenMenu();
     }
   }, [view, canteen]);
+
+  // Pickup date helpers used when building order requests.
 
   const getTodayPickupDate = () => {
     const today = new Date();
@@ -1690,6 +1802,8 @@ export default function CanteenPage() {
     setModal("payment");
   };
 
+  // Submit a same-day cash order.
+
   const submitCashOrder = async () => {
     try {
       setPlacingOrder(true);
@@ -1713,12 +1827,15 @@ export default function CanteenPage() {
       setModal("confirmed");
       setCartOpen(false);
       setCart([]);
+      localStorage.removeItem(STORAGE_KEYS.cart);
     } catch (err) {
       setOrderError(err.response?.data?.message || "Failed to place order.");
     } finally {
       setPlacingOrder(false);
     }
   };
+
+  // Submit a preorder with bank transfer receipt upload.
 
   const submitBankTransferOrder = async (receipt, paymentReference) => {
     try {
@@ -1755,6 +1872,7 @@ export default function CanteenPage() {
       setModal("confirmed");
       setCartOpen(false);
       setCart([]);
+      localStorage.removeItem(STORAGE_KEYS.cart);
     } catch (err) {
       setOrderError(err.response?.data?.message || "Failed to place bank transfer order.");
     } finally {
@@ -1791,6 +1909,7 @@ export default function CanteenPage() {
   };
 
   useEffect(() => {
+    // Open tracking modal directly from URL when a tracked order ID is provided.
     const queryOrderId = searchParams.get("trackOrderId");
 
     if (!queryOrderId) return;
@@ -1802,7 +1921,7 @@ export default function CanteenPage() {
       setCanteen(CANTEENS[0]);
       setView("menu");
       setModal("tracking");
-      setSearchParams({}, { replace: true });
+      setSearchParams({ canteenId: "1" }, { replace: true });
     };
 
     openTrackedOrderFromQuery();
@@ -1819,14 +1938,30 @@ export default function CanteenPage() {
   const handleCancelOrder   = () => setModal("cancelConfirm");
   const handleConfirmCancel = () => { setCancelledId(orderId); setModal("cancelled"); setTimeout(() => setModal(null), 2800); };
 
-  const handleSelectCanteen = c => { setCanteen(c); setCart([]); setView("menu"); window.scrollTo({top:0,behavior:"instant"}); };
-  const handleBackToSelect  = () => { setView("select"); setCart([]); window.scrollTo({top:0,behavior:"instant"}); };
+  // Navigation helpers between canteen list, menu view, checkout, and tracking.
+  const handleSelectCanteen = c => {
+    setCanteen(c);
+    setView("menu");
+    setSearchParams({ canteenId: String(c.id) }, { replace: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
+  const handleBackToSelect  = () => {
+    setView("select");
+    setCanteen(null);
+    setSearchParams({}, { replace: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
 
   const currentMenuSections = canteen?.id === 1 && mainMenuSections.length > 0 ? mainMenuSections : MENU;
 
   const cartCount = cart.reduce((s,i) => s+i.qty, 0);
   const cartTotal = cart.reduce((s,i) => s+i.price*i.qty, 0) + 10;
 
+  // Page layout:
+  // 1. Global styles injection
+  // 2. Navbar
+  // 3. Either canteen selector or selected canteen menu
+  // 4. Floating cart + active modals
   return (
     <>
       <style>{CSS}</style>

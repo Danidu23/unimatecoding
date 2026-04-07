@@ -116,13 +116,12 @@ const loginUser = async (req, res) => {
       },
     });
   } catch (error) {
-      console.error("FORGOT PASSWORD ERROR:", error);
-      return res.status(500).json({
-        success: false,
-        message: "Server error while processing forgot password",
-        error: error.message,
-      });
-    }
+    console.error("LOGIN ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while logging in",
+    });
+  }
 };
 
 const getCurrentUser = async (req, res) => {
@@ -255,18 +254,11 @@ const resetPassword = async (req, res) => {
       });
     }
 
-    console.log("RESET PASSWORD HIT");
-    console.log("incoming new password:", password);
-
     user.password = password;
     user.resetPasswordToken = null;
     user.resetPasswordExpire = null;
 
-    console.log("before save user.password:", user.password);
-
     await user.save();
-
-    console.log("after save user.password:", user.password);
 
     return res.status(200).json({
       success: true,

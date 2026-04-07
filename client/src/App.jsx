@@ -23,7 +23,7 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["student"]}>
               <Dashboard />
             </ProtectedRoute>
           }
@@ -32,7 +32,7 @@ function App() {
         <Route
           path="/canteen"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["student"]}>
               <Canteenpage />
             </ProtectedRoute>
           }
@@ -41,7 +41,7 @@ function App() {
         <Route
           path="/profile"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["student"]}>
               <ProfilePage />
             </ProtectedRoute>
           }
@@ -50,17 +50,8 @@ function App() {
         <Route
           path="/staff"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["staff"]}>
               <StaffHomePage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/staff/orders"
-          element={
-            <ProtectedRoute>
-              <StaffOrdersPage />
             </ProtectedRoute>
           }
         />
@@ -68,8 +59,17 @@ function App() {
         <Route
           path="/staff/menu"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["staff"]}>
               <StaffMenuPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/staff/orders"
+          element={
+            <ProtectedRoute allowedRoles={["staff"]}>
+              <StaffOrdersPage />
             </ProtectedRoute>
           }
         />

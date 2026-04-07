@@ -151,7 +151,7 @@ export default function LoginPage() {
     if (user?.role === "staff") {
       navigate("/staff");
     } else {
-      navigate("/canteen");
+      navigate("/dashboard");
     }
   } catch (err) {
     triggerError(err.response?.data?.message || "Login failed");

@@ -200,9 +200,7 @@ export default function StaffOrdersPage() {
         setPaymentActionLoadingId(orderId);
         setPaymentActionError("");
 
-        await api.patch(`/orders/${orderId}/payment-status`, {
-        paymentStatus: "payment_verified",
-        });
+    await api.patch(`/payments/${orderId}/verify`);
 
         await fetchOrders();
     } catch (err) {
@@ -231,10 +229,9 @@ export default function StaffOrdersPage() {
         setPaymentActionLoadingId(rejectOrderId);
         setPaymentActionError("");
 
-        await api.patch(`/orders/${rejectOrderId}/payment-status`, {
-        paymentStatus: "payment_rejected",
-        paymentRejectionReason: rejectReason,
-        });
+      await api.patch(`/payments/${rejectOrderId}/reject`, {
+        reason: rejectReason,
+      });
 
         setRejectModalOpen(false);
         setRejectOrderId("");

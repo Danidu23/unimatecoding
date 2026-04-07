@@ -1,7 +1,36 @@
 import { X, CheckCircle, Banknote, HandCoins, ChefHat, PackageCheck, Clock3 } from "lucide-react";
 
-const getTrackingStepFromStatus = (status) => {
-  switch (status) {
+const getTrackingStepFromOrder = (trackedOrder, payMethod) => {
+  if (!trackedOrder) return 1;
+
+  if (trackedOrder.orderStatus === "cancelled") {
+    return 0;
+  }
+
+  if (payMethod === "bank_transfer") {
+    if (trackedOrder.paymentStatus === "payment_verified") {
+      switch (trackedOrder.orderStatus) {
+        case "confirmed":
+          return 2;
+        case "preparing":
+          return 3;
+        case "ready":
+          return 4;
+        case "completed":
+          return 5;
+        default:
+          return 1;
+      }
+    }
+
+    if (trackedOrder.paymentStatus === "payment_rejected") {
+      return 0;
+    }
+
+    return 1;
+  }
+
+  switch (trackedOrder.orderStatus) {
     case "pending":
       return 1;
     case "confirmed":
@@ -17,6 +46,24 @@ const getTrackingStepFromStatus = (status) => {
     default:
       return 1;
   }
+};
+
+const getPaymentStepSubtitle = (trackedOrder, payMethod) => {
+  if (payMethod !== "bank_transfer") {
+    return "Pay cash when you collect";
+  }
+
+  if (trackedOrder?.paymentStatus === "payment_verified") {
+    return "Payment verified successfully";
+  }
+
+  if (trackedOrder?.paymentStatus === "payment_rejected") {
+    return trackedOrder?.paymentRejectionReason
+      ? `Payment rejected: ${trackedOrder.paymentRejectionReason}`
+      : "Payment was rejected";
+  }
+
+  return "Waiting for payment verification";
 };
 
 const formatOrderStatus = (status) => {
@@ -47,50 +94,103 @@ export default function OrderTrackingModal({
   trackingError,
   onClose,
 }) {
-  const activeStep = getTrackingStepFromStatus(trackedOrder?.orderStatus);
+  const activeStep = getTrackingStepFromOrder(trackedOrder, payMethod);
 
-  const steps = [
-    {
-      icon: <CheckCircle size={15} />,
-      label: "Order Confirmed",
-      sub: "Your order has been received",
-      time: activeStep >= 1 ? "Done" : "Pending",
-      done: activeStep >= 1,
-      active: activeStep === 1,
-    },
-    {
-      icon: payMethod === "bank_transfer" ? <Banknote size={15} /> : <HandCoins size={15} />,
-      label: payMethod === "bank_transfer" ? "Payment Verification" : "Payment on Collect",
-      sub: payMethod === "bank_transfer" ? "Waiting for payment verification" : "Pay cash when you collect",
-      time: activeStep >= 2 ? "In progress" : "Pending",
-      done: activeStep >= 2,
-      active: activeStep === 2,
-    },
-    {
-      icon: <ChefHat size={15} />,
-      label: "Preparing Your Order",
-      sub: "The canteen is preparing your food",
-      time: activeStep >= 3 ? "In progress" : "Pending",
-      done: activeStep >= 3,
-      active: activeStep === 3,
-    },
-    {
-      icon: <PackageCheck size={15} />,
-      label: "Ready for Pickup",
-      sub: `Collect from ${canteenName || "canteen"}`,
-      time: activeStep >= 4 ? "Ready" : "Pending",
-      done: activeStep >= 4,
-      active: activeStep === 4,
-    },
-    {
-      icon: <CheckCircle size={15} />,
-      label: "Completed",
-      sub: "Order picked up successfully",
-      time: activeStep >= 5 ? "Done" : "Pending",
-      done: activeStep >= 5,
-      active: activeStep === 5,
-    },
-  ];
+const steps =
+  payMethod === "bank_transfer"
+    ? [
+        {
+          icon: <CheckCircle size={15} />,
+          label: "Order Placed",
+          sub: "Your order has been received",
+          time: activeStep >= 1 ? "Done" : "Pending",
+          done: activeStep >= 1,
+          active: activeStep === 1,
+        },
+        {
+          icon: <Banknote size={15} />,
+          label: "Payment Verification",
+          sub: getPaymentStepSubtitle(trackedOrder, payMethod),
+          time:
+            trackedOrder?.paymentStatus === "payment_verified"
+              ? "Done"
+              : trackedOrder?.paymentStatus === "payment_rejected"
+              ? "Rejected"
+              : activeStep >= 2
+              ? "In progress"
+              : "Pending",
+          done: trackedOrder?.paymentStatus === "payment_verified",
+          active:
+            trackedOrder?.paymentStatus !== "payment_verified" &&
+            trackedOrder?.paymentStatus !== "payment_rejected",
+        },
+        {
+          icon: <ChefHat size={15} />,
+          label: "Preparing Your Order",
+          sub: "The canteen is preparing your food",
+          time: activeStep >= 3 ? "In progress" : "Pending",
+          done: activeStep >= 3,
+          active: activeStep === 3,
+        },
+        {
+          icon: <PackageCheck size={15} />,
+          label: "Ready for Pickup",
+          sub: `Collect from ${canteenName || "canteen"}`,
+          time: activeStep >= 4 ? "Ready" : "Pending",
+          done: activeStep >= 4,
+          active: activeStep === 4,
+        },
+        {
+          icon: <CheckCircle size={15} />,
+          label: "Completed",
+          sub: "Order picked up successfully",
+          time: activeStep >= 5 ? "Done" : "Pending",
+          done: activeStep >= 5,
+          active: activeStep === 5,
+        },
+      ]
+    : [
+        {
+          icon: <CheckCircle size={15} />,
+          label: "Order Placed",
+          sub: "Your order has been received",
+          time: activeStep >= 1 ? "Done" : "Pending",
+          done: activeStep >= 1,
+          active: activeStep === 1,
+        },
+        {
+          icon: <CheckCircle size={15} />,
+          label: "Order Confirmed",
+          sub: "The canteen has accepted your order",
+          time: activeStep >= 2 ? "Done" : "Pending",
+          done: activeStep >= 2,
+          active: activeStep === 2,
+        },
+        {
+          icon: <ChefHat size={15} />,
+          label: "Preparing Your Order",
+          sub: "The canteen is preparing your food",
+          time: activeStep >= 3 ? "In progress" : "Pending",
+          done: activeStep >= 3,
+          active: activeStep === 3,
+        },
+        {
+          icon: <PackageCheck size={15} />,
+          label: "Ready for Pickup",
+          sub: "Pay cash when you collect",
+          time: activeStep >= 4 ? "Ready" : "Pending",
+          done: activeStep >= 4,
+          active: activeStep === 4,
+        },
+        {
+          icon: <CheckCircle size={15} />,
+          label: "Completed",
+          sub: "Order picked up successfully",
+          time: activeStep >= 5 ? "Done" : "Pending",
+          done: activeStep >= 5,
+          active: activeStep === 5,
+        },
+      ];
 
   return (
     <div
