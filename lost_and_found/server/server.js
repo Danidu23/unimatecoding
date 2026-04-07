@@ -26,6 +26,10 @@ connectDB();
 // Routes
 const itemRoutes = require('./routes/itemRoutes');
 app.use('/api/items', itemRoutes);
+const claimRoutes = require('./routes/claimRoutes');
+app.use('/api/claims', claimRoutes);
+const adminRoutes = require('./routes/adminRoutes');
+app.use('/api/admin', adminRoutes);
 
 // Basic Route for testing
 app.get('/api/health', (req, res) => {

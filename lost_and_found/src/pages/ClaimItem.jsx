@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { UploadCloud, AlertCircle, Hand, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -8,9 +8,8 @@ import { dynamicMatchesCache } from '../data/lostFoundAdvanced';
 export default function ClaimItem() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const numericId = parseInt(id);
-  const item = mockItems.find(i => i.id === numericId) || dynamicMatchesCache[numericId];
-
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -23,6 +22,39 @@ export default function ClaimItem() {
     identifier: '',
     image: null
   });
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        let found = null;
+        for (const kind of ['lost', 'found']) {
+          const response = await fetch(`http://localhost:5000/api/items/${kind}/${id}`);
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+              const data = result.data;
+              found = kind === 'lost'
+                ? { id: data._id, title: data.itemName, category: data.category, location: data.lastSeenLocation, date: data.dateLost, description: data.description, image: data.image, reporter: data.contact, status: data.status || 'Pending' }
+                : { id: data._id, title: data.itemName, category: data.category, location: data.locationFound, date: data.dateFound, description: data.description, image: data.image, reporter: data.finderContact, status: data.status || 'Pending' };
+              break;
+            }
+          }
+        }
+        if (!found) {
+          const numericId = parseInt(id, 10);
+          found = mockItems.find((entry) => entry.id === numericId) || dynamicMatchesCache[numericId] || null;
+        }
+        setItem(found);
+      } catch (error) {
+        const numericId = parseInt(id, 10);
+        setItem(mockItems.find((entry) => entry.id === numericId) || dynamicMatchesCache[numericId] || null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [id]);
 
   const handleChange = (e) => {
     setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
@@ -66,7 +98,7 @@ export default function ClaimItem() {
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
       toast.error('Please fill all verification fields correctly.');
@@ -74,15 +106,38 @@ export default function ClaimItem() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const statuses = ['PENDING', 'APPROVED', 'REJECTED'];
-      const picked = statuses[Math.floor(Math.random() * statuses.length)];
-      setClaimStatus(picked);
-      toast.success('Claim request submitted successfully!');
+    try {
+      const response = await fetch('http://localhost:5000/api/claims', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId: item.id,
+          explanation: formData.explanation,
+          identifier: `${formData.brand} | ${formData.color} | ${formData.identifier}`,
+          proofImage: imagePreview,
+          claimantEmail: ''
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setClaimStatus('PENDING');
+        toast.success('Claim request submitted. Awaiting admin review.');
+        navigate('/submission-success', { state: { message: 'Your claim has been submitted and is awaiting admin approval.', itemType: 'Claim' } });
+      } else {
+        toast.error(result.message || 'Failed to submit claim');
+      }
+    } catch (error) {
+      console.error('Claim submit error:', error);
+      toast.error('Network error. Please try again.');
+    } finally {
       setIsSubmitting(false);
-      navigate('/submission-success', { state: { message: `Your claim has been submitted. Status: ${picked}`, itemType: 'Claim' } });
-    }, 1200);
+    }
   };
+
+  if (loading) {
+    return <div style={{ width: '100%', minHeight: 'calc(100vh - 66px)', background: '#07091a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>Loading claim form...</div>;
+  }
 
   if (!item) {
     return <div className="text-center py-20 text-white">Item not found.</div>;

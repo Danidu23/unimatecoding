@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PackageSearch, UploadCloud, Calendar, MapPin, Tag, Image as ImageIcon, Smartphone, Info, SearchCheck } from 'lucide-react';
+import { UploadCloud, Calendar, MapPin, Tag, Image as ImageIcon, Smartphone, Info, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PotentialMatchesPanel from '../components/PotentialMatchesPanel';
 import { findPotentialMatches } from '../data/lostFoundAdvanced';
@@ -133,15 +133,28 @@ export default function ReportLostItem() {
     <div style={{ width: "100%", minHeight: "calc(100vh - 66px)", background: "#07091a", padding: "40px clamp(20px,6vw,60px) 120px" }}>
       <div style={{ maxWidth: "700px", margin: "0 auto" }}>
         
-        <div style={{ textAlign: "center", marginBottom: "32px", animation: "fadeUp .4s ease-out" }}>
-          <div style={{ width: "56px", height: "56px", borderRadius: "16px", background: "rgba(239,68,68,.12)", border: "1.5px solid rgba(239,68,68,.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-            <PackageSearch size={26} color="#ef4444" />
+        <div style={{ textAlign: "center", marginBottom: "24px", animation: "fadeUp .4s ease-out" }}>
+          <div style={{ width: "64px", height: "64px", borderRadius: "20px", background: "linear-gradient(135deg, rgba(245,166,35,.18), rgba(245,166,35,.05))", border: "1px solid rgba(245,166,35,.26)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 12px 30px rgba(245,166,35,.12)" }}>
+            <MapPin size={28} color="#F5A623" />
           </div>
           <h1 style={{ fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 900, color: "#fff", fontFamily: "Manrope,sans-serif", marginBottom: "8px" }}>Report Lost Item</h1>
-          <p style={{ fontSize: "15px", color: "rgba(255,255,255,.5)", lineHeight: 1.6 }}>Please provide as much detail as possible to help others identify your item.</p>
+          <p style={{ fontSize: "15px", color: "rgba(255,255,255,.5)", lineHeight: 1.6, maxWidth: "560px", margin: "0 auto" }}>Share the details that matter most so other students can quickly identify and return your item.</p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: "24px", padding: "32px", animation: "fadeUp .5s ease-out .1s both" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px", marginBottom: "18px" }}>
+          {[
+            { title: 'Clear title', text: 'Use the item name people would search for.' },
+            { title: 'Add location', text: 'Choose the most accurate campus area.' },
+            { title: 'Upload photo', text: 'Optional, but helps with matching.' }
+          ].map((tip) => (
+            <div key={tip.title} style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '16px', padding: '14px 16px' }}>
+              <p style={{ color: '#F5A623', fontSize: '12px', fontWeight: 800, fontFamily: 'Manrope,sans-serif', marginBottom: '4px' }}>{tip.title}</p>
+              <p style={{ color: 'rgba(255,255,255,.52)', fontSize: '12px', lineHeight: 1.5 }}>{tip.text}</p>
+            </div>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ background: "linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025))", border: "1px solid rgba(255,255,255,.08)", borderRadius: "24px", padding: "30px", boxShadow: "0 18px 60px rgba(0,0,0,.25)", animation: "fadeUp .5s ease-out .1s both" }}>
           
           <div className="sec-head">
             <span style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "16px", fontWeight: 800, color: "#fff", fontFamily: "Manrope,sans-serif" }}>
@@ -223,18 +236,18 @@ export default function ReportLostItem() {
             </div>
           </div>
 
-          <div style={{ marginTop: '8px', border: '1px solid rgba(245,166,35,.2)', borderRadius: '14px', padding: '16px', background: 'rgba(245,166,35,.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
+          <div style={{ marginTop: '8px', border: '1px solid rgba(245,166,35,.18)', borderRadius: '16px', padding: '16px', background: 'rgba(245,166,35,.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "rgba(245,166,35,.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <SearchCheck size={20} color="#F5A623" />
+                <ShieldCheck size={20} color="#F5A623" />
               </div>
               <div>
-                <p style={{ fontSize: '14px', color: '#fff', fontWeight: 800, fontFamily: 'Manrope,sans-serif', marginBottom: "2px" }}>Smart Match Scanning</p>
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,.6)' }}>Automatically scans against all found items using your details.</p>
+                <p style={{ fontSize: '14px', color: '#fff', fontWeight: 800, fontFamily: 'Manrope,sans-serif', marginBottom: "2px" }}>Campus verification support</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,.6)' }}>Your report will be checked against found items in the database.</p>
               </div>
             </div>
             <button type="button" className="btn-outline" style={{ padding: '8px 14px', fontSize: '13px' }} onClick={runSmartMatch}>
-              Run Manual Scan
+              Check Matches
             </button>
           </div>
 
@@ -259,7 +272,7 @@ export default function ReportLostItem() {
           </div>
 
           <div style={{ marginTop: "40px" }}>
-            <button type="submit" disabled={isSubmitting} className="btn-primary" style={{ width: "100%", justifyContent: "center", padding: "16px", fontSize: "16px" }}>
+            <button type="submit" disabled={isSubmitting} className="btn-primary" style={{ width: "100%", justifyContent: "center", padding: "16px", fontSize: "16px", borderRadius: "14px" }}>
               {isSubmitting ? 'Submitting Report...' : 'Submit Lost Item Report'}
             </button>
           </div>

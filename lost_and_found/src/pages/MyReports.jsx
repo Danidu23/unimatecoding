@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarDays, MapPin, Package } from 'lucide-react';
 import ReputationCard from '../components/ReputationCard';
@@ -8,6 +8,10 @@ export default function MyReports() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('lost');
   const [reputation, setReputation] = useState(MOCK_REPUTATION);
+  const [myLostItems, setMyLostItems] = useState([]);
+  const [myFoundItems, setMyFoundItems] = useState([]);
+  const [myClaims, setMyClaims] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const tabs = [
     { id: 'lost', label: 'Lost Items' },
@@ -15,65 +19,75 @@ export default function MyReports() {
     { id: 'claims', label: 'Claims' },
   ];
 
-  const myLostItems = [
-    {
-      id: 1,
-      name: 'Black Leather Wallet',
-      date: 'Mar 24, 2026',
-      status: 'Matched',
-      location: 'Main Library',
-      image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=900&q=80',
-      detail: 'Brown leather wallet with student ID slot and two debit cards.',
-    },
-    {
-      id: 3,
-      name: 'Calculus Textbook',
-      date: 'Mar 23, 2026',
-      status: 'Pending',
-      location: 'Block A',
-      image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=900&q=80',
-      detail: 'Calculus textbook with highlighted chapters and notes on the first page.',
-    },
-  ];
+  // Fetch user's submitted items from database
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const [lostRes, foundRes, claimsRes] = await Promise.all([
+          fetch('http://localhost:5000/api/items/lost'),
+          fetch('http://localhost:5000/api/items/found'),
+          fetch('http://localhost:5000/api/claims')
+        ]);
 
-  const myFoundItems = [
-    {
-      id: 4,
-      name: 'Campus Keys with Lanyard',
-      date: 'Mar 22, 2026',
-      status: 'Verified',
-      location: 'Canteen Entrance',
-      image: 'https://images.unsplash.com/photo-1582139329536-e7284fece509?w=900&q=80',
-      detail: 'Set of silver keys attached to a navy university lanyard.',
-    },
-  ];
+        const lostData = await lostRes.json();
+        const foundData = await foundRes.json();
+        const claimsData = await claimsRes.json();
 
-  const myClaims = [
-    {
-      id: 5,
-      name: 'Apple AirPods Pro',
-      date: 'Mar 25, 2026',
-      status: 'Approved',
-      location: 'IT Faculty',
-      image: 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=900&q=80',
-      detail: 'Claim request approved after matching serial number and case engraving.',
-    },
-    {
-      id: 2,
-      name: 'Blue Hydroflask',
-      date: 'Mar 21, 2026',
-      status: 'Rejected',
-      location: 'Sports Complex',
-      image: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=900&q=80',
-      detail: 'Claim rejected due to missing ownership proof and incorrect sticker details.',
-    },
-  ];
+        // Transform lost items
+        if (lostData.success && lostData.data) {
+          const lost = lostData.data.map(item => ({
+            id: item._id,
+            name: item.itemName,
+            date: new Date(item.dateLost).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            status: item.status || 'Pending',
+            location: item.lastSeenLocation,
+            image: item.image || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80',
+            detail: item.description
+          }));
+          setMyLostItems(lost);
+        }
+
+        // Transform found items
+        if (foundData.success && foundData.data) {
+          const found = foundData.data.map(item => ({
+            id: item._id,
+            name: item.itemName,
+            date: new Date(item.dateFound).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            status: item.status || 'Pending',
+            location: item.locationFound,
+            image: item.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=900&q=80',
+            detail: item.description
+          }));
+          setMyFoundItems(found);
+        }
+
+        if (claimsData.success && claimsData.data) {
+          const claims = claimsData.data.map(claim => ({
+            id: claim._id,
+            name: claim.identifier,
+            date: new Date(claim.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            status: claim.status,
+            location: claim.itemId?.lastSeenLocation || claim.itemId?.locationFound || 'Campus',
+            image: claim.proofImage || 'https://images.unsplash.com/photo-1523966211575-eb4a01e7dd51?w=900&q=80',
+            detail: claim.explanation
+          }));
+          setMyClaims(claims);
+        }
+      } catch (error) {
+        console.error('Error fetching items:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, []);
 
   const activeList = useMemo(() => {
     if (activeTab === 'lost') return myLostItems;
     if (activeTab === 'found') return myFoundItems;
     return myClaims;
-  }, [activeTab]);
+  }, [activeTab, myLostItems, myFoundItems, myClaims]);
 
   const getStatusStyle = (status) => {
     const normalized = status.toLowerCase();
@@ -99,6 +113,27 @@ export default function MyReports() {
   };
 
   const renderContent = () => {
+    if (loading) {
+      return (
+        <div style={{
+          marginTop: '20px',
+          textAlign: 'center',
+          padding: '60px 20px',
+        }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '3px solid rgba(245,166,35,.2)',
+            borderTop: '3px solid #F5A623',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto',
+          }} />
+          <p style={{ color: 'rgba(255,255,255,.6)', marginTop: '16px' }}>Loading items...</p>
+        </div>
+      );
+    }
+
     if (!activeList.length) {
       return (
         <div style={{

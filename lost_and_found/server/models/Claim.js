@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const claimSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -6,7 +6,9 @@ const claimSchema = new mongoose.Schema({
   explanation: { type: String, required: true },
   identifier: { type: String, required: true },
   proofImage: { type: String },
-  status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' }
+  status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
+  reviewNote: { type: String },
+  reviewedAt: { type: Date }
 }, { timestamps: true });
 
-export default mongoose.models.Claim || mongoose.model('Claim', claimSchema);
+module.exports = mongoose.models.Claim || mongoose.model('Claim', claimSchema);

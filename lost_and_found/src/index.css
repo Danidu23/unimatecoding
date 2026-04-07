@@ -35,6 +35,7 @@ button { font-family:inherit; cursor:pointer; border:none; }
 @keyframes popIn         { from{transform:scale(.65);opacity:0} to{transform:scale(1);opacity:1} }
 @keyframes wiggle        { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg)} 75%{transform:rotate(10deg)} }
 @keyframes cardGlowPulse { 0%,100%{box-shadow:0 0 0 rgba(245,166,35,0)} 50%{box-shadow:0 8px 34px rgba(245,166,35,.2)} }
+@keyframes spin          { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
 /* ── Navbar ── */
 .c-nav {

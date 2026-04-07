@@ -9,7 +9,9 @@ const lostItemSchema = new mongoose.Schema({
   description: { type: String, required: true },
   image: { type: String },
   contact: { type: String, required: true },
-  status: { type: String, enum: ['Pending', 'Matched', 'Closed'], default: 'Pending' }
+  status: { type: String, enum: ['Pending', 'Approved', 'Rejected', 'Matched', 'Closed'], default: 'Pending' },
+  reviewNote: { type: String },
+  reviewedAt: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.models.LostItem || mongoose.model('LostItem', lostItemSchema);

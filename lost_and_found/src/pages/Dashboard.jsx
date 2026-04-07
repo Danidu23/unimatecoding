@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Search, PackageSearch, PackagePlus, ListCheck, ClipboardList, Package, MapPin, Clock, ArrowRight, BellRing, ShieldCheck, BookOpenText, ScanSearch, Sparkles, MessageSquare } from 'lucide-react';
+import { ChevronRight, Search, PackagePlus, ListCheck, ClipboardList, Package, MapPin, Clock, ArrowRight, BellRing, ShieldCheck, BookOpenText, ScanSearch, Sparkles, MessageSquare } from 'lucide-react';
 export default function Dashboard() {
   const navigate = useNavigate();
   const today = new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric" });
@@ -8,35 +8,39 @@ export default function Dashboard() {
   const QUICK_ACTIONS = [
     {
       title: "Report Lost Item",
-      subtitle: "Create a detailed lost-item report in under a minute.",
-      icon: <PackageSearch size={22} color="#F5A623"/>,
+      subtitle: "Log campus belongings like student cards, chargers, notebooks, and bags.",
+      icon: <BookOpenText size={22} color="#F5A623"/>,
       link: "/report-lost",
-      accent: "Lost Priority",
-      img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1400&q=80&auto=format&fit=crop"
+      accent: "Student Support",
+      cta: "Start Lost Report",
+      img: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400&q=80&auto=format&fit=crop"
     },
     {
       title: "Report Found Item",
-      subtitle: "Upload item details and help the rightful owner recover it.",
+      subtitle: "Share recovered items found in lecture halls, libraries, and campus common areas.",
       icon: <PackagePlus size={22} color="#F5A623"/>,
       link: "/report-found",
-      accent: "Recovery Flow",
-      img: "https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1400&q=80&auto=format&fit=crop"
+      accent: "Campus Return",
+      cta: "Add Found Item",
+      img: "https://images.unsplash.com/photo-1491841550275-ad7854e35ca6?w=1400&q=80&auto=format&fit=crop"
     },
     {
       title: "Browse Items",
-      subtitle: "Scan current reports using location and category clues.",
+      subtitle: "Search by faculty, location, category, and the latest campus activity.",
       icon: <Search size={22} color="#F5A623"/>,
       link: "/browse",
-      accent: "Smart Search",
-      img: "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=1400&q=80&auto=format&fit=crop"
+      accent: "Campus Search",
+      cta: "Browse Reports",
+      img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&q=80&auto=format&fit=crop"
     },
     {
       title: "My Reports",
-      subtitle: "Track your submissions, claim status, and verification updates.",
+      subtitle: "Track your own reports, claim progress, and verification updates in one place.",
       icon: <ClipboardList size={22} color="#F5A623"/>,
       link: "/my-reports",
-      accent: "Status Center",
-      img: "https://images.unsplash.com/photo-1542626991-cbc4e32524cc?w=1400&q=80&auto=format&fit=crop"
+      accent: "Student Dashboard",
+      cta: "Open My Reports",
+      img: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1400&q=80&auto=format&fit=crop"
     }
   ];
 
@@ -163,16 +167,24 @@ export default function Dashboard() {
           <div key={i} className="hero-action-card" style={{ animation: `fadeUp .45s cubic-bezier(.22,.68,0,1.2) ${i * 0.1}s both`, cursor: "pointer", display: "flex", flexDirection: "column" }} onClick={() => navigate(action.link)}>
             <div style={{ position: "relative", borderRadius: "16px", overflow: "hidden", height: "240px", border: "1px solid rgba(255,255,255,.08)", marginBottom: "20px", background: "rgba(0,0,0,0.2)" }}>
               <img src={action.img} alt={action.title} className="grid-item-img" style={{ height: "100%", width: "100%", objectFit: "cover" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(7,9,26,.95) 5%, rgba(7,9,26,.1) 65%)" }} />
-              <div style={{ position: "absolute", left: "16px", bottom: "16px", display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(245,166,35,.15)", border: "1px solid rgba(245,166,35,.35)", borderRadius: "100px", padding: "6px 14px" }}>
-                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#F5A623" }} />
-                <span style={{ fontSize: "12px", color: "#F5A623", fontWeight: 800, fontFamily: "Manrope,sans-serif" }}>{action.accent}</span>
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(7,9,26,.96) 6%, rgba(7,9,26,.18) 60%, rgba(7,9,26,.04) 100%)" }} />
+              <div style={{ position: "absolute", left: "16px", top: "16px", display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(7,9,26,.62)", backdropFilter: "blur(10px)", border: "1px solid rgba(245,166,35,.28)", borderRadius: "100px", padding: "6px 14px" }}>
+                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#F5A623", boxShadow: "0 0 0 4px rgba(245,166,35,.12)" }} />
+                <span style={{ fontSize: "12px", color: "#F5A623", fontWeight: 800, fontFamily: "Manrope,sans-serif", letterSpacing: "0.4px" }}>{action.accent}</span>
+              </div>
+              <div style={{ position: "absolute", left: "16px", bottom: "16px", right: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                <div style={{ color: "rgba(255,255,255,.78)", fontSize: "12px", fontWeight: 700, fontFamily: "Manrope,sans-serif", letterSpacing: "0.3px" }}>
+                  Campus tools for students
+                </div>
+                <div style={{ width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, rgba(245,166,35,.95), rgba(249,186,60,.85))", color: "#07091a", boxShadow: "0 10px 24px rgba(245,166,35,.25)" }}>
+                  <ArrowRight size={16} />
+                </div>
               </div>
             </div>
             <h3 style={{ fontSize: "23px", fontWeight: 800, color: "#fff", fontFamily: "Manrope,sans-serif", margin: "0 0 10px 0" }}>{action.title}</h3>
-            <p style={{ fontSize: "15px", color: "rgba(255,255,255,.55)", lineHeight: 1.6, marginBottom: "20px" }}>{action.subtitle}</p>
-            <button className="btn-outline" style={{ marginTop: "auto", alignSelf: "flex-start", padding: "10px 18px", fontSize: "14px" }}>
-              Open Action <ArrowRight size={16} />
+            <p style={{ fontSize: "15px", color: "rgba(255,255,255,.55)", lineHeight: 1.6, marginBottom: "18px" }}>{action.subtitle}</p>
+            <button className="btn-primary" style={{ marginTop: "auto", alignSelf: "flex-start", padding: "11px 18px", fontSize: "13px", borderRadius: "999px", boxShadow: "0 8px 24px rgba(245,166,35,.28)" }}>
+              {action.cta} <ArrowRight size={16} />
             </button>
           </div>
         ))}
@@ -191,7 +203,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {RECENT_ITEMS.slice(0, 5).map((item, i) => (
+        {recentItems.slice(0, 5).map((item, i) => (
           <div key={item.id} className="card-row" style={{ animation: `fadeUp .55s cubic-bezier(.22,.68,0,1.2) ${i * .13}s both` }} onClick={() => navigate(`/item/${item.id}`)}>
             <div style={{ width: "clamp(140px,26%,210px)", flexShrink: 0, overflow: "hidden", position: "relative" }}>
               <img src={item.img} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
