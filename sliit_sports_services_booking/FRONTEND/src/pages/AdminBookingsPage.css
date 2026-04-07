@@ -1,0 +1,98 @@
+.admin-bookings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.admin-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all var(--transition-fast);
+}
+
+.admin-stat:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+
+.admin-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.admin-stat-accent .admin-stat-icon { background: rgba(232,184,75,0.1); color: var(--accent-primary); }
+.admin-stat-green  .admin-stat-icon { background: var(--accent-green-bg); color: var(--accent-green); }
+.admin-stat-red    .admin-stat-icon { background: var(--accent-red-bg);   color: var(--accent-red); }
+.admin-stat-blue   .admin-stat-icon { background: var(--accent-blue-bg);  color: var(--accent-blue); }
+
+.admin-stat-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.admin-stat-label {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.admin-booking-id {
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+.admin-student-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--bg-elevated);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.admin-action-btns {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .admin-stats-row { grid-template-columns: repeat(2, 1fr); }
+  .table-container { overflow-x: auto; }
+}
