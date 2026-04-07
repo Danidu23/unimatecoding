@@ -11,7 +11,16 @@ const bookingSchema = new mongoose.Schema({
     status: { type: String, enum: ['pending', 'approved', 'rejected', 'completed', 'cancelled'], default: 'pending' },
     cancelDeadline: { type: Date, required: true },
     cancelReason: { type: String },
-    rejectReason: { type: String }
+    rejectReason: { type: String },
+    isPriority: { type: Boolean, default: false },
+    priorityReason: { type: String },
+    priorityVerified: { type: Boolean, default: false },
+    notificationSent: {
+        submitted: { type: Boolean, default: false },
+        approved: { type: Boolean, default: false },
+        rejected: { type: Boolean, default: false },
+        reminder30min: { type: Boolean, default: false }
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Booking', bookingSchema);

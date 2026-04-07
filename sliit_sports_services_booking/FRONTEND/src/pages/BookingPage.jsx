@@ -6,6 +6,9 @@ import { FiCalendar, FiClock, FiUsers, FiCheckCircle, FiAlertCircle } from 'reac
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import { format, addDays } from 'date-fns';
+import SmartSuggestionPanel from '../components/SmartSuggestionPanel';
+import OccupancyIndicator from '../components/OccupancyIndicator';
+import PriorityBookingForm from '../components/PriorityBookingForm';
 import './BookingPage.css';
 
 const BookingPage = () => {
@@ -28,6 +31,9 @@ const BookingPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(null);
+  
+  const [isPriority, setIsPriority] = useState(false);
+  const [priorityReason, setPriorityReason] = useState('');
 
   // Fetch Facility details and Global Rules once
   useEffect(() => {
@@ -88,23 +94,29 @@ const BookingPage = () => {
       setError(`Maximum capacity is ${facility.capacity} participants.`);
       return;
     }
+    if (isPriority && !priorityReason) {
+      setError('Please provide a reason for priority booking.');
+      return;
+    }
     
     setError('');
     setSubmitting(true);
     try {
       const { data } = await api.post('/bookings', {
         slotId: selectedSlot._id,
-        date: selectedSlot.date,
-        participants
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        participants,
+        isPriority,
+        priorityReason
       });
-      // Hydrate booking for confirmation screen
       setSuccess({
         id: data._id,
         facilityName: facility.name,
         date: data.date,
         startTime: data.startTime,
         endTime: data.endTime,
-        status: data.status
+        status: data.status,
+        isPriority: data.isPriority
       });
     } catch (err) {
       setError(err.response?.data?.message || 'Booking failed. Please try again.');
@@ -112,6 +124,8 @@ const BookingPage = () => {
       setSubmitting(false);
     }
   };
+
+  const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
   return (
     <div className="booking-page">
@@ -168,8 +182,14 @@ const BookingPage = () => {
         </div>
 
         <div className="booking-section">
-          <h3>Available Slots</h3>
+          <h3>Available Slots & Occupancy</h3>
           <p className="booking-section-sub">{format(selectedDate, 'EEEE, MMMM d, yyyy')}</p>
+
+          <OccupancyIndicator 
+            facilityServiceId={id} 
+            date={dateStr}
+            slots={slots}
+          />
 
           {loading ? (
             <div className="loading-container" style={{ padding: '40px 0' }}>
@@ -182,7 +202,13 @@ const BookingPage = () => {
               <p>No slots available for this date</p>
             </div>
           ) : (
-            <div className="slots-grid">
+            <>
+              <SmartSuggestionPanel 
+                facilityServiceId={id} 
+                date={dateStr} 
+                onSelectSlot={(slot) => setSelectedSlot(slot)} 
+              />
+              <div className="slots-grid" style={{ marginTop: '16px' }}>
               {slots.map(slot => {
                 const isSelected = selectedSlot?._id === slot._id;
                 const unavailable = slot.status !== 'available';
@@ -197,7 +223,8 @@ const BookingPage = () => {
                     <span className="slot-status-label">
                       {slot.status === 'blocked' ? '🚫 Blocked' :
                        slot.status === 'full'    ? '🔴 Full' :
-                       isSelected               ? '✓ Selected' : '✅ Available'}
+                       isSelected               ? '✓ Selected' : 
+                       '✓ Available'}
                     </span>
                     {!unavailable && (
                       <span className="slot-capacity">
@@ -207,7 +234,8 @@ const BookingPage = () => {
                   </button>
                 );
               })}
-            </div>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -252,6 +280,14 @@ const BookingPage = () => {
               </span>
             </div>
           )}
+
+          <PriorityBookingForm 
+            facilityType={facility.type}
+            onPriorityChange={(data) => {
+              setIsPriority(data.isPriority);
+              setPriorityReason(data.priorityReason);
+            }}
+          />
 
           <div className="divider" />
 
@@ -311,24 +347,29 @@ const BookingConfirmation = ({ booking, navigate }) => (
           <strong>{booking.facilityName}</strong>
         </div>
         <div className="conf-row">
-          <span>Date</span>
-          <strong>{booking.date}</strong>
-        </div>
-        <div className="conf-row">
-          <span>Time</span>
-          <strong>{booking.startTime} – {booking.endTime}</strong>
+          <span>Date & Time</span>
+          <strong>{booking.date}, {booking.startTime} – {booking.endTime}</strong>
         </div>
         <div className="conf-row">
           <span>Status</span>
-          <span className="badge badge-pending">Pending</span>
+          <strong style={{ color: booking.isPriority ? '#d32f2f' : '#ff9800' }}>
+            {booking.isPriority ? '🔴 Priority Pending' : '⏳ Pending Approval'}
+          </strong>
         </div>
+      </div>
+
+      <div className="confirmation-info">
+        <p>📧 You'll receive a notification when your booking is approved or rejected.</p>
+        {booking.isPriority && (
+          <p>🔴 <strong>Priority Request:</strong> This will be reviewed with urgent priority.</p>
+        )}
       </div>
 
       <div className="confirmation-actions">
         <button className="btn btn-primary" onClick={() => navigate('/my-bookings')}>
           View My Bookings
         </button>
-        <button className="btn btn-ghost" onClick={() => navigate('/home')}>
+        <button className="btn btn-ghost" onClick={() => navigate('/')}>
           Back to Home
         </button>
       </div>

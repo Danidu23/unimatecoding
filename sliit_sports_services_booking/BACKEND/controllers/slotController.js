@@ -73,7 +73,21 @@ const getSlots = async (req, res) => {
             slots = await Slot.find({ facilityServiceId, date }).sort({ startTime: 1 });
         }
 
-        res.json(slots);
+        // Calculate occupancy for each slot
+        const resultSlots = slots.map(slot => {
+            const occupancyPercentage = (slot.capacity > 0) ? (slot.booked / slot.capacity) * 100 : 100;
+            let occupancyLevel = 'low';
+            if (occupancyPercentage >= 80) occupancyLevel = 'full';
+            else if (occupancyPercentage >= 40) occupancyLevel = 'medium';
+
+            return {
+                ...slot.toObject(),
+                occupancyPercentage,
+                occupancyLevel
+            };
+        });
+
+        res.json(resultSlots);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

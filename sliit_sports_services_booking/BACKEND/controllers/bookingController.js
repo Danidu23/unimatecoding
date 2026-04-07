@@ -2,6 +2,8 @@ const Booking = require('../models/Booking');
 const Slot = require('../models/Slot');
 const GlobalRules = require('../models/GlobalRules');
 const FacilityService = require('../models/FacilityService');
+const Notification = require('../models/Notification');
+const User = require('../models/User');
 
 // Helper to get global rules falling back to defaults
 const getGlobalRules = async () => {
@@ -17,7 +19,7 @@ const getGlobalRules = async () => {
 // @access  Student
 const createBooking = async (req, res) => {
     try {
-        const { slotId, date, participants } = req.body;
+        const { slotId, date, participants, isPriority, priorityReason } = req.body;
         const userId = req.user._id;
 
         const slot = await Slot.findById(slotId).populate('facilityServiceId');
@@ -84,7 +86,9 @@ const createBooking = async (req, res) => {
             endTime: slot.endTime,
             participants,
             status: 'pending',
-            cancelDeadline
+            cancelDeadline,
+            isPriority: isPriority || false,
+            priorityReason: isPriority ? priorityReason : ''
         });
 
         // We DO NOT update slot.booked until it is approved. Wait, the system requirements say: 
@@ -99,6 +103,29 @@ const createBooking = async (req, res) => {
         await slot.save();
 
         const createdBooking = await booking.save();
+
+        // Generate Notification for User
+        await Notification.create({
+            userId,
+            message: `Your booking request for ${facility.name} on ${date} has been submitted.`,
+            type: 'booking_submitted',
+            bookingId: createdBooking._id
+        });
+
+        // Generate Notification for Admins if Priority
+        if (isPriority) {
+            const admins = await User.find({ role: { $in: ['admin', 'staff'] } });
+            const notifications = admins.map(admin => ({
+                userId: admin._id,
+                message: `URGENT: Priority booking requested for ${facility.name} by ${req.user.name}.`,
+                type: 'priority_request',
+                bookingId: createdBooking._id
+            }));
+            if (notifications.length > 0) {
+                await Notification.insertMany(notifications);
+            }
+        }
+
         res.status(201).json(createdBooking);
 
     } catch (error) {
@@ -159,10 +186,29 @@ const cancelBooking = async (req, res) => {
 // @access  Admin/Staff
 const getAllBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find({})
+        const { status, sortBy = 'priority' } = req.query;
+        const query = {};
+        if (status) query.status = status;
+
+        let bookings = await Booking.find(query)
             .populate('userId', 'name email')
-            .populate('facilityServiceId', 'name')
-            .sort({ createdAt: -1 });
+            .populate('facilityServiceId', 'name type')
+            .populate('slotId', 'startTime endTime');
+
+        // Sort by priority first, then by createdAt
+        if (sortBy === 'priority') {
+            bookings.sort((a, b) => {
+                // Priority bookings first
+                if (a.isPriority !== b.isPriority) {
+                    return b.isPriority - a.isPriority;
+                }
+                // Then by created date (newest first)
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+        } else if (sortBy === 'date') {
+            bookings.sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+
         res.json(bookings);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -174,13 +220,24 @@ const getAllBookings = async (req, res) => {
 // @access  Admin/Staff
 const updateBookingStatus = async (req, res) => {
     try {
-        const { status, rejectReason } = req.body; // status: 'approved' | 'rejected'
-        const booking = await Booking.findById(req.params.id);
+        const { status, rejectReason, priorityVerified } = req.body;
+        const booking = await Booking.findById(req.params.id)
+            .populate('facilityServiceId', 'name')
+            .populate('userId', 'name email');
         
         if (!booking) return res.status(404).json({ message: 'Booking not found' });
         
         if (booking.status !== 'pending') {
             return res.status(400).json({ message: 'Can only update pending bookings' });
+        }
+
+        // Handle priority booking verification
+        if (booking.isPriority && priorityVerified !== undefined) {
+            booking.priorityVerified = priorityVerified;
+            if (!priorityVerified) {
+                // If priority claim is invalid, downgrade to normal
+                booking.isPriority = false;
+            }
         }
 
         if (status === 'rejected') {
@@ -209,7 +266,23 @@ const updateBookingStatus = async (req, res) => {
             return res.status(400).json({ message: 'Invalid status update' });
         }
 
+        booking.notificationSent.approved = false; // Reset to send fresh notification
         const updatedBooking = await booking.save();
+
+        // Notify user about status change
+        const notificationMessage = status === 'approved' 
+            ? `Your booking for ${booking.facilityServiceId.name} on ${booking.date} has been approved.`
+            : `Your booking for ${booking.facilityServiceId.name} on ${booking.date} was rejected: ${rejectReason}`;
+
+        await Notification.create({
+            userId: booking.userId._id,
+            facilityServiceId: booking.facilityServiceId._id,
+            message: notificationMessage,
+            type: `booking_${status}`,
+            bookingId: booking._id,
+            priority: booking.isPriority ? 'high' : 'normal'
+        });
+
         res.json(updatedBooking);
 
     } catch (error) {

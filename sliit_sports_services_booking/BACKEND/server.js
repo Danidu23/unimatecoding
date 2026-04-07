@@ -22,6 +22,8 @@ app.use('/api/slots', require('./routes/slotRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/rules', require('./routes/rulesRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/smart', require('./routes/smartRoutes'));
 
 app.get('/', (req, res) => {
     res.send('API is running...');

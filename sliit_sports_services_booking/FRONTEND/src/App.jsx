@@ -11,6 +11,8 @@ import AdminBookingsPage from './pages/AdminBookingsPage';
 import AdminSlotsPage from './pages/AdminSlotsPage';
 import AdminReportsPage from './pages/AdminReportsPage';
 import AdminLimitsPage from './pages/AdminLimitsPage';
+import AdminPriorityReviewPage from './pages/AdminPriorityReviewPage';
+import AdminOccupancyDashboard from './pages/AdminOccupancyDashboard';
 
 /* Protected route: must be logged in */
 const RequireAuth = ({ children }) => {
@@ -121,6 +123,22 @@ const AppRoutes = () => {
         <RequireAuth>
           <RequireAdmin>
             <WithNavbar><AdminLimitsPage /></WithNavbar>
+          </RequireAdmin>
+        </RequireAuth>
+      } />
+
+      <Route path="/admin/priority" element={
+        <RequireAuth>
+          <RequireAdmin>
+            <WithNavbar><AdminPriorityReviewPage /></WithNavbar>
+          </RequireAdmin>
+        </RequireAuth>
+      } />
+
+      <Route path="/admin/occupancy" element={
+        <RequireAuth>
+          <RequireAdmin>
+            <WithNavbar><AdminOccupancyDashboard /></WithNavbar>
           </RequireAdmin>
         </RequireAuth>
       } />

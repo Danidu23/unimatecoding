@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  FiHome, FiCalendar, FiBell, FiUser, FiLogOut,
+  FiHome, FiCalendar, FiUser, FiLogOut,
   FiMenu, FiX, FiSettings, FiBarChart2
 } from 'react-icons/fi';
+import NotificationCenter from './NotificationCenter';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -13,7 +14,6 @@ const Navbar = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -32,15 +32,11 @@ const Navbar = () => {
     { to: '/admin/bookings',  label: 'Bookings',  icon: <FiCalendar /> },
     { to: '/admin/slots',     label: 'Slots',     icon: <FiSettings /> },
     { to: '/admin/reports',   label: 'Reports',   icon: <FiBarChart2 /> },
+    { to: '/admin/priority',  label: 'Priority',  icon: <FiBarChart2 /> },
+    { to: '/admin/occupancy', label: 'Occupancy', icon: <FiBarChart2 /> },
   ];
 
   const links = (user?.role === 'admin' || user?.role === 'staff') ? adminLinks : studentLinks;
-
-  const notifications = [
-    { id: 1, text: 'Your Badminton booking was approved!', time: '2h ago', unread: true },
-    { id: 2, text: 'Doctor Channeling booking is pending.', time: '5h ago', unread: false },
-  ];
-  const unreadCount = notifications.filter(n => n.unread).length;
 
   return (
     <nav className="navbar">
@@ -69,37 +65,14 @@ const Navbar = () => {
         <div className="navbar-actions">
           {/* Notifications */}
           <div className="navbar-notif-wrap">
-            <button
-              className="navbar-icon-btn"
-              onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
-            >
-              <FiBell />
-              {unreadCount > 0 && <span className="notif-dot">{unreadCount}</span>}
-            </button>
-            {notifOpen && (
-              <div className="notif-dropdown">
-                <div className="notif-header">
-                  <span>Notifications</span>
-                  <span className="badge badge-pending">{unreadCount} new</span>
-                </div>
-                {notifications.map(n => (
-                  <div key={n.id} className={`notif-item ${n.unread ? 'unread' : ''}`}>
-                    <div className="notif-dot-indicator" />
-                    <div>
-                      <p className="notif-text">{n.text}</p>
-                      <span className="notif-time">{n.time}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <NotificationCenter />
           </div>
 
           {/* Profile */}
           <div className="navbar-profile-wrap">
             <button
               className="navbar-avatar"
-              onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
+              onClick={() => { setProfileOpen(!profileOpen); }}
             >
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </button>
