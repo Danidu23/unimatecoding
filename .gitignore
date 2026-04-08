@@ -13,3 +13,4 @@ server/src/uploads/payment-slips
 uploads/payment-slips
 
 .DS_Store
+**/.DS_Store
