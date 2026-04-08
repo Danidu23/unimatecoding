@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  ClipboardList,
   Search,
   Filter,
   Banknote,
@@ -9,40 +8,111 @@ import {
   AlertCircle,
   CalendarDays,
 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import api from "../api/axios";
-import StaffHeader from "../components/StaffHeader";
+import StaffLayout from "../components/StaffLayout";
 
 const CSS = `
-  .staff-shell{min-height:100vh;padding:86px 24px 24px}
-  .staff-wrap{width:min(1180px,100%);margin:0 auto}
+  .staff-wrap{width:100%;margin:0}
   .staff-card{
+    width:100%;
     background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.03));
     border:1px solid rgba(255,255,255,.08);
     border-radius:28px;
     backdrop-filter:blur(18px);
     box-shadow:0 18px 45px rgba(0,0,0,.28);
   }
-  .staff-head{padding:24px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .staff-head{
+    padding:28px 24px 20px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
   .staff-title{
-    display:flex;align-items:center;gap:10px;
-    font-family:'Manrope',sans-serif;font-size:28px;font-weight:900;color:#fff;letter-spacing:-.8px;
+    font-family:'Manrope',sans-serif;
+    font-size:36px;
+    font-weight:900;
+    color:#fff;
+    letter-spacing:-1px;
+    line-height:1.1;
   }
-  .staff-sub{margin-top:8px;font-size:14px;color:rgba(255,255,255,.52);line-height:1.7}
+  .staff-sub{
+    margin-top:10px;
+    font-size:14px;
+    color:rgba(255,255,255,.58);
+    line-height:1.75;
+    max-width:720px;
+  }
+  .staff-head-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .staff-head-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
   .toolbar{
-    display:grid;grid-template-columns:1.2fr .7fr .7fr;gap:12px;
-    padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);
+    display:grid;
+    grid-template-columns:1.2fr .8fr .8fr;
+    gap:14px;
+    padding:18px 24px 22px;
+    border-bottom:1px solid rgba(255,255,255,.06);
   }
-  .input-wrap{position:relative}
+  .input-wrap{
+    position:relative;
+    min-height:56px;
+  }
   .input-icon{
-    position:absolute;left:13px;top:50%;transform:translateY(-50%);
-    color:rgba(255,255,255,.34);pointer-events:none
+    position:absolute;
+    left:16px;
+    top:50%;
+    transform:translateY(-50%);
+    color:rgba(255,255,255,.36);
+    pointer-events:none;
+    z-index:2;
   }
-  .input, .select{
-    width:100%;padding:12px 14px 12px 40px;border-radius:14px;background:rgba(255,255,255,.045);
-    border:1.5px solid rgba(255,255,255,.08);color:#fff;font-size:14px;outline:none;
+  .input{
+    width:100%;
+    height:56px;
+    border-radius:16px;
+    background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.022));
+    border:1px solid rgba(255,255,255,.08);
+    color:#fff;
+    padding:0 16px 0 46px;
+    font-size:14px;
+    outline:none;
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    box-sizing:border-box;
   }
-  .select{appearance:none}
-  .select option{background:#0d1130;color:#fff}
+  .select{
+    width:100%;
+    height:56px;
+    border-radius:16px;
+    background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.022));
+    border:1px solid rgba(255,255,255,.08);
+    color:#fff;
+    padding:0 16px 0 46px;
+    font-size:14px;
+    outline:none;
+    appearance:none;
+    -webkit-appearance:none;
+    box-sizing:border-box;
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .input:focus,
+  .select:focus{
+    border-color:rgba(245,166,35,.26);
+    box-shadow:0 0 0 4px rgba(245,166,35,.08);
+  }
+  .input::placeholder{
+    color:rgba(255,255,255,.36);
+  }
+  .select option{
+    background:#141b31;
+    color:#fff;
+  }
   .orders-list{display:grid;gap:14px;padding:20px 24px}
   .order-card{
     padding:16px;border-radius:20px;background:rgba(255,255,255,.03);
@@ -88,9 +158,10 @@ const CSS = `
     .row{grid-template-columns:1fr 1fr}
   }
   @media (max-width:640px){
-    .staff-shell{padding:82px 16px 16px}
     .row{grid-template-columns:1fr}
     .staff-head,.toolbar,.orders-list{padding-left:16px;padding-right:16px}
+    .staff-head{padding:22px 16px 16px}
+    .staff-title{font-size:30px}
   }
 `;
 
@@ -162,10 +233,16 @@ const getNextOrderAction = (order) => {
 };
 
 export default function StaffOrdersPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialSearch = searchParams.get("search") || "";
+  const initialOrderStatus = searchParams.get("orderStatus") || "";
+  const initialPaymentStatus = searchParams.get("paymentStatus") || "";
+
   const [orders, setOrders] = useState([]);
-  const [search, setSearch] = useState("");
-  const [orderStatus, setOrderStatus] = useState("");
-  const [paymentStatus, setPaymentStatus] = useState("");
+  const [search, setSearch] = useState(initialSearch);
+  const [orderStatus, setOrderStatus] = useState(initialOrderStatus);
+  const [paymentStatus, setPaymentStatus] = useState(initialPaymentStatus);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [paymentActionLoadingId, setPaymentActionLoadingId] = useState("");
@@ -175,6 +252,21 @@ export default function StaffOrdersPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [statusActionLoadingId, setStatusActionLoadingId] = useState("");
   const [statusActionError, setStatusActionError] = useState("");
+
+  const urlFilters = useMemo(
+    () => ({
+      search: searchParams.get("search") || "",
+      orderStatus: searchParams.get("orderStatus") || "",
+      paymentStatus: searchParams.get("paymentStatus") || "",
+    }),
+    [searchParams]
+  );
+
+    useEffect(() => {
+    setSearch(urlFilters.search);
+    setOrderStatus(urlFilters.orderStatus);
+    setPaymentStatus(urlFilters.paymentStatus);
+  }, [urlFilters]);
 
   const fetchOrders = async () => {
     try {
@@ -279,6 +371,21 @@ export default function StaffOrdersPage() {
   };
 
   useEffect(() => {
+    const nextParams = new URLSearchParams();
+
+    if (search.trim()) nextParams.set("search", search.trim());
+    if (orderStatus) nextParams.set("orderStatus", orderStatus);
+    if (paymentStatus) nextParams.set("paymentStatus", paymentStatus);
+
+    const nextQuery = nextParams.toString();
+    const currentQuery = searchParams.toString();
+
+    if (nextQuery !== currentQuery) {
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [search, orderStatus, paymentStatus, searchParams, setSearchParams]);
+
+  useEffect(() => {
     fetchOrders();
   }, [orderStatus, paymentStatus]);
 
@@ -298,219 +405,167 @@ export default function StaffOrdersPage() {
   });
 
   return (
-    <>
+    <StaffLayout>
       <style>{CSS}</style>
-      <StaffHeader />
-      <div className="staff-shell">
-        <div className="staff-wrap staff-card">
-          <div className="staff-head">
-            <div className="staff-title">
-              <ClipboardList size={24} color="#F5A623" />
-              Staff Orders
-            </div>
+      <div className="staff-wrap staff-card">
+      <div className="staff-head">
+        <div className="staff-head-top">
+          <div>
+            <div className="staff-title">Staff Orders</div>
             <div className="staff-sub">
               View all student orders, payment details, and current order progress.
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="toolbar">
-            <div className="input-wrap">
-              <span className="input-icon"><Search size={16} /></span>
-              <input
-                className="input"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by student, order ID, or item"
-              />
-            </div>
-
-            <div className="input-wrap">
-              <span className="input-icon"><Filter size={16} /></span>
-              <select className="select" value={orderStatus} onChange={(e) => setOrderStatus(e.target.value)}>
-                <option value="">All Order Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="preparing">Preparing</option>
-                <option value="ready">Ready</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-
-            <div className="input-wrap">
-              <span className="input-icon"><Filter size={16} /></span>
-              <select className="select" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}>
-                <option value="">All Payment Statuses</option>
-                <option value="pay_on_pickup">Pay on Pickup</option>
-                <option value="payment_submitted">Payment Submitted</option>
-                <option value="payment_verified">Payment Verified</option>
-                <option value="payment_rejected">Payment Rejected</option>
-              </select>
-            </div>
+        <div className="toolbar">
+          <div className="input-wrap">
+            <span className="input-icon"><Search size={16} /></span>
+            <input
+              className="input"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by student, order ID, or item"
+            />
           </div>
 
-          {error && <div className="msg error">{error}</div>}
-          {paymentActionError && <div className="msg error">{paymentActionError}</div>}
-          {statusActionError && <div className="msg error">{statusActionError}</div>}
+          <div className="input-wrap">
+            <span className="input-icon"><Filter size={16} /></span>
+            <select className="select" value={orderStatus} onChange={(e) => setOrderStatus(e.target.value)}>
+              <option value="">All Order Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="preparing">Preparing</option>
+              <option value="ready">Ready</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
 
-          <div className="orders-list">
-            {loading ? (
-              <div className="empty">Loading orders...</div>
-            ) : filteredOrders.length === 0 ? (
-              <div className="empty">No orders found.</div>
-            ) : (
-              filteredOrders.map((order) => {
-                const nextAction = getNextOrderAction(order);
+          <div className="input-wrap">
+            <span className="input-icon"><Filter size={16} /></span>
+            <select className="select" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}>
+              <option value="">All Payment Statuses</option>
+              <option value="pay_on_pickup">Pay on Pickup</option>
+              <option value="payment_submitted">Payment Submitted</option>
+              <option value="payment_verified">Payment Verified</option>
+              <option value="payment_rejected">Payment Rejected</option>
+            </select>
+          </div>
+        </div>
 
-                return (
-                  <div key={order._id} className="order-card">
-                    <div className="order-top">
-                      <div>
-                        <div className="order-id">{order._id}</div>
-                        <div style={{ marginTop: "6px", fontSize: "13px", color: "rgba(255,255,255,.52)" }}>
-                          {new Date(order.createdAt || order.orderDate).toLocaleString()}
-                        </div>
-                      </div>
+        {error && <div className="msg error">{error}</div>}
+        {paymentActionError && <div className="msg error">{paymentActionError}</div>}
+        {statusActionError && <div className="msg error">{statusActionError}</div>}
 
-                      <div className="order-meta">
-                        <span className="pill">
-                          {order.paymentMethod === "bank_transfer" ? <Banknote size={13} /> : <HandCoins size={13} />}
-                          {formatPaymentMethod(order.paymentMethod)}
-                        </span>
-                        <span className="pill">
-                          <CheckCircle2 size={13} />
-                          {formatPaymentStatus(order.paymentStatus)}
-                        </span>
-                        <span className="pill">
-                          <AlertCircle size={13} />
-                          {formatOrderStatus(order.orderStatus)}
-                        </span>
+        <div className="orders-list">
+          {loading ? (
+            <div className="empty">Loading orders...</div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="empty">No orders found.</div>
+          ) : (
+            filteredOrders.map((order) => {
+              const nextAction = getNextOrderAction(order);
+
+              return (
+                <div key={order._id} className="order-card">
+                  <div className="order-top">
+                    <div>
+                      <div className="order-id">{order._id}</div>
+                      <div style={{ marginTop: "6px", fontSize: "13px", color: "rgba(255,255,255,.52)" }}>
+                        {new Date(order.createdAt || order.orderDate).toLocaleString()}
                       </div>
                     </div>
 
-                    <div className="row">
-                      <div className="mini">
-                        <div className="mini-label">Student</div>
-                        <div className="mini-value">{order.studentId?.name || "—"}</div>
-                      </div>
-                      <div className="mini">
-                        <div className="mini-label">Email</div>
-                        <div className="mini-value">{order.studentId?.email || "—"}</div>
-                      </div>
-                      <div className="mini">
-                        <div className="mini-label">Pickup Date</div>
-                        <div className="mini-value">
-                          <CalendarDays size={13} style={{ marginRight: 6, verticalAlign: "middle" }} />
-                          {order.pickupDate ? new Date(order.pickupDate).toLocaleDateString() : "—"}
-                        </div>
-                      </div>
-                      <div className="mini">
-                        <div className="mini-label">Total</div>
-                        <div className="mini-value">Rs. {order.totalAmount ?? "—"}</div>
+                    <div className="order-meta">
+                      <span className="pill">
+                        {order.paymentMethod === "bank_transfer" ? <Banknote size={13} /> : <HandCoins size={13} />}
+                        {formatPaymentMethod(order.paymentMethod)}
+                      </span>
+                      <span className="pill">
+                        <CheckCircle2 size={13} />
+                        {formatPaymentStatus(order.paymentStatus)}
+                      </span>
+                      <span className="pill">
+                        <AlertCircle size={13} />
+                        {formatOrderStatus(order.orderStatus)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="row">
+                    <div className="mini">
+                      <div className="mini-label">Student</div>
+                      <div className="mini-value">{order.studentId?.name || "—"}</div>
+                    </div>
+                    <div className="mini">
+                      <div className="mini-label">Email</div>
+                      <div className="mini-value">{order.studentId?.email || "—"}</div>
+                    </div>
+                    <div className="mini">
+                      <div className="mini-label">Pickup Date</div>
+                      <div className="mini-value">
+                        <CalendarDays size={13} style={{ marginRight: 6, verticalAlign: "middle" }} />
+                        {order.pickupDate ? new Date(order.pickupDate).toLocaleDateString() : "—"}
                       </div>
                     </div>
-
-                    <div className="row">
-                      <div className="mini">
-                        <div className="mini-label">Payment Reference</div>
-                        <div className="mini-value">{order.paymentReference || "—"}</div>
-                      </div>
-                      <div className="mini">
-                        <div className="mini-label">Slip</div>
-                        <div className="mini-value">
-                          {order.slipUrl ? (
-                            <button
-                              type="button"
-                              onClick={() => handleViewSlip(order.slipUrl)}
-                              style={{
-                                padding: "7px 10px",
-                                borderRadius: "10px",
-                                background: "rgba(96,165,250,.12)",
-                                border: "1px solid rgba(96,165,250,.24)",
-                                color: "#60a5fa",
-                                fontSize: "12px",
-                                fontWeight: 800,
-                                fontFamily: "Manrope,sans-serif",
-                                cursor: "pointer",
-                              }}
-                            >
-                              View Slip
-                            </button>
-                          ) : (
-                            "—"
-                          )}
-                        </div>
-                      </div>
-                      <div className="mini">
-                        <div className="mini-label">Cancelled By</div>
-                        <div className="mini-value">{order.cancelledBy || "—"}</div>
-                      </div>
-                      <div className="mini">
-                        <div className="mini-label">Reason</div>
-                        <div className="mini-value">{order.cancellationReason || "—"}</div>
-                      </div>
+                    <div className="mini">
+                      <div className="mini-label">Total</div>
+                      <div className="mini-value">Rs. {order.totalAmount ?? "—"}</div>
                     </div>
+                  </div>
 
-                    <div className="items-box">
-                      <div className="items-title">Items</div>
-                      <div className="items-text">
-                        {order.items?.map((item) => `${item.name} x${item.quantity}`).join(", ") || "—"}
-                      </div>
+                  <div className="row">
+                    <div className="mini">
+                      <div className="mini-label">Payment Reference</div>
+                      <div className="mini-value">{order.paymentReference || "—"}</div>
                     </div>
-
-                    {order.paymentMethod === "bank_transfer" &&
-                      order.paymentStatus === "payment_submitted" && (
-                        <div
-                          style={{
-                            marginTop: "12px",
-                            display: "flex",
-                            gap: "10px",
-                            flexWrap: "wrap",
-                          }}
-                        >
+                    <div className="mini">
+                      <div className="mini-label">Slip</div>
+                      <div className="mini-value">
+                        {order.slipUrl ? (
                           <button
                             type="button"
-                            onClick={() => handleVerifyPayment(order._id)}
-                            disabled={paymentActionLoadingId === order._id}
+                            onClick={() => handleViewSlip(order.slipUrl)}
                             style={{
-                              padding: "10px 14px",
-                              borderRadius: "12px",
-                              background: "rgba(34,197,94,.12)",
-                              border: "1px solid rgba(34,197,94,.24)",
-                              color: "#4ade80",
+                              padding: "7px 10px",
+                              borderRadius: "10px",
+                              background: "rgba(96,165,250,.12)",
+                              border: "1px solid rgba(96,165,250,.24)",
+                              color: "#60a5fa",
                               fontSize: "12px",
                               fontWeight: 800,
                               fontFamily: "Manrope,sans-serif",
-                              cursor: paymentActionLoadingId === order._id ? "not-allowed" : "pointer",
-                              opacity: paymentActionLoadingId === order._id ? 0.6 : 1,
+                              cursor: "pointer",
                             }}
                           >
-                            {paymentActionLoadingId === order._id ? "Updating..." : "Verify Payment"}
+                            View Slip
                           </button>
+                        ) : (
+                          "—"
+                        )}
+                      </div>
+                    </div>
+                    <div className="mini">
+                      <div className="mini-label">Cancelled By</div>
+                      <div className="mini-value">{order.cancelledBy || "—"}</div>
+                    </div>
+                    <div className="mini">
+                      <div className="mini-label">Reason</div>
+                      <div className="mini-value">{order.cancellationReason || "—"}</div>
+                    </div>
+                  </div>
 
-                          <button
-                            type="button"
-                            onClick={() => openRejectModal(order._id)}
-                            disabled={paymentActionLoadingId === order._id}
-                            style={{
-                              padding: "10px 14px",
-                              borderRadius: "12px",
-                              background: "rgba(239,68,68,.10)",
-                              border: "1px solid rgba(239,68,68,.24)",
-                              color: "#f87171",
-                              fontSize: "12px",
-                              fontWeight: 800,
-                              fontFamily: "Manrope,sans-serif",
-                              cursor: paymentActionLoadingId === order._id ? "not-allowed" : "pointer",
-                              opacity: paymentActionLoadingId === order._id ? 0.6 : 1,
-                            }}
-                          >
-                            Reject Payment
-                          </button>
-                        </div>
-                      )}
+                  <div className="items-box">
+                    <div className="items-title">Items</div>
+                    <div className="items-text">
+                      {order.items?.map((item) => `${item.name} x${item.quantity}`).join(", ") || "—"}
+                    </div>
+                  </div>
 
-                    {nextAction && (
+                  {order.paymentMethod === "bank_transfer" &&
+                    order.paymentStatus === "payment_submitted" && (
                       <div
                         style={{
                           marginTop: "12px",
@@ -521,30 +576,80 @@ export default function StaffOrdersPage() {
                       >
                         <button
                           type="button"
-                          onClick={() => handleOrderStatusUpdate(order._id, nextAction.value)}
-                          disabled={statusActionLoadingId === order._id}
+                          onClick={() => handleVerifyPayment(order._id)}
+                          disabled={paymentActionLoadingId === order._id}
                           style={{
                             padding: "10px 14px",
                             borderRadius: "12px",
-                            background: "rgba(245,166,35,.12)",
-                            border: "1px solid rgba(245,166,35,.24)",
-                            color: "#F5A623",
+                            background: "rgba(34,197,94,.12)",
+                            border: "1px solid rgba(34,197,94,.24)",
+                            color: "#4ade80",
                             fontSize: "12px",
                             fontWeight: 800,
                             fontFamily: "Manrope,sans-serif",
-                            cursor: statusActionLoadingId === order._id ? "not-allowed" : "pointer",
-                            opacity: statusActionLoadingId === order._id ? 0.6 : 1,
+                            cursor: paymentActionLoadingId === order._id ? "not-allowed" : "pointer",
+                            opacity: paymentActionLoadingId === order._id ? 0.6 : 1,
                           }}
                         >
-                          {statusActionLoadingId === order._id ? "Updating..." : nextAction.label}
+                          {paymentActionLoadingId === order._id ? "Updating..." : "Verify Payment"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => openRejectModal(order._id)}
+                          disabled={paymentActionLoadingId === order._id}
+                          style={{
+                            padding: "10px 14px",
+                            borderRadius: "12px",
+                            background: "rgba(239,68,68,.10)",
+                            border: "1px solid rgba(239,68,68,.24)",
+                            color: "#f87171",
+                            fontSize: "12px",
+                            fontWeight: 800,
+                            fontFamily: "Manrope,sans-serif",
+                            cursor: paymentActionLoadingId === order._id ? "not-allowed" : "pointer",
+                            opacity: paymentActionLoadingId === order._id ? 0.6 : 1,
+                          }}
+                        >
+                          Reject Payment
                         </button>
                       </div>
                     )}
-                  </div>
-                );
-              })
-            )}
-          </div>
+
+                  {nextAction && (
+                    <div
+                      style={{
+                        marginTop: "12px",
+                        display: "flex",
+                        gap: "10px",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleOrderStatusUpdate(order._id, nextAction.value)}
+                        disabled={statusActionLoadingId === order._id}
+                        style={{
+                          padding: "10px 14px",
+                          borderRadius: "12px",
+                          background: "rgba(245,166,35,.12)",
+                          border: "1px solid rgba(245,166,35,.24)",
+                          color: "#F5A623",
+                          fontSize: "12px",
+                          fontWeight: 800,
+                          fontFamily: "Manrope,sans-serif",
+                          cursor: statusActionLoadingId === order._id ? "not-allowed" : "pointer",
+                          opacity: statusActionLoadingId === order._id ? 0.6 : 1,
+                        }}
+                      >
+                        {statusActionLoadingId === order._id ? "Updating..." : nextAction.label}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -668,6 +773,6 @@ export default function StaffOrdersPage() {
           </div>
         </div>
       )}
-    </>
+    </StaffLayout>
   );
 }

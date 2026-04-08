@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Soup,
   Search,
   Filter,
   BadgeDollarSign,
@@ -10,28 +9,57 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import api from "../api/axios";
-import StaffHeader from "../components/StaffHeader";
+import StaffLayout from "../components/StaffLayout";
 
 const CSS = `
-  .menu-shell{min-height:100vh;padding:86px 24px 24px}
-  .menu-wrap{width:min(1180px,100%);margin:0 auto}
+  .menu-wrap{width:100%;margin:0}
   .menu-card{
+    width:100%;
     background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.03));
     border:1px solid rgba(255,255,255,.08);
     border-radius:28px;
     backdrop-filter:blur(18px);
     box-shadow:0 18px 45px rgba(0,0,0,.28);
   }
-  .menu-head{padding:24px;border-bottom:1px solid rgba(255,255,255,.06)}
-  .menu-title{
-    display:flex;align-items:center;gap:10px;
-    font-family:'Manrope',sans-serif;font-size:28px;font-weight:900;color:#fff;letter-spacing:-.8px;
+  .menu-head{
+    padding:28px 24px 20px;
+    border-bottom:1px solid rgba(255,255,255,.06);
   }
-  .menu-sub{margin-top:8px;font-size:14px;color:rgba(255,255,255,.52);line-height:1.7}
+  .menu-title{
+    font-family:'Manrope',sans-serif;
+    font-size:36px;
+    font-weight:900;
+    color:#fff;
+    letter-spacing:-1px;
+    line-height:1.1;
+  }
+  .menu-sub{
+    margin-top:10px;
+    font-size:14px;
+    color:rgba(255,255,255,.58);
+    line-height:1.75;
+    max-width:720px;
+  }
+  .menu-head-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .menu-head-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
   .toolbar{
-    display:grid;grid-template-columns:1.2fr .8fr;gap:12px;
-    padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);
+    display:grid;
+    grid-template-columns:1.2fr .8fr .8fr;
+    gap:14px;
+    padding:18px 24px 22px;
+    border-bottom:1px solid rgba(255,255,255,.06);
   }
   .add-form{
     margin:20px 24px 0;
@@ -166,17 +194,57 @@ const CSS = `
     cursor:not-allowed;
     opacity:.6;
   }
-  .input-wrap{position:relative}
+  .input-wrap{
+    position:relative;
+    min-height:56px;
+  }
   .input-icon{
-    position:absolute;left:13px;top:50%;transform:translateY(-50%);
-    color:rgba(255,255,255,.34);pointer-events:none
+    position:absolute;
+    left:16px;
+    top:50%;
+    transform:translateY(-50%);
+    color:rgba(255,255,255,.36);
+    pointer-events:none;
   }
-  .input, .select{
-    width:100%;padding:12px 14px 12px 40px;border-radius:14px;background:rgba(255,255,255,.045);
-    border:1.5px solid rgba(255,255,255,.08);color:#fff;font-size:14px;outline:none;
+  .input{
+    width:100%;
+    height:56px;
+    border-radius:16px;
+    background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.022));
+    border:1px solid rgba(255,255,255,.08);
+    color:#fff;
+    padding:0 16px 0 46px;
+    font-size:14px;
+    outline:none;
+    box-sizing:border-box;
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
   }
-  .select{appearance:none}
-  .select option{background:#0d1130;color:#fff}
+  .select{
+    width:100%;
+    height:56px;
+    border-radius:16px;
+    background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.022));
+    border:1px solid rgba(255,255,255,.08);
+    color:#fff;
+    padding:0 16px 0 46px;
+    font-size:14px;
+    outline:none;
+    appearance:none;
+    box-sizing:border-box;
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .input:focus,
+  .select:focus{
+    border-color:rgba(245,166,35,.26);
+    box-shadow:0 0 0 4px rgba(245,166,35,.08);
+  }
+  .input::placeholder{
+    color:rgba(255,255,255,.36);
+  }
+  .select option{
+    background:#141b31;
+    color:#fff;
+  }
   .menu-list{display:grid;gap:14px;padding:20px 24px}
   .menu-item-card{
     padding:16px;border-radius:20px;background:rgba(255,255,255,.03);
@@ -222,10 +290,11 @@ const CSS = `
     .grid{grid-template-columns:1fr 1fr}
   }
   @media (max-width:640px){
-    .menu-shell{padding:82px 16px 16px}
     .grid,.form-grid-2{grid-template-columns:1fr}
     .menu-head,.toolbar,.menu-list{padding-left:16px;padding-right:16px}
     .add-form{margin:20px 16px 0}
+    .menu-head{padding:22px 16px 16px}
+    .menu-title{font-size:30px}
   }
 `;
 
@@ -242,9 +311,15 @@ const CATEGORY_LABELS = {
 const formatCategory = (category) => CATEGORY_LABELS[category] || category || "—";
 
 export default function StaffMenuPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearch = searchParams.get("search") || "";
+  const initialCategory = searchParams.get("category") || "";
+  const initialAvailability = searchParams.get("availability") || "";
+
   const [items, setItems] = useState([]);
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
+  const [search, setSearch] = useState(initialSearch);
+  const [category, setCategory] = useState(initialCategory);
+  const [availability, setAvailability] = useState(initialAvailability);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -283,6 +358,21 @@ export default function StaffMenuPage() {
   const [deleteSuccess, setDeleteSuccess] = useState("");
   const [deleteItemId, setDeleteItemId] = useState("");
   const [deleteItemName, setDeleteItemName] = useState("");
+
+  const urlFilters = useMemo(
+    () => ({
+      search: searchParams.get("search") || "",
+      category: searchParams.get("category") || "",
+      availability: searchParams.get("availability") || "",
+    }),
+    [searchParams]
+  );
+
+  useEffect(() => {
+    setSearch(urlFilters.search);
+    setCategory(urlFilters.category);
+    setAvailability(urlFilters.availability);
+  }, [urlFilters]);
 
   const fetchMenuItems = async () => {
     try {
@@ -473,6 +563,21 @@ export default function StaffMenuPage() {
   };
 
   useEffect(() => {
+    const nextParams = new URLSearchParams();
+
+    if (search.trim()) nextParams.set("search", search.trim());
+    if (category) nextParams.set("category", category);
+    if (availability) nextParams.set("availability", availability);
+
+    const nextQuery = nextParams.toString();
+    const currentQuery = searchParams.toString();
+
+    if (nextQuery !== currentQuery) {
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [search, category, availability, searchParams, setSearchParams]);
+
+  useEffect(() => {
     fetchMenuItems();
   }, []);
 
@@ -483,57 +588,153 @@ export default function StaffMenuPage() {
       item.description?.toLowerCase().includes(text);
 
     const matchesCategory = category ? item.category === category : true;
+    const matchesAvailability = availability
+      ? availability === "available"
+        ? item.isAvailable !== false
+        : item.isAvailable === false
+      : true;
 
-    return matchesSearch && matchesCategory;
+    return matchesSearch && matchesCategory && matchesAvailability;
   });
 
   return (
-    <>
+    <StaffLayout>
       <style>{CSS}</style>
-      <StaffHeader />
-      <div className="menu-shell">
-        <div className="menu-wrap menu-card">
-          <div className="menu-head">
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap", alignItems: "flex-start" }}>
-              <div>
-                <div className="menu-title">
-                  <Soup size={24} color="#F5A623" />
-                  Staff Menu
-                </div>
-                <div className="menu-sub">
-                  View all main canteen menu items, categories, tags, prices, and availability.
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowAddForm((prev) => !prev);
-                  setAddError("");
-                  setAddSuccess("");
-                }}
-                className="btn-gold"
-              >
-                {showAddForm ? "Close Form" : "Add Menu Item"}
-              </button>
+      <div className="menu-wrap menu-card">
+      <div className="menu-head">
+        <div className="menu-head-top">
+          <div>
+            <div className="menu-title">Staff Menu</div>
+            <div className="menu-sub">
+              View all main canteen menu items, categories, tags, prices, and availability.
             </div>
           </div>
 
-          <div className="toolbar">
-            <div className="input-wrap">
-              <span className="input-icon"><Search size={16} /></span>
+          <div className="menu-head-actions">
+            <button
+              type="button"
+              onClick={() => {
+                setShowAddForm((prev) => !prev);
+                setAddError("");
+                setAddSuccess("");
+              }}
+              className="btn-gold"
+            >
+              {showAddForm ? "Close Form" : "Add Menu Item"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+        <div className="toolbar">
+          <div className="input-wrap">
+            <span className="input-icon"><Search size={16} /></span>
+            <input
+              className="input"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by item name or description"
+            />
+          </div>
+
+          <div className="input-wrap">
+            <span className="input-icon"><Filter size={16} /></span>
+            <select className="select" value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="">All Categories</option>
+              <option value="rice_curry">Rice & Curry</option>
+              <option value="kottu">Kottu</option>
+              <option value="fried_rice">Fried Rice</option>
+              <option value="additional_curries">Additional Curries</option>
+              <option value="meats">Meats</option>
+              <option value="chopsuey_sides">Chopsuey & Sides</option>
+              <option value="beverages">Beverages</option>
+            </select>
+          </div>
+
+          <div className="input-wrap">
+            <span className="input-icon"><Filter size={16} /></span>
+            <select className="select" value={availability} onChange={(e) => setAvailability(e.target.value)}>
+              <option value="">All Availability</option>
+              <option value="available">Available</option>
+              <option value="unavailable">Unavailable</option>
+            </select>
+          </div>
+        </div>
+
+        {error && <div className="msg error">{error}</div>}
+        {availabilityError && <div className="msg error">{availabilityError}</div>}
+        {deleteError && <div className="msg error">{deleteError}</div>}
+
+        {addError && <div className="msg error">{addError}</div>}
+        {addSuccess && (
+          <div
+            className="msg"
+            style={{
+              background: "rgba(34,197,94,.10)",
+              border: "1px solid rgba(34,197,94,.22)",
+              color: "#4ade80",
+            }}
+          >
+            {addSuccess}
+          </div>
+        )}
+        {editSuccess && (
+          <div
+            className="msg"
+            style={{
+              background: "rgba(34,197,94,.10)",
+              border: "1px solid rgba(34,197,94,.22)",
+              color: "#4ade80",
+            }}
+          >
+            {editSuccess}
+          </div>
+        )}
+        {deleteSuccess && (
+          <div
+            className="msg"
+            style={{
+              background: "rgba(34,197,94,.10)",
+              border: "1px solid rgba(34,197,94,.22)",
+              color: "#4ade80",
+            }}
+          >
+            {deleteSuccess}
+          </div>
+        )}
+
+        {showAddForm && (
+          <form onSubmit={handleAddMenuItem} className="add-form">
+            <div className="form-grid-2">
               <input
-                className="input"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by item name or description"
+                className="input form-input-plain"
+                placeholder="Item name"
+                value={newItem.name}
+                onChange={(e) => handleNewItemChange("name", e.target.value)}
+              />
+              <input
+                className="input form-input-plain"
+                type="number"
+                min="0"
+                placeholder="Price"
+                value={newItem.price}
+                onChange={(e) => handleNewItemChange("price", e.target.value)}
               />
             </div>
 
-            <div className="input-wrap">
-              <span className="input-icon"><Filter size={16} /></span>
-              <select className="select" value={category} onChange={(e) => setCategory(e.target.value)}>
-                <option value="">All Categories</option>
+            <textarea
+              className="input form-textarea"
+              placeholder="Description"
+              value={newItem.description}
+              onChange={(e) => handleNewItemChange("description", e.target.value)}
+            />
+
+            <div className="form-grid-2">
+              <select
+                className="select"
+                value={newItem.category}
+                onChange={(e) => handleNewItemChange("category", e.target.value)}
+              >
                 <option value="rice_curry">Rice & Curry</option>
                 <option value="kottu">Kottu</option>
                 <option value="fried_rice">Fried Rice</option>
@@ -542,224 +743,138 @@ export default function StaffMenuPage() {
                 <option value="chopsuey_sides">Chopsuey & Sides</option>
                 <option value="beverages">Beverages</option>
               </select>
-            </div>
-          </div>
 
-          {error && <div className="msg error">{error}</div>}
-          {availabilityError && <div className="msg error">{availabilityError}</div>}
-          {deleteError && <div className="msg error">{deleteError}</div>}
-
-          {addError && <div className="msg error">{addError}</div>}
-          {addSuccess && (
-            <div
-              className="msg"
-              style={{
-                background: "rgba(34,197,94,.10)",
-                border: "1px solid rgba(34,197,94,.22)",
-                color: "#4ade80",
-              }}
-            >
-              {addSuccess}
-            </div>
-          )}
-          {editSuccess && (
-            <div
-              className="msg"
-              style={{
-                background: "rgba(34,197,94,.10)",
-                border: "1px solid rgba(34,197,94,.22)",
-                color: "#4ade80",
-              }}
-            >
-              {editSuccess}
-            </div>
-          )}
-          {deleteSuccess && (
-            <div
-              className="msg"
-              style={{
-                background: "rgba(34,197,94,.10)",
-                border: "1px solid rgba(34,197,94,.22)",
-                color: "#4ade80",
-              }}
-            >
-              {deleteSuccess}
-            </div>
-          )}
-
-          {showAddForm && (
-            <form onSubmit={handleAddMenuItem} className="add-form">
-              <div className="form-grid-2">
-                <input
-                  className="input form-input-plain"
-                  placeholder="Item name"
-                  value={newItem.name}
-                  onChange={(e) => handleNewItemChange("name", e.target.value)}
-                />
-                <input
-                  className="input form-input-plain"
-                  type="number"
-                  min="0"
-                  placeholder="Price"
-                  value={newItem.price}
-                  onChange={(e) => handleNewItemChange("price", e.target.value)}
-                />
-              </div>
-
-              <textarea
-                className="input form-textarea"
-                placeholder="Description"
-                value={newItem.description}
-                onChange={(e) => handleNewItemChange("description", e.target.value)}
+              <input
+                className="input form-input-plain"
+                placeholder="Tags (comma separated)"
+                value={newItem.tags}
+                onChange={(e) => handleNewItemChange("tags", e.target.value)}
               />
+            </div>
 
-              <div className="form-grid-2">
-                <select
-                  className="select"
-                  value={newItem.category}
-                  onChange={(e) => handleNewItemChange("category", e.target.value)}
-                >
-                  <option value="rice_curry">Rice & Curry</option>
-                  <option value="kottu">Kottu</option>
-                  <option value="fried_rice">Fried Rice</option>
-                  <option value="additional_curries">Additional Curries</option>
-                  <option value="meats">Meats</option>
-                  <option value="chopsuey_sides">Chopsuey & Sides</option>
-                  <option value="beverages">Beverages</option>
-                </select>
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={newItem.isAvailable}
+                onChange={(e) => handleNewItemChange("isAvailable", e.target.checked)}
+              />
+              Available
+            </label>
 
-                <input
-                  className="input form-input-plain"
-                  placeholder="Tags (comma separated)"
-                  value={newItem.tags}
-                  onChange={(e) => handleNewItemChange("tags", e.target.value)}
-                />
-              </div>
+            <div className="form-actions">
+              <button
+                type="submit"
+                disabled={addLoading}
+                className="btn-success"
+              >
+                {addLoading ? "Adding..." : "Save Menu Item"}
+              </button>
 
-              <label className="checkbox-row">
-                <input
-                  type="checkbox"
-                  checked={newItem.isAvailable}
-                  onChange={(e) => handleNewItemChange("isAvailable", e.target.checked)}
-                />
-                Available
-              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  resetNewItemForm();
+                  setShowAddForm(false);
+                }}
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
 
-              <div className="form-actions">
-                <button
-                  type="submit"
-                  disabled={addLoading}
-                  className="btn-success"
-                >
-                  {addLoading ? "Adding..." : "Save Menu Item"}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    resetNewItemForm();
-                    setShowAddForm(false);
-                  }}
-                  className="btn-secondary"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          )}
-
-          <div className="menu-list">
-            {loading ? (
-              <div className="empty">Loading menu items...</div>
-            ) : filteredItems.length === 0 ? (
-              <div className="empty">No menu items found.</div>
-            ) : (
-              filteredItems.map((item) => (
-                <div key={item._id} className="menu-item-card">
-                  <div className="menu-top">
-                    <div>
-                      <div className="menu-name">{item.name}</div>
-                      <div style={{ marginTop: "6px", fontSize: "13px", color: "rgba(255,255,255,.52)" }}>
-                        {formatCategory(item.category)}
-                      </div>
-                    </div>
-
-                    <div className="menu-meta">
-                      <span className="pill">
-                        <BadgeDollarSign size={13} />
-                        Rs. {item.price}
-                      </span>
-
-                      <span className="pill">
-                        {item.isAvailable ? <CircleCheck size={13} /> : <CircleOff size={13} />}
-                        {item.isAvailable ? "Available" : "Unavailable"}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(item)}
-                        className="btn-gold"
-                        style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-                      >
-                        <PencilLine size={13} />
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleToggleAvailability(item)}
-                        disabled={availabilityLoadingId === item._id}
-                        className={item.isAvailable ? "btn-secondary" : "btn-success"}
-                        style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-                      >
-                        {availabilityLoadingId === item._id
-                          ? "Updating..."
-                          : item.isAvailable
-                          ? "Mark Unavailable"
-                          : "Mark Available"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openDeleteModal(item)}
-                        className="btn-danger"
-                        style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-                      >
-                        <Trash2 size={13} />
-                        Delete
-                      </button>
+        <div className="menu-list">
+          {loading ? (
+            <div className="empty">Loading menu items...</div>
+          ) : filteredItems.length === 0 ? (
+            <div className="empty">No menu items found.</div>
+          ) : (
+            filteredItems.map((item) => (
+              <div key={item._id} className="menu-item-card">
+                <div className="menu-top">
+                  <div>
+                    <div className="menu-name">{item.name}</div>
+                    <div style={{ marginTop: "6px", fontSize: "13px", color: "rgba(255,255,255,.52)" }}>
+                      {formatCategory(item.category)}
                     </div>
                   </div>
 
-                  <div className="grid">
-                    <div className="mini">
-                      <div className="mini-label">Category</div>
-                      <div className="mini-value">{formatCategory(item.category)}</div>
-                    </div>
+                  <div className="menu-meta">
+                    <span className="pill">
+                      <BadgeDollarSign size={13} />
+                      Rs. {item.price}
+                    </span>
 
-                    <div className="mini">
-                      <div className="mini-label">Price</div>
-                      <div className="mini-value">Rs. {item.price}</div>
-                    </div>
-
-                    <div className="mini">
-                      <div className="mini-label">Availability</div>
-                      <div className="mini-value">{item.isAvailable ? "Available" : "Unavailable"}</div>
-                    </div>
-
-                    <div className="mini">
-                      <div className="mini-label">Tags</div>
-                      <div className="mini-value">
-                        {item.tags?.length ? item.tags.join(", ") : "—"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="desc-box">
-                    <div className="desc-title">Description</div>
-                    <div className="desc-text">{item.description || "—"}</div>
+                    <span className="pill">
+                      {item.isAvailable ? <CircleCheck size={13} /> : <CircleOff size={13} />}
+                      {item.isAvailable ? "Available" : "Unavailable"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => openEditModal(item)}
+                      className="btn-gold"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                    >
+                      <PencilLine size={13} />
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleAvailability(item)}
+                      disabled={availabilityLoadingId === item._id}
+                      className={item.isAvailable ? "btn-secondary" : "btn-success"}
+                      style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                    >
+                      {availabilityLoadingId === item._id
+                        ? "Updating..."
+                        : item.isAvailable
+                        ? "Mark Unavailable"
+                        : "Mark Available"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openDeleteModal(item)}
+                      className="btn-danger"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                    >
+                      <Trash2 size={13} />
+                      Delete
+                    </button>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+
+                <div className="grid">
+                  <div className="mini">
+                    <div className="mini-label">Category</div>
+                    <div className="mini-value">{formatCategory(item.category)}</div>
+                  </div>
+
+                  <div className="mini">
+                    <div className="mini-label">Price</div>
+                    <div className="mini-value">Rs. {item.price}</div>
+                  </div>
+
+                  <div className="mini">
+                    <div className="mini-label">Availability</div>
+                    <div className="mini-value">{item.isAvailable ? "Available" : "Unavailable"}</div>
+                  </div>
+
+                  <div className="mini">
+                    <div className="mini-label">Tags</div>
+                    <div className="mini-value">
+                      {item.tags?.length ? item.tags.join(", ") : "—"}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="desc-box">
+                  <div className="desc-title">Description</div>
+                  <div className="desc-text">{item.description || "—"}</div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
       {showDeleteModal && (
@@ -935,6 +1050,6 @@ export default function StaffMenuPage() {
           </div>
         </div>
       )}
-    </>
+    </StaffLayout>
   );
 }
