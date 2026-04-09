@@ -305,7 +305,7 @@ function CoreServices() {
       title:"Lost & Found",
       desc:"Report lost items or browse found items on campus. Reunite with your belongings fast.",
       img:"https://images.unsplash.com/photo-1586769852836-bc069f19e1b6?w=800&q=80",
-      nav:null
+      nav:"lost-found"
     },
     {
       title:"Clubs",

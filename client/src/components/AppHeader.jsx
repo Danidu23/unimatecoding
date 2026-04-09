@@ -6,7 +6,7 @@ import unimateLogo from "../assets/unimatelogo.png";
 const NAV_ITEMS = [
   { label: "Dashboard", path: "/dashboard", enabled: true },
   { label: "Canteen", path: "/canteen", enabled: true },
-  { label: "Lost & Found", enabled: false },
+  { label: "Lost & Found", path: "/lost-found", enabled: true },
   { label: "Sports", enabled: false },
   { label: "Clubs", enabled: false },
   { label: "Orders", enabled: false },
