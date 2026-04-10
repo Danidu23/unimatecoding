@@ -23,6 +23,19 @@ import LostFoundAdminLoginPage from './pages/lostfound/LostFoundAdminLoginPage'
 import LostFoundAdminDashboardPage from './pages/lostfound/LostFoundAdminDashboardPage'
 import LostFoundLayout from './components/lostfound/LostFoundLayout'
 import LostFoundAdminRouteGuard from './components/lostfound/LostFoundAdminRouteGuard'
+import SportsLayout from './components/sports/SportsLayout'
+import SportsManagerRouteGuard from './components/SportsManagerRouteGuard'
+import SportsHomePage from './pages/sports/HomePage'
+import SportsFacilityListPage from './pages/sports/FacilityListPage'
+import SportsBookingPage from './pages/sports/BookingPage'
+import SportsMyBookingsPage from './pages/sports/MyBookingsPage'
+import SportsAdminDashboardPage from './pages/sports/AdminDashboard'
+import SportsAdminBookingsPage from './pages/sports/AdminBookingsPage'
+import SportsAdminSlotsPage from './pages/sports/AdminSlotsPage'
+import SportsAdminReportsPage from './pages/sports/AdminReportsPage'
+import SportsAdminLimitsPage from './pages/sports/AdminLimitsPage'
+import SportsAdminPriorityReviewPage from './pages/sports/AdminPriorityReviewPage'
+import SportsAdminOccupancyDashboardPage from './pages/sports/AdminOccupancyDashboard'
 
 function App() {
   return (
@@ -59,6 +72,49 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route element={<SportsLayout />}>
+          <Route
+            path="/sports"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <SportsHomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sports/book/facilities"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <SportsFacilityListPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sports/book/services"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <SportsFacilityListPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sports/book/:type/:id"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <SportsBookingPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sports/my-bookings"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <SportsMyBookingsPage />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
 
         <Route
           path="/staff"
@@ -110,6 +166,18 @@ function App() {
 
         <Route element={<LostFoundAdminRouteGuard />}>
           <Route path="/lost-found/admin" element={<LostFoundAdminDashboardPage />} />
+        </Route>
+
+        <Route element={<SportsManagerRouteGuard />}>
+          <Route element={<SportsLayout />}>
+            <Route path="/sports/admin" element={<SportsAdminDashboardPage />} />
+            <Route path="/sports/admin/bookings" element={<SportsAdminBookingsPage />} />
+            <Route path="/sports/admin/slots" element={<SportsAdminSlotsPage />} />
+            <Route path="/sports/admin/reports" element={<SportsAdminReportsPage />} />
+            <Route path="/sports/admin/limits" element={<SportsAdminLimitsPage />} />
+            <Route path="/sports/admin/priority" element={<SportsAdminPriorityReviewPage />} />
+            <Route path="/sports/admin/occupancy" element={<SportsAdminOccupancyDashboardPage />} />
+          </Route>
         </Route>
 
         <Route path="/" element={<Navigate to="/login" replace />} />

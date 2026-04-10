@@ -11,6 +11,13 @@ const lostFoundItemRoutes = require('./routes/lostFoundItemRoutes');
 const lostFoundClaimRoutes = require('./routes/lostFoundClaimRoutes');
 const lostFoundMessageRoutes = require('./routes/lostFoundMessageRoutes');
 const lostFoundAdminRoutes = require('./routes/lostFoundAdminRoutes');
+const sportsFacilityRoutes = require('./routes/sportsFacilityRoutes');
+const sportsSlotRoutes = require('./routes/sportsSlotRoutes');
+const sportsBookingRoutes = require('./routes/sportsBookingRoutes');
+const sportsNotificationRoutes = require('./routes/sportsNotificationRoutes');
+const sportsReportRoutes = require('./routes/sportsReportRoutes');
+const sportsRulesRoutes = require('./routes/sportsRulesRoutes');
+const sportsSmartRoutes = require('./routes/sportsSmartRoutes');
 
 const app = express();
 
@@ -44,5 +51,13 @@ app.use('/api/lost-found/items', lostFoundItemRoutes);
 app.use('/api/lost-found/claims', lostFoundClaimRoutes);
 app.use('/api/lost-found/conversations', lostFoundMessageRoutes);
 app.use('/api/lost-found/admin', lostFoundAdminRoutes);
+
+app.use('/api/sports/facilities', sportsFacilityRoutes);
+app.use('/api/sports/slots', sportsSlotRoutes);
+app.use('/api/sports/bookings', sportsBookingRoutes);
+app.use('/api/sports/notifications', sportsNotificationRoutes);
+app.use('/api/sports/reports', sportsReportRoutes);
+app.use('/api/sports/rules', sportsRulesRoutes);
+app.use('/api/sports/smart', sportsSmartRoutes);
 
 module.exports = app;

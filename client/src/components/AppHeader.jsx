@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { label: "Dashboard", path: "/dashboard", enabled: true },
   { label: "Canteen", path: "/canteen", enabled: true },
   { label: "Lost & Found", path: "/lost-found", enabled: true },
-  { label: "Sports", enabled: false },
+  { label: "Sports", path: "/sports", enabled: true },
   { label: "Clubs", enabled: false },
   { label: "Orders", enabled: false },
 ];
