@@ -60,8 +60,8 @@ export default function LostFoundHomePage() {
     const fetchItems = async () => {
       try {
         const [lostRes, foundRes] = await Promise.all([
-          fetch('http://localhost:5000/api/items/lost'),
-          fetch('http://localhost:5000/api/items/found')
+          fetch('http://localhost:5001/api/lost-found/items/lost'),
+          fetch('http://localhost:5001/api/lost-found/items/found')
         ]);
         const lostData = await lostRes.json();
         const foundData = await foundRes.json();

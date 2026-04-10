@@ -52,7 +52,7 @@ export default function LostFoundMessagesPage() {
   const loadConversations = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/conversations?participantId=${CURRENT_USER_ID}`);
+      const response = await fetch(`http://localhost:5001/api/lost-found/conversations?participantId=${CURRENT_USER_ID}`);
       const result = await response.json();
 
       if (result.success) {
@@ -75,7 +75,7 @@ export default function LostFoundMessagesPage() {
 
   const loadConversationMessages = async (convId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/conversations/${convId}`);
+      const response = await fetch(`http://localhost:5001/api/lost-found/conversations/${convId}`);
       const result = await response.json();
 
       if (result.success) {
@@ -93,7 +93,7 @@ export default function LostFoundMessagesPage() {
 
     setSending(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/conversations/${activeId}/messages`, {
+      const response = await fetch(`http://localhost:5001/api/lost-found/conversations/${activeId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

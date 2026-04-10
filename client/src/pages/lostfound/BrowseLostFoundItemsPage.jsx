@@ -15,6 +15,81 @@ const inferCategory = (item) => {
 };
 
 export default function BrowseLostFoundItemsPage() {
+
+  const CSS = `
+    .browse-shell {
+      width: 100%;
+      background: #07091a;
+      min-height: calc(100vh - 66px);
+    }
+
+    .cat-scroll {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .cat-pill {
+      min-height: 34px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.72);
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'Manrope', sans-serif;
+      transition: all .22s ease;
+    }
+
+    .cat-pill:hover {
+      border-color: rgba(245,166,35,.28);
+      background: rgba(245,166,35,.08);
+      color: #fff;
+    }
+
+    .cat-pill.active {
+      background: rgba(245,166,35,.16);
+      color: #F5A623;
+      border-color: rgba(245,166,35,.32);
+      box-shadow: 0 8px 24px rgba(245,166,35,.12);
+    }
+
+    .grid-item {
+      background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 14px 36px rgba(0,0,0,.18);
+      transition: transform .26s ease, border-color .26s ease, box-shadow .26s ease, background .26s ease;
+      cursor: pointer;
+    }
+
+    .grid-item:hover {
+      transform: translateY(-6px);
+      border-color: rgba(245,166,35,.22);
+      background: linear-gradient(180deg, rgba(245,166,35,.06), rgba(255,255,255,.025));
+      box-shadow: 0 18px 44px rgba(0,0,0,.28), 0 10px 26px rgba(245,166,35,.08);
+    }
+
+    .grid-item:hover .grid-item-img {
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+      .cat-scroll {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 4px;
+      }
+
+      .cat-pill {
+        flex: 0 0 auto;
+        white-space: nowrap;
+      }
+    }
+  `;
+
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -27,8 +102,8 @@ export default function BrowseLostFoundItemsPage() {
     const load = async () => {
       try {
         const [lostRes, foundRes] = await Promise.all([
-          fetch('http://localhost:5000/api/items/lost'),
-          fetch('http://localhost:5000/api/items/found')
+          fetch('http://localhost:5001/api/lost-found/items/lost'),
+          fetch('http://localhost:5001/api/lost-found/items/found')
         ]);
         const lostData = await lostRes.json();
         const foundData = await foundRes.json();
@@ -85,22 +160,23 @@ export default function BrowseLostFoundItemsPage() {
   }, [items, search, activeCategory, activeType, locationZone]);
 
   return (
-    <div style={{ width: '100%', background: '#07091a', minHeight: 'calc(100vh - 66px)' }}>
-      <div style={{ position: 'relative', height: 'clamp(180px,27vw,300px)', overflow: 'hidden' }}>
-        <SafeImage src='https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1800&q=80' alt='University Campus' fallbackCandidates={getImageFallbacks({ category: 'Books & Notes', type: 'lost', title: 'University Campus' })} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom,rgba(7,9,26,.3) 0%,rgba(7,9,26,.95) 100%)' }} />
-        <div style={{ position: 'absolute', bottom: '32px', left: 'clamp(18px,4vw,52px)', right: 'clamp(18px,4vw,52px)' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-            <div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(245,166,35,.15)', color: '#F5A623', padding: '4px 12px', borderRadius: '100px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>
-                <Filter size={12}/> Approved Campus Items
+    <div className='browse-shell'>
+      <style>{CSS}</style>
+        <div style={{ position: 'relative', height: 'clamp(180px,27vw,300px)', overflow: 'hidden' }}>
+          <SafeImage src='https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1800&q=80' alt='University Campus' fallbackCandidates={getImageFallbacks({ category: 'Books & Notes', type: 'lost', title: 'University Campus' })} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom,rgba(7,9,26,.3) 0%,rgba(7,9,26,.95) 100%)' }} />
+          <div style={{ position: 'absolute', bottom: '32px', left: 'clamp(18px,4vw,52px)', right: 'clamp(18px,4vw,52px)' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(245,166,35,.15)', color: '#F5A623', padding: '4px 12px', borderRadius: '100px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>
+                  <Filter size={12}/> Approved Campus Items
+                </div>
+                <h2 style={{ fontSize: 'clamp(24px,4vw,40px)', fontWeight: 900, color: '#fff', fontFamily: 'Manrope,sans-serif', letterSpacing: '-1px', marginBottom: '6px' }}>Browse Items</h2>
+                <p style={{ color: 'rgba(255,255,255,.6)', fontSize: '15px', maxWidth: '560px' }}>Only admin-approved reports appear here so students can trust what they see.</p>
               </div>
-              <h2 style={{ fontSize: 'clamp(24px,4vw,40px)', fontWeight: 900, color: '#fff', fontFamily: 'Manrope,sans-serif', letterSpacing: '-1px', marginBottom: '6px' }}>Browse Items</h2>
-              <p style={{ color: 'rgba(255,255,255,.6)', fontSize: '15px', maxWidth: '560px' }}>Only admin-approved reports appear here so students can trust what they see.</p>
             </div>
           </div>
         </div>
-      </div>
 
       <div style={{ position: 'sticky', top: '66px', zIndex: 100, background: 'rgba(7,9,26,.98)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,.07)', padding: '16px clamp(18px,4vw,52px) 14px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '14px', background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.06)', borderRadius: '16px', padding: '14px' }}>
@@ -140,7 +216,7 @@ export default function BrowseLostFoundItemsPage() {
               <p style={{ fontSize: '12px', color: 'rgba(255,255,255,.45)' }}>Filter items by academic or personal categories</p>
             </div>
             <div className='cat-scroll'>
-              {CATEGORIES.map(cat => <button key={cat} className={`cat-pill ${activeCategory === cat ? 'active' : ''}`} style={{ minHeight: '34px', padding: '0 14px', borderRadius: '999px' }} onClick={() => setActiveCategory(cat)}>{cat}</button>)}
+              {CATEGORIES.map(cat => <button key={cat} className={`cat-pill ${activeCategory === cat ? 'active' : ''}`} onClick={() => setActiveCategory(cat)}>{cat}</button>)}
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { Bell, User, ShoppingCart, ArrowLeft } from "lucide-react";
 import unimateLogo from "../../assets/unimatelogo.png";
 import LostFoundNotificationDropdown from './LostFoundNotificationDropdown';
 import { MOCK_NOTIFICATIONS } from '../../data/lostfound/lostFoundAdvanced';
+import "../../styles/lostfound.css";
 
 export default function LostFoundLayout() {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { UploadCloud, AlertCircle, Hand, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { mockItems } from '../../data/lostfound/mockdata';
@@ -29,7 +29,7 @@ export default function ClaimLostFoundItemPage() {
       try {
         let found = null;
         for (const kind of ['lost', 'found']) {
-          const response = await fetch(`http://localhost:5000/api/items/${kind}/${id}`);
+          const response = await fetch(`http://localhost:5001/api/lost-found/items/${kind}/${id}`);
           if (response.ok) {
             const result = await response.json();
             if (result.success) {
@@ -109,9 +109,13 @@ export default function ClaimLostFoundItemPage() {
     setIsSubmitting(true);
     try {
       const claimantEmail = getCurrentUserEmail();
-      const response = await fetch('http://localhost:5000/api/claims', {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5001/api/lost-found/claims', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           itemId: item.id,
           explanation: formData.explanation,
@@ -157,7 +161,7 @@ export default function ClaimLostFoundItemPage() {
           <p style={{ fontSize: "15px", color: "rgba(255,255,255,.5)", lineHeight: 1.6 }}>You are claiming: <strong style={{color: "#fff"}}>{item.title}</strong></p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: "24px", padding: "32px", animation: "fadeUp .5s ease-out .1s both" }}>
+        <form noValidate onSubmit={handleSubmit} style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: "24px", padding: "32px", animation: "fadeUp .5s ease-out .1s both" }}>
           
           <div style={{ background: "rgba(59,130,246,.1)", border: "1px solid rgba(59,130,246,.2)", borderRadius: "12px", padding: "16px", display: "flex", gap: "12px", marginBottom: "24px" }}>
             <AlertCircle size={20} style={{ color: "#3b82f6", flexShrink: 0, marginTop: "2px" }} />
@@ -171,7 +175,7 @@ export default function ClaimLostFoundItemPage() {
 
           <div className="form-group">
             <label className="form-label">Why does this item belong to you?*</label>
-            <textarea name="explanation" value={formData.explanation} onChange={handleChange} required placeholder="Provide context on when and where you lost it..." className="form-textarea"></textarea>
+            <textarea name="explanation" value={formData.explanation} onChange={handleChange} placeholder="Provide context on when and where you lost it..." className="form-textarea"></textarea>
             {errors.explanation ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.explanation}</span> : null}
           </div>
 
@@ -190,7 +194,7 @@ export default function ClaimLostFoundItemPage() {
 
           <div className="form-group">
             <label className="form-label">Unique Identifier Description*</label>
-            <input name="identifier" value={formData.identifier} onChange={handleChange} required placeholder="e.g., Sticker on back, specific scratch, wallpaper" className="form-input" />
+            <input name="identifier" value={formData.identifier} onChange={handleChange} placeholder="e.g., Sticker on back, specific scratch, wallpaper" className="form-input" />
             {errors.identifier ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.identifier}</span> : null}
           </div>
 

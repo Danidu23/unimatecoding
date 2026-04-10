@@ -22,7 +22,7 @@ export default function LostFoundItemDetailsPage() {
       try {
         let found = null;
         for (const kind of ['lost', 'found']) {
-          const response = await fetch(`http://localhost:5000/api/items/${kind}/${id}`);
+          const response = await fetch(`http://localhost:5001/api/lost-found/items/${kind}/${id}`);
           if (response.ok) {
             const result = await response.json();
             if (result.success) {
@@ -60,7 +60,7 @@ export default function LostFoundItemDetailsPage() {
       const reporterId = item.reporter || `reporter-${item.id}`;
       const reporterName = item.type === 'found' ? 'Finder' : 'Reporter';
 
-      const response = await fetch('http://localhost:5000/api/conversations', {
+      const response = await fetch('http://localhost:5001/api/lost-found/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

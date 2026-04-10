@@ -109,9 +109,13 @@ export default function ReportLostItemPage() {
     
     try {
       const payload = { ...formData, image: imagePreview };
-      const response = await fetch('http://localhost:5000/api/items/lost', {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5001/api/lost-found/items/lost', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
       
@@ -156,7 +160,7 @@ export default function ReportLostItemPage() {
           ))}
         </div>
 
-        <form onSubmit={handleSubmit} style={{ background: "linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025))", border: "1px solid rgba(255,255,255,.08)", borderRadius: "24px", padding: "30px", boxShadow: "0 18px 60px rgba(0,0,0,.25)", animation: "fadeUp .5s ease-out .1s both" }}>
+        <form noValidate onSubmit={handleSubmit} style={{ background: "linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025))", border: "1px solid rgba(255,255,255,.08)", borderRadius: "24px", padding: "30px", boxShadow: "0 18px 60px rgba(0,0,0,.25)", animation: "fadeUp .5s ease-out .1s both" }}>
           
           <div className="sec-head">
             <span style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "16px", fontWeight: 800, color: "#fff", fontFamily: "Manrope,sans-serif" }}>
@@ -167,14 +171,14 @@ export default function ReportLostItemPage() {
 
           <div className="form-group">
             <label className="form-label">Item Title*</label>
-            <input name="title" value={formData.title} onChange={handleChange} required placeholder="e.g. Blue Dell Laptop, Wallet with ID" className="form-input" />
+            <input name="title" value={formData.title} onChange={handleChange} placeholder="e.g. Blue Dell Laptop, Wallet with ID" className="form-input" />
             {errors.title ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.title}</span> : null}
           </div>
 
           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: "20px" }}>
             <div className="form-group" style={{ flex: "1 1 calc(50% - 8px)", marginBottom: 0 }}>
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Tag size={13}/> Category*</label>
-              <select name="category" value={formData.category} onChange={handleChange} required className="form-select">
+              <select name="category" value={formData.category} onChange={handleChange} className="form-select">
                 <option value="" disabled style={{ background: "#07091a", color: "#fff" }}>Select category</option>
                 {CATEGORIES.map(c => <option key={c} value={c} style={{ background: "#07091a", color: "#fff" }}>{c}</option>)}
               </select>
@@ -182,7 +186,7 @@ export default function ReportLostItemPage() {
             </div>
             <div className="form-group" style={{ flex: "1 1 calc(50% - 8px)", marginBottom: 0 }}>
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={13}/> Last Seen Location*</label>
-              <select name="location" value={formData.location} onChange={handleChange} required className="form-select">
+              <select name="location" value={formData.location} onChange={handleChange} className="form-select">
                 <option value="" disabled style={{ background: "#07091a", color: "#fff" }}>Select SLIIT Location</option>
                 {LOCATIONS.map(c => <option key={c} value={c} style={{ background: "#07091a", color: "#fff" }}>{c}</option>)}
               </select>
@@ -193,7 +197,7 @@ export default function ReportLostItemPage() {
           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: "20px" }}>
             <div className="form-group" style={{ flex: "1 1 calc(50% - 8px)", marginBottom: 0 }}>
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={13}/> Date Lost*</label>
-              <input type="date" name="date" value={formData.date} onChange={handleChange} required max={new Date().toISOString().split('T')[0]} className="form-input" style={{ colorScheme: 'dark' }} />
+              <input type="date" name="date" value={formData.date} onChange={handleChange} max={new Date().toISOString().split('T')[0]} className="form-input" style={{ colorScheme: 'dark' }} />
               {errors.date ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.date}</span> : null}
             </div>
             <div className="form-group" style={{ flex: "1 1 calc(50% - 8px)", marginBottom: 0 }}>
@@ -211,7 +215,7 @@ export default function ReportLostItemPage() {
 
           <div className="form-group">
             <label className="form-label">Detailed Description*</label>
-            <textarea name="desc" value={formData.desc} onChange={handleChange} required placeholder="Provide color, brand, distinct marks, serial numbers, etc." className="form-textarea"></textarea>
+            <textarea name="desc" value={formData.desc} onChange={handleChange} placeholder="Provide color, brand, distinct marks, serial numbers, etc." className="form-textarea"></textarea>
             {errors.desc ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.desc}</span> : null}
           </div>
 
@@ -263,12 +267,12 @@ export default function ReportLostItemPage() {
           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
             <div className="form-group" style={{ flex: "1 1 calc(50% - 8px)" }}>
               <label className="form-label">SLIIT Student Email*</label>
-              <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="IT********@my.sliit.lk" className="form-input" />
+              <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="IT********@my.sliit.lk" className="form-input" />
               {errors.email ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.email}</span> : null}
             </div>
             <div className="form-group" style={{ flex: "1 1 calc(50% - 8px)" }}>
               <label className="form-label">WhatsApp / Phone Number*</label>
-              <input name="contactNo" value={formData.contactNo} onChange={handleChange} required placeholder="+94 XX XXX XXXX" className="form-input" pattern="^\+94\d{9}$" title="+94 followed by 9 digits" />
+              <input name="contactNo" value={formData.contactNo} onChange={handleChange} placeholder="+94XXXXXXXXX" className="form-input" />
               {errors.contactNo ? <span style={{ color: '#f87171', fontSize: '12px' }}>{errors.contactNo}</span> : null}
             </div>
           </div>

@@ -27,10 +27,10 @@ export default function LostFoundAdminDashboardPage() {
     try {
       setLoading(true);
       const [summaryRes, lostRes, foundRes, claimsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/admin/summary'),
-        fetch('http://localhost:5000/api/items/lost'),
-        fetch('http://localhost:5000/api/items/found'),
-        fetch('http://localhost:5000/api/claims')
+        fetch('http://localhost:5001/api/lost-found/admin/summary'),
+        fetch('http://localhost:5001/api/lost-found/items/lost'),
+        fetch('http://localhost:5001/api/lost-found/items/found'),
+        fetch('http://localhost:5001/api/lost-found/claims')
       ]);
 
       const [summaryJson, lostJson, foundJson, claimsJson] = await Promise.all([
@@ -197,8 +197,8 @@ export default function LostFoundAdminDashboardPage() {
     try {
       setSaving(true);
       const endpoint = type === 'claim'
-        ? `http://localhost:5000/api/claims/${id}/review`
-        : `http://localhost:5000/api/items/${type === 'lost' ? 'lost' : 'found'}/${id}/review`;
+        ? `http://localhost:5001/api/lost-found/claims/${id}/review`
+        : `http://localhost:5001/api/lost-found/items/${type === 'lost' ? 'lost' : 'found'}/${id}/review`;
 
       const response = await fetch(endpoint, {
         method: 'PATCH',

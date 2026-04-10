@@ -37,9 +37,9 @@ export default function MyLostFoundReportsPage() {
         };
 
         const [lostRes, foundRes, claimsRes] = await Promise.all([
-          fetch('http://localhost:5000/api/items/lost'),
-          fetch('http://localhost:5000/api/items/found'),
-          fetch('http://localhost:5000/api/claims')
+          fetch('http://localhost:5001/api/lost-found/items/lost'),
+          fetch('http://localhost:5001/api/lost-found/items/found'),
+          fetch('http://localhost:5001/api/lost-found/claims')
         ]);
 
         const lostData = await lostRes.json();
@@ -51,14 +51,14 @@ export default function MyLostFoundReportsPage() {
           const lost = lostData.data
             .filter((item) => userEmail && extractEmail(item.description) === userEmail)
             .map(item => ({
-            id: item._id,
-            name: item.itemName,
-            date: new Date(item.dateLost).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            status: item.status || 'Pending',
-            location: item.lastSeenLocation,
-            image: item.image || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80',
-            detail: item.description
-          }));
+              id: item._id,
+              name: item.itemName,
+              date: new Date(item.dateLost).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+              status: item.status || 'Pending',
+              location: item.lastSeenLocation,
+              image: item.image || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80',
+              detail: item.description
+            }));
           setMyLostItems(lost);
         }
 
@@ -82,14 +82,15 @@ export default function MyLostFoundReportsPage() {
           const claims = claimsData.data
             .filter((claim) => userEmail && extractEmail(claim.explanation) === userEmail)
             .map(claim => ({
-            id: claim._id,
-            name: claim.identifier,
-            date: new Date(claim.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            status: claim.status,
-            location: claim.itemId?.lastSeenLocation || claim.itemId?.locationFound || 'Campus',
-            image: claim.proofImage || 'https://images.unsplash.com/photo-1523966211575-eb4a01e7dd51?w=900&q=80',
-            detail: claim.explanation
-          }));
+              id: claim._id,
+              itemRefId: claim.itemId?._id || claim.itemId || null,
+              name: claim.identifier,
+              date: new Date(claim.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+              status: claim.status,
+              location: claim.itemId?.lastSeenLocation || claim.itemId?.locationFound || 'Campus',
+              image: claim.proofImage || 'https://images.unsplash.com/photo-1523966211575-eb4a01e7dd51?w=900&q=80',
+              detail: claim.explanation
+            }));
           setMyClaims(claims);
         }
       } catch (error) {
@@ -247,7 +248,7 @@ export default function MyLostFoundReportsPage() {
                 <button
                   className="btn-primary"
                   style={{ width: '100%', justifyContent: 'center', padding: '12px 18px', fontSize: '13px' }}
-                  onClick={() => navigate(`/lost-found/item/${item.id}`)}
+                  onClick={() => navigate(`/lost-found/item/${item.itemRefId || item.id}`)}
                 >
                   View Details
                 </button>
