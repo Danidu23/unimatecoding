@@ -1,0 +1,54 @@
+.admin-scanner-page {
+  padding-bottom: 40px;
+}
+
+.scanner-container {
+  align-items: start;
+}
+
+.scan-alert {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+}
+
+.scan-alert h4 {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.scan-success h4 { color: var(--accent-green); }
+.scan-error h4 { color: var(--accent-red); }
+
+.booking-details-box {
+  width: 100%;
+  max-width: 320px;
+}
+
+/* html5-qrcode overrides */
+#reader {
+  border: 2px dashed var(--border-primary) !important;
+  border-radius: var(--radius-md) !important;
+  overflow: hidden;
+  background: var(--bg-secondary) !important;
+}
+
+#reader__dashboard_section_csr span {
+  color: var(--text-primary) !important;
+}
+
+#reader video {
+  border-radius: var(--radius-md);
+  object-fit: cover;
+}
+
+#reader__dashboard_section_swaplink {
+  color: var(--accent-primary) !important;
+  text-decoration: none !important;
+}
