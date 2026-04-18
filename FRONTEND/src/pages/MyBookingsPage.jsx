@@ -79,10 +79,10 @@ const MyBookingsPage = () => {
       await api.post(`/bookings/${feedbackTarget._id}/rate`, { rating, feedback: feedbackText });
       setBookings(prev =>
         prev.map(b =>
-          b._id === feedbackTarget._id ? { ...b, rating, feedback: feedbackText } : b
+          b._id === feedbackTarget._id ? { ...b, rating, feedback: feedbackText, feedbackSubmittedAt: b.feedbackSubmittedAt || new Date().toISOString() } : b
         )
       );
-      setSuccessMsg('Thank you for your feedback!');
+      setSuccessMsg(feedbackTarget.rating ? 'Feedback updated successfully!' : 'Thank you for your feedback!');
       setTimeout(() => setSuccessMsg(''), 4000);
       setFeedbackTarget(null);
       setFeedbackText('');
@@ -229,9 +229,30 @@ const MyBookingsPage = () => {
                      </button>
                   )}
                   {isCompleted && booking.rating && (
-                     <div style={{ color: 'var(--accent-primary)', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                       ★ {booking.rating}/5 Rated
-                     </div>
+                    <>
+                      {(() => {
+                        const feedbackTime = booking.feedbackSubmittedAt ? new Date(booking.feedbackSubmittedAt) : new Date(booking.updatedAt);
+                        const isEditable = (new Date() - feedbackTime) < 24 * 60 * 60 * 1000;
+                        
+                        return isEditable ? (
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => {
+                              setFeedbackTarget(booking);
+                              setRating(booking.rating);
+                              setFeedbackText(booking.feedback || '');
+                            }}
+                            style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}
+                          >
+                            ★ {booking.rating}/5 (Edit)
+                          </button>
+                        ) : (
+                          <div style={{ color: 'var(--accent-primary)', fontSize: '0.85rem', fontWeight: 'bold', padding: '6px 12px' }}>
+                            ★ {booking.rating}/5 Rated
+                          </div>
+                        );
+                      })()}
+                    </>
                   )}
                 </div>
               </div>

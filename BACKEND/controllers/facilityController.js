@@ -6,11 +6,40 @@ const Slot = require('../models/Slot');
 // @access  Public / Student
 const getFacilities = async (req, res) => {
     try {
-        const facilities = await FacilityService.find({ active: true });
-        
-        // Let's add available availability status logic
-        // This is a complex query to check future slot availability; for this scale, 
-        // we can return them and let frontend fetch slots based on date or just return them directly.
+        const facilities = await FacilityService.aggregate([
+            { $match: { active: true } },
+            {
+                $lookup: {
+                    from: 'bookings',
+                    localField: '_id',
+                    foreignField: 'facilityServiceId',
+                    as: 'bookingRatings'
+                }
+            },
+            {
+                $addFields: {
+                    ratedBookings: {
+                        $filter: {
+                            input: "$bookingRatings",
+                            as: "b",
+                            cond: { $gt: ["$$b.rating", 0] }
+                        }
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    averageRating: { $avg: "$ratedBookings.rating" },
+                    totalRatings: { $size: "$ratedBookings" }
+                }
+            },
+            {
+                $project: {
+                    bookingRatings: 0,
+                    ratedBookings: 0
+                }
+            }
+        ]);
         
         res.json(facilities);
     } catch (error) {
@@ -23,9 +52,46 @@ const getFacilities = async (req, res) => {
 // @access  Public / Student
 const getFacilityById = async (req, res) => {
     try {
-        const facility = await FacilityService.findById(req.params.id);
-        if (facility) {
-            res.json(facility);
+        const mongoose = require('mongoose');
+        const facilityId = new mongoose.Types.ObjectId(req.params.id);
+        
+        const facilities = await FacilityService.aggregate([
+            { $match: { _id: facilityId } },
+            {
+                $lookup: {
+                    from: 'bookings',
+                    localField: '_id',
+                    foreignField: 'facilityServiceId',
+                    as: 'bookingRatings'
+                }
+            },
+            {
+                $addFields: {
+                    ratedBookings: {
+                        $filter: {
+                            input: "$bookingRatings",
+                            as: "b",
+                            cond: { $gt: ["$$b.rating", 0] }
+                        }
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    averageRating: { $avg: "$ratedBookings.rating" },
+                    totalRatings: { $size: "$ratedBookings" }
+                }
+            },
+            {
+                $project: {
+                    bookingRatings: 0,
+                    ratedBookings: 0
+                }
+            }
+        ]);
+
+        if (facilities.length > 0) {
+            res.json(facilities[0]);
         } else {
             res.status(404).json({ message: 'Facility/Service not found' });
         }

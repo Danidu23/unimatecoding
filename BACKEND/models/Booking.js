@@ -26,7 +26,8 @@ const bookingSchema = new mongoose.Schema({
     checkInTime: { type: Date },
     // Rating & Feedback
     rating: { type: Number, min: 1, max: 5 },
-    feedback: { type: String }
+    feedback: { type: String },
+    feedbackSubmittedAt: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Booking', bookingSchema);

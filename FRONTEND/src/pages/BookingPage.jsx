@@ -9,6 +9,7 @@ import { format, addDays } from 'date-fns';
 import SmartSuggestionPanel from '../components/SmartSuggestionPanel';
 import OccupancyIndicator from '../components/OccupancyIndicator';
 import PriorityBookingForm from '../components/PriorityBookingForm';
+import StarRating from '../components/StarRating';
 import './BookingPage.css';
 
 const BookingPage = () => {
@@ -147,6 +148,13 @@ const BookingPage = () => {
               ))}
             </div>
             <h2>{facility.name}</h2>
+            <div style={{ marginBottom: '8px' }}>
+              <StarRating 
+                rating={facility.averageRating} 
+                totalRatings={facility.totalRatings} 
+                size={18} 
+              />
+            </div>
             <p>{facility.description}</p>
             <div className="booking-facility-meta-row">
               <div className="bfm-item">

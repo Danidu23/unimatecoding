@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiFilter, FiClock, FiUsers, FiSearch } from 'react-icons/fi';
 import api from '../api';
+import StarRating from '../components/StarRating';
 import './FacilityListPage.css';
 
 const CATEGORY_FILTERS = {
@@ -151,6 +152,13 @@ const FacilityCard = ({ item, getAvailabilityColor, onClick }) => {
       {/* Body */}
       <div className="facility-card-body">
         <h3 className="facility-name">{item.name}</h3>
+        <div style={{ marginBottom: '10px' }}>
+          <StarRating 
+            rating={item.averageRating} 
+            totalRatings={item.totalRatings} 
+            size={16} 
+          />
+        </div>
         <p className="facility-desc">{item.description}</p>
 
         <div className="facility-meta">

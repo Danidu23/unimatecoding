@@ -394,15 +394,32 @@ const submitFeedback = async (req, res) => {
             return res.status(400).json({ message: 'Feedback can only be submitted for completed bookings.' });
         }
 
-        if (booking.rating) {
-            return res.status(400).json({ message: 'You have already submitted feedback for this booking.' });
+        // Logic for 24-hour edit window
+        const now = new Date();
+        if (booking.rating && booking.feedbackSubmittedAt) {
+            const timeDiff = now - booking.feedbackSubmittedAt;
+            const hoursDiff = timeDiff / (1000 * 60 * 60);
+
+            if (hoursDiff > 24) {
+                return res.status(400).json({ message: 'Feedback can only be edited within 24 hours of submission.' });
+            }
         }
 
+        // Update feedback
         booking.rating = rating;
         booking.feedback = feedback || '';
+        
+        // Only set timestamp if it's the first time
+        if (!booking.feedbackSubmittedAt) {
+            booking.feedbackSubmittedAt = now;
+        }
+        
         await booking.save();
 
-        res.json({ message: 'Thank you for your feedback!', booking });
+        res.json({ 
+            message: booking.feedbackSubmittedAt === now ? 'Thank you for your feedback!' : 'Feedback updated successfully!', 
+            booking 
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

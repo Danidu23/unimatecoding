@@ -1,0 +1,63 @@
+.star-rating-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stars-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.star-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.star-bg {
+  color: var(--border-primary);
+  stroke-width: 1.5px;
+}
+
+.star-fill-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.star-fill {
+  color: #ffc107;
+  fill: #ffc107;
+  stroke-width: 1.5px;
+}
+
+.rating-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.rating-avg {
+  color: var(--text-primary);
+}
+
+.rating-count {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* Premium vibe tweaks */
+.star-fill {
+  filter: drop-shadow(0 0 2px rgba(255, 193, 7, 0.3));
+}
