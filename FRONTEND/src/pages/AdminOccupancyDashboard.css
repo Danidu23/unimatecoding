@@ -1,5 +1,7 @@
 .occupancy-dashboard {
     padding: 20px;
+    background: #0b1220;
+    color: #e5e7eb;
 }
 
 .dashboard-header {
@@ -9,12 +11,12 @@
 .dashboard-header h2 {
     margin: 0 0 8px 0;
     font-size: 24px;
-    color: #2c3e50;
+    color: #e5e7eb;
 }
 
 .dashboard-header p {
     margin: 0;
-    color: #7f8c8d;
+    color: #9ca3af;
     font-size: 14px;
 }
 
@@ -23,10 +25,10 @@
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-bottom: 24px;
-    background: white;
+    background: #0f1724;
     padding: 16px;
     border-radius: 8px;
-    border: 1px solid #ecf0f1;
+    border: 1px solid #1f2937;
 }
 
 .control-group {
@@ -38,17 +40,17 @@
 .control-group label {
     font-size: 13px;
     font-weight: 600;
-    color: #2c3e50;
+    color: #e5e7eb;
 }
 
 .control-group select,
 .control-group .form-input {
     padding: 10px 12px;
-    border: 1px solid #bdc3c7;
+    border: 1px solid #374151;
     border-radius: 6px;
     font-size: 13px;
-    background: white;
-    color: #2c3e50;
+    background: #0b1220;
+    color: #e5e7eb;
     font-family: inherit;
 }
 
@@ -56,7 +58,7 @@
 .control-group .form-input:focus {
     outline: none;
     border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
 }
 
 .stats-grid {
@@ -72,7 +74,7 @@
     padding: 20px;
     border-radius: 8px;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
 .stat-card:nth-child(2) {
@@ -105,8 +107,8 @@
 }
 
 .occupancy-chart {
-    background: white;
-    border: 1px solid #ecf0f1;
+    background: #0f1724;
+    border: 1px solid #1f2937;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 24px;
@@ -115,12 +117,12 @@
 .occupancy-chart h3 {
     margin: 0 0 16px 0;
     font-size: 15px;
-    color: #2c3e50;
+    color: #e5e7eb;
 }
 
 .progress-bar {
     height: 24px;
-    background: #ecf0f1;
+    background: #111827;
     border-radius: 12px;
     overflow: hidden;
     position: relative;
@@ -143,12 +145,12 @@
     justify-content: space-between;
     margin-top: 8px;
     font-size: 12px;
-    color: #7f8c8d;
+    color: #9ca3af;
 }
 
 .slots-list {
-    background: white;
-    border: 1px solid #ecf0f1;
+    background: #0f1724;
+    border: 1px solid #1f2937;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 24px;
@@ -157,7 +159,7 @@
 .slots-list h3 {
     margin: 0 0 16px 0;
     font-size: 15px;
-    color: #2c3e50;
+    color: #e5e7eb;
 }
 
 .slots-header {
@@ -165,11 +167,11 @@
     grid-template-columns: 100px 150px 150px 100px;
     gap: 12px;
     padding: 12px;
-    background: #f5f7fa;
+    background: #0b1220;
     border-radius: 6px;
     font-weight: 600;
     font-size: 12px;
-    color: #2c3e50;
+    color: #e5e7eb;
     margin-bottom: 12px;
 }
 
@@ -184,16 +186,16 @@
     grid-template-columns: 100px 150px 150px 100px;
     gap: 12px;
     padding: 12px;
-    background: #f9f9f9;
+    background: #0b1220;
     border-radius: 6px;
     align-items: center;
-    border-left: 3px solid #bdc3c7;
+    border-left: 3px solid #374151;
     transition: all 0.2s;
 }
 
 .slot-item:hover {
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background: #0f1724;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
 }
 
 .slot-item.full {
@@ -210,7 +212,7 @@
 
 .slot-time {
     font-weight: 600;
-    color: #2c3e50;
+    color: #e5e7eb;
     font-size: 13px;
 }
 
@@ -222,7 +224,7 @@
 
 .occupancy-bar-small {
     height: 6px;
-    background: #ecf0f1;
+    background: #111827;
     border-radius: 3px;
     overflow: hidden;
     flex: 1;
@@ -236,7 +238,7 @@
 .occupancy-percent {
     font-size: 12px;
     font-weight: 600;
-    color: #2c3e50;
+    color: #e5e7eb;
     min-width: 40px;
     text-align: right;
 }
@@ -244,7 +246,7 @@
 .slot-capacity {
     text-align: center;
     font-size: 13px;
-    color: #555;
+    color: #9ca3af;
     font-weight: 500;
 }
 
@@ -277,8 +279,8 @@
 }
 
 .legend-section {
-    background: white;
-    border: 1px solid #ecf0f1;
+    background: #0f1724;
+    border: 1px solid #1f2937;
     border-radius: 8px;
     padding: 20px;
 }
@@ -286,7 +288,7 @@
 .legend-section h3 {
     margin: 0 0 16px 0;
     font-size: 15px;
-    color: #2c3e50;
+    color: #e5e7eb;
 }
 
 .legend-items {
@@ -300,7 +302,7 @@
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    color: #555;
+    color: #9ca3af;
 }
 
 .legend-color {
@@ -313,7 +315,7 @@
 .empty-state {
     text-align: center;
     padding: 40px 20px;
-    color: #7f8c8d;
+    color: #9ca3af;
     font-size: 14px;
 }
 
