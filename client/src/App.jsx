@@ -39,6 +39,13 @@ import SportsAdminLimitsPage from './pages/sports/AdminLimitsPage'
 import SportsAdminPriorityReviewPage from './pages/sports/AdminPriorityReviewPage'
 import SportsAdminOccupancyDashboardPage from './pages/sports/AdminOccupancyDashboard'
 
+import ClubsPage from './pages/clubs/ClubsPage'
+import ClubsAuthPage from './pages/clubs/ClubsAuthPage'
+import ClubAdvisorPage from './pages/clubs/ClubAdvisorPage'
+import ClubChatbotPage from './pages/clubs/ClubChatbotPage'
+import MyApplicationsPage from './pages/clubs/MyApplicationsPage'
+import ClubsAdminDashboardPage from './pages/clubs/admin/AdminDashboard'
+
 function App() {
   return (
     <BrowserRouter>
@@ -71,6 +78,56 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["student"]}>
               <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/clubs"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <ClubsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/clubs/advisor"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <ClubAdvisorPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/clubs/chat"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <ClubChatbotPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/clubs/my-applications"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <MyApplicationsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/clubs/auth"
+          element={<ClubsAuthPage />}
+        />
+
+        <Route
+          path="/clubs/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <ClubsAdminDashboardPage />
             </ProtectedRoute>
           }
         />

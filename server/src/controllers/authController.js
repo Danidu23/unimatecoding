@@ -59,6 +59,8 @@ const registerStudent = async (req, res) => {
           email: user.email,
           phone: user.phone,
           role: user.role,
+          staffType: user.staffType,
+          permissions: user.permissions,
         },
       },
     });
@@ -112,6 +114,8 @@ const loginUser = async (req, res) => {
           email: user.email,
           phone: user.phone,
           role: user.role,
+          staffType: user.staffType,
+          permissions: user.permissions,
         },
       },
     });

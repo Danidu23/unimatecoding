@@ -32,8 +32,35 @@ const userSchema = new mongoose.Schema(
     },
     staffType: {
       type: String,
-      enum: ["canteen", "sports", "lostfound", null],
+      enum: ["canteen", "sports", "lostfound", "clubs", null],
       default: null,
+    },
+    studentId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      uppercase: true,
+      match: [/^IT\d{7}$/, "Invalid Student ID format"],
+    },
+    preferences: {
+      skills: {
+        type: [String],
+        default: [],
+      },
+      activities: {
+        type: [String],
+        default: [],
+      },
+      commitment: {
+        type: String,
+        default: "",
+      },
+    },
+    permissions: {
+      type: [String],
+      enum: ["sports_admin", "lostfound_admin", "clubs_admin"],
+      default: [],
     },
     resetPasswordToken: {
       type: String,

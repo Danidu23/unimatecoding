@@ -311,7 +311,7 @@ function CoreServices() {
       title:"Clubs",
       desc:"Discover and join student clubs, view upcoming events and stay connected with campus life.",
       img:"https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80",
-      nav:null
+      nav:"clubs"
     },
     {
       title:"Campus Facilities & Services Booking",

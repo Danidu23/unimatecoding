@@ -307,6 +307,26 @@ export default function ProfilePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, logout } = useAuth();
 
+  const isClubsAdmin =
+  user?.role === "admin" &&
+  user?.permissions?.includes("clubs_admin");
+
+  const accountLabel = isClubsAdmin
+    ? "Clubs Admin Account"
+    : user?.role === "admin"
+    ? "Admin Account"
+    : user?.role === "staff"
+    ? "Staff Account"
+    : "Student Account";
+
+  const memberLabel = isClubsAdmin
+    ? "Clubs Admin"
+    : user?.role === "admin"
+    ? "Admin"
+    : user?.role === "staff"
+    ? "Staff"
+    : "Student";
+
   const getInitialTab = () => {
     const tab = searchParams.get("tab");
     return ["overview", "orders", "settings"].includes(tab) ? tab : "overview";
@@ -565,7 +585,7 @@ export default function ProfilePage() {
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
                 <span className="pill">
                   <Shield size={12} />
-                  {user?.role === "staff" ? "Staff Account" : "Student Account"}
+                  {accountLabel}
                 </span>
               </div>
 
@@ -581,7 +601,7 @@ export default function ProfilePage() {
               <p className="side-sub">
                 {form.email || "-"}
                 <br />
-                {user?.role === "staff" ? "Staff" : "Student"} • UniMate Member
+                {memberLabel} • Unimate Member
               </p>
 
               <div className="stats-grid">
@@ -636,7 +656,7 @@ export default function ProfilePage() {
                 Manage your <span className="accent">profile</span>, orders, and settings
               </h1>
               <p className="hero-sub">
-                Keep your UniMate profile updated, review your recent orders, and manage how you receive notifications.
+                Keep your Unimate profile updated, review your recent orders, and manage how you receive notifications.
               </p>
             </section>
 
@@ -748,7 +768,7 @@ export default function ProfilePage() {
                   </div>
 
                   {[
-                    ["Role", user?.role === "staff" ? "Staff" : "Student"],
+                    ["Role", memberLabel],
                     ["Email", form.email || "-"],
                     ["Phone", form.phone || "-"],
                   ].map(([l, v], i, arr) => (

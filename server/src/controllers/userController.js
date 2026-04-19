@@ -43,6 +43,8 @@ const updateMyProfile = async (req, res) => {
         email: updatedUser.email,
         phone: updatedUser.phone,
         role: updatedUser.role,
+        staffType: updatedUser.staffType,
+        permissions: updatedUser.permissions,
       },
     });
   } catch (error) {

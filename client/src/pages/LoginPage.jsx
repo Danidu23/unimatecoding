@@ -147,8 +147,13 @@ export default function LoginPage() {
 
     login(res.data.data);
     const user = res.data?.data?.user;
+    const isClubsAdmin =
+      user?.role === "admin" &&
+      user?.permissions?.includes("clubs_admin");
 
-    if (user?.role === "staff") {
+    if (isClubsAdmin) {
+      navigate("/clubs/admin");
+    } else if (user?.role === "staff") {
       navigate("/staff");
     } else {
       navigate("/dashboard");
