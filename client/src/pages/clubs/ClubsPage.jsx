@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Filter, Bot, ClipboardList, Star, MessageSquare,
-  Users, BookOpen, Zap, Palette, Trophy, Globe2, Briefcase, Tv2, ChevronRight, X, Sparkles, Bell
+  Users, BookOpen, Zap, Palette, Trophy, Globe2, Briefcase, Tv2, ChevronRight, X, Sparkles, Bell, LogOut
 } from "lucide-react";
-import { clubsAPI, applicationsAPI, recommendationsAPI, getSession } from "../../api/clubsApi";
+import { clubsAPI, applicationsAPI, recommendationsAPI, getSession, clearSession } from "../../api/clubsApi";
 import ClubDetailsModal from "../../components/clubs/ClubDetailsModal";
 
 const CATEGORIES = [
@@ -68,6 +68,8 @@ const CSS = `
     transition:all .22s;
   }
   .cd-icon-btn:hover{border-color:rgba(255,215,0,.4);color:#FFD700;background:rgba(255,215,0,.07);}
+  .cd-icon-btn.logout-btn{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.22);color:#f87171;}
+  .cd-icon-btn.logout-btn:hover{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.38);color:#fecaca;}
   .cd-search{
     display:flex;align-items:center;gap:10px;
     background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);
@@ -135,6 +137,16 @@ const CSS = `
   }
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:600;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);animation:fadeIn .25s;padding:20px;}
   .modal{background:#111;border:1.5px solid rgba(255,215,0,.2);border-radius:20px;max-width:480px;width:100%;animation:popIn .3s cubic-bezier(.22,.68,0,1.2);overflow:hidden;}
+  .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);z-index:950;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;}
+  .confirm-box{width:100%;max-width:420px;background:#111;border:1.5px solid rgba(255,215,0,.2);border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 20px rgba(255,215,0,.06);overflow:hidden;animation:popIn .22s ease;}
+  .confirm-title{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.3px;}
+  .confirm-text{font-size:13px;line-height:1.65;color:rgba(255,255,255,.5);margin-top:8px;}
+  .confirm-actions{display:flex;gap:10px;justify-content:flex-end;}
+  .confirm-btn{border:none;border-radius:12px;padding:12px 16px;font-size:13px;font-weight:800;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;}
+  .confirm-btn.cancel{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.8);}
+  .confirm-btn.cancel:hover{border-color:rgba(255,215,0,.28);color:#FFD700;background:rgba(255,215,0,.06);}
+  .confirm-btn.logout{background:#FFD700;color:#0A0A0A;box-shadow:0 8px 26px rgba(255,215,0,.22);}
+  .confirm-btn.logout:hover{transform:translateY(-1px);box-shadow:0 12px 32px rgba(255,215,0,.28);}
   .form-input{
     width:100%;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);
     border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;
@@ -340,13 +352,25 @@ export default function ClubsPage() {
   const location = useLocation();
   const user = getSession()?.user;
 
+  const [toast, setToast] = useState({ show: false, msg: "" });
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false);
+    clearSession();
+    navigate("/login");
+  };
+
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [applyClub, setApplyClub] = useState(null);
   const [selectedClub, setSelectedClub] = useState(null);
-  const [toast, setToast] = useState({ show: false, msg: "" });
   const [recommended, setRecommended] = useState([]);
   const [recommendedSource, setRecommendedSource] = useState("");
   const [notifCount, setNotifCount] = useState(0);
@@ -490,12 +514,34 @@ export default function ClubsPage() {
           ✅ {toast.msg}
         </div>
       )}
+      {showLogoutConfirm && (
+        <div className="confirm-overlay" onClick={() => setShowLogoutConfirm(false)}>
+          <div className="confirm-box" onClick={e => e.stopPropagation()}>
+            <div style={{ padding: "22px 24px 18px", borderBottom: "1px solid rgba(255,255,255,.06)" }}>
+              <div className="cd-badge" style={{ marginBottom: "12px" }}>⚠️ Confirm Action</div>
+              <div className="confirm-title">Log out of Unimate?</div>
+              <p className="confirm-text">You will be signed out from your current session and returned to the login page.</p>
+            </div>
+            <div style={{ padding: "18px 24px 24px" }}>
+              <div className="confirm-actions">
+                <button type="button" className="confirm-btn cancel" onClick={() => setShowLogoutConfirm(false)}>
+                  Cancel
+                </button>
+                <button type="button" className="confirm-btn logout" onClick={confirmLogout}>
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <nav className="cd-nav">
         <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
           <div className="cd-badge">🏛️ UniMate Clubs</div>
           {user && <span style={{ fontSize: "13px", color: "rgba(255,255,255,.5)" }}>Hi, {(user.name || "Student").split(" ")[0]}</span>}
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
+          <button className="cd-icon-btn" onClick={() => navigate("/dashboard")}>Dashboard</button>
           <button className="cd-icon-btn" onClick={() => navigate("/clubs/chat")}><Bot size={14} /> AI Chatbot</button>
           <button className="cd-icon-btn" onClick={() => navigate("/clubs/advisor")}><MessageSquare size={14} /> Advisor</button>
           <button className="cd-icon-btn notif-btn" onClick={() => { markNotificationsSeen(); navigate("/clubs/my-applications", { state: { openUpdates: true } }); }}>
@@ -503,6 +549,7 @@ export default function ClubsPage() {
             {notifCount > 0 && <span className="notif-badge">{notifCount}</span>}
           </button>
           <button className="cd-icon-btn" onClick={() => navigate("/clubs/my-applications")}><ClipboardList size={14} /> My Applications</button>
+          <button className="cd-icon-btn logout-btn" onClick={handleLogout}><LogOut size={14} /> Logout</button>
         </div>
       </nav>
 
