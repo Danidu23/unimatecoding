@@ -7,7 +7,7 @@ const {
     checkConflicts
 } = require('../controllers/sportsSmartController');
 const { protect } = require('../middleware/authMiddleware');
-const { requireSportsManager } = require('../middleware/roleMiddleware');
+const { requireSportsAdmin } = require('../middleware/roleMiddleware');
 
 router.use(protect);
 
@@ -17,6 +17,6 @@ router.get('/occupancy', getOccupancyInfo);
 router.post('/check-conflicts', checkConflicts);
 
 // Sports manager routes
-router.get('/priority-stats', requireSportsManager, getPriorityStats);
+router.get('/priority-stats', requireSportsAdmin, getPriorityStats);
 
 module.exports = router;

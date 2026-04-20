@@ -71,9 +71,26 @@ const createBooking = async (req, res) => {
         }
 
         // Determine cancellation deadline
-        const slotDateTime = new Date(`${date}T${slot.startTime}:00`);
-        const cancelHours = facility.type === 'service' ? rules.serviceCancelHoursBefore : rules.sportsCancelHoursBefore;
-        const cancelDeadline = new Date(slotDateTime.getTime() - cancelHours * 60 * 60 * 1000);
+        const [year, month, day] = String(date).split('-').map(Number);
+        const [startHour, startMinute] = String(slot.startTime).split(':').map(Number);
+
+        const slotDateTime = new Date(year, month - 1, day, startHour, startMinute, 0, 0);
+
+        if (Number.isNaN(slotDateTime.getTime())) {
+            return res.status(400).json({ message: 'Invalid slot date/time for booking' });
+        }
+
+        const cancelHours = facility.type === 'service'
+            ? rules.serviceCancelHoursBefore
+            : rules.sportsCancelHoursBefore;
+
+        const cancelDeadline = new Date(
+            slotDateTime.getTime() - cancelHours * 60 * 60 * 1000
+        );
+
+        if (Number.isNaN(cancelDeadline.getTime())) {
+            return res.status(400).json({ message: 'Invalid cancellation deadline calculation' });
+        }
 
         // Create booking
         const booking = new SportsBooking({
@@ -103,7 +120,7 @@ const createBooking = async (req, res) => {
 
         const createdBooking = await booking.save();
 
-        // Generate Notification for User
+        // Generate notification for user
         await SportsNotification.create({
             userId,
             facilityServiceId: facility._id,
@@ -112,17 +129,15 @@ const createBooking = async (req, res) => {
             bookingId: createdBooking._id
         });
 
-        // Generate Notification for Admins if Priority
+        // Generate notification for sports admins if priority
         if (isPriority) {
-            const managers = await User.find({
-                $or: [
-                    { role: 'admin' },
-                    { role: 'staff', staffType: 'sports' }
-                ]
+            const sportsAdmins = await User.find({
+                role: 'admin',
+                permissions: 'sports_admin'
             });
 
-            const notifications = managers.map(manager => ({
-                userId: manager._id,
+            const notifications = sportsAdmins.map(admin => ({
+                userId: admin._id,
                 facilityServiceId: facility._id,
                 message: `URGENT: Priority booking requested for ${facility.name} by ${req.user.name}.`,
                 type: 'priority_request',
@@ -192,7 +207,7 @@ const cancelBooking = async (req, res) => {
 
 // @desc    Get all booking requests (Admin)
 // @route   GET /api/bookings
-// @access  Admin/Staff
+// @access  Sports Admin
 const getAllBookings = async (req, res) => {
     try {
         const { status, sortBy = 'priority' } = req.query;
@@ -226,7 +241,7 @@ const getAllBookings = async (req, res) => {
 
 // @desc    Update booking status (Approve/Reject)
 // @route   PUT /api/bookings/:id/status
-// @access  Admin/Staff
+// @access  Sports Admin
 const updateBookingStatus = async (req, res) => {
     try {
         const { status, rejectReason, priorityVerified } = req.body;

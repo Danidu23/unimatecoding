@@ -8,7 +8,7 @@ const {
     updateBookingStatus
 } = require('../controllers/sportsBookingController');
 const { protect } = require('../middleware/authMiddleware');
-const { requireStudent, requireSportsManager } = require('../middleware/roleMiddleware');
+const { requireStudent, requireSportsAdmin } = require('../middleware/roleMiddleware');
 
 // Student routes
 router.post('/', protect, requireStudent, createBooking);
@@ -16,7 +16,7 @@ router.get('/my', protect, requireStudent, getMyBookings);
 router.put('/:id/cancel', protect, requireStudent, cancelBooking);
 
 // Admin routes
-router.get('/', protect, requireSportsManager, getAllBookings);
-router.put('/:id/status', protect, requireSportsManager, updateBookingStatus);
+router.get('/', protect, requireSportsAdmin, getAllBookings);
+router.put('/:id/status', protect, requireSportsAdmin, updateBookingStatus);
 
 module.exports = router;

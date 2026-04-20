@@ -40,15 +40,15 @@ const requireStaffOrAdmin = (req, res, next) => {
   next();
 };
 
-const requireSportsManager = (req, res, next) => {
-  const isAdmin = req.user?.role === "admin";
-  const isSportsStaff =
-    req.user?.role === "staff" && req.user?.staffType === "sports";
+const requireSportsAdmin = (req, res, next) => {
+  const isSportsAdmin =
+    req.user?.role === "admin" &&
+    req.user?.permissions?.includes("sports_admin");
 
-  if (!isAdmin && !isSportsStaff) {
+  if (!isSportsAdmin) {
     return res.status(403).json({
       success: false,
-      message: "Sports manager access only",
+      message: "Sports admin access only",
     });
   }
 
@@ -60,5 +60,5 @@ module.exports = {
   requireStaff,
   requireAdmin,
   requireStaffOrAdmin,
-  requireSportsManager
+  requireSportsAdmin
 };

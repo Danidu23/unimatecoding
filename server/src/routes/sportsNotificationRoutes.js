@@ -10,7 +10,7 @@ const {
     getNotificationsByBooking
 } = require('../controllers/sportsNotificationController');
 const { protect } = require('../middleware/authMiddleware');
-const { requireSportsManager } = require('../middleware/roleMiddleware');
+const { requireSportsAdmin } = require('../middleware/roleMiddleware');
 
 router.use(protect);
 
@@ -23,6 +23,6 @@ router.put('/:id/read', markAsRead);
 router.delete('/:id', deleteNotification);
 
 // Sports manager routes
-router.post('/', requireSportsManager, createNotification);
+router.post('/', requireSportsAdmin, createNotification);
 
 module.exports = router;

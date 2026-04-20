@@ -7,14 +7,14 @@ const {
     updateFacility
 } = require('../controllers/sportsFacilityController');
 const { protect } = require('../middleware/authMiddleware');
-const { requireSportsManager } = require('../middleware/roleMiddleware');
+const { requireSportsAdmin } = require('../middleware/roleMiddleware');
 
 router.route('/')
     .get(protect, getFacilities)
-    .post(protect, requireSportsManager, createFacility);
+    .post(protect, requireSportsAdmin, createFacility);
 
 router.route('/:id')
     .get(protect, getFacilityById)
-    .put(protect, requireSportsManager, updateFacility);
+    .put(protect, requireSportsAdmin, updateFacility);
 
 module.exports = router;

@@ -53,10 +53,11 @@ const markAsRead = async (req, res) => {
             return res.status(404).json({ message: 'Notification not found' });
         }
 
-        const isAdmin = req.user.role === 'admin';
-        const isSportsStaff = req.user.role === 'staff' && req.user.staffType === 'sports';
+        const isSportsAdmin =
+            req.user?.role === 'admin' &&
+            req.user?.permissions?.includes('sports_admin');
 
-        if (notification.userId.toString() !== req.user._id.toString() && !isAdmin && !isSportsStaff) {
+        if (notification.userId.toString() !== req.user._id.toString() && !isSportsAdmin) {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
@@ -92,10 +93,11 @@ const deleteNotification = async (req, res) => {
             return res.status(404).json({ message: 'Notification not found' });
         }
 
-        const isAdmin = req.user.role === 'admin';
-        const isSportsStaff = req.user.role === 'staff' && req.user.staffType === 'sports';
+        const isSportsAdmin =
+            req.user?.role === 'admin' &&
+            req.user?.permissions?.includes('sports_admin');
 
-        if (notification.userId.toString() !== req.user._id.toString() && !isAdmin && !isSportsStaff) {
+        if (notification.userId.toString() !== req.user._id.toString() && !isSportsAdmin) {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
@@ -106,9 +108,9 @@ const deleteNotification = async (req, res) => {
     }
 };
 
-// @desc    Create a notification (Admin only)
+// @desc    Create a notification (Sports Admin only)
 // @route   POST /api/notifications
-// @access  Admin/Staff
+// @access  Sports Admin
 const createNotification = async (req, res) => {
     try {
         const { userId, facilityServiceId, message, type, priority = 'normal' } = req.body;

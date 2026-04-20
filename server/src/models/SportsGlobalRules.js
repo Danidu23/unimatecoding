@@ -6,4 +6,6 @@ const globalRulesSchema = new mongoose.Schema({
     serviceCancelHoursBefore: { type: Number, default: 4 }
 }, { timestamps: true });
 
-module.exports = mongoose.models.SportsFacilityService || mongoose.model('SportsFacilityService', facilityServiceSchema);
+module.exports =
+    mongoose.models.SportsGlobalRules ||
+    mongoose.model('SportsGlobalRules', globalRulesSchema);
