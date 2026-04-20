@@ -1,6 +1,6 @@
 # Unimate
 
-UniMate is a full-stack campus services platform built with a React client and a Node.js/Express backend. It includes student-facing and admin/staff-facing flows for major university services such as canteen services, Lost & Found, Sports, and Clubs.
+Unimate is a full-stack campus services platform built with a React client and a Node.js/Express backend. It includes student-facing and admin/staff-facing flows for major university services such as canteen services, Lost & Found, Sports, and Clubs.
 
 This README explains how to set up the project on a new machine, run both applications locally, understand the main login behavior, and avoid common setup issues.
 
@@ -195,7 +195,7 @@ A normal admin without the `sports_admin` permission should not access Sports ad
 
 ## Sports Feature Notes
 
-The Sports feature is fully integrated into the main UniMate app and uses the shared app authentication/session flow.
+The Sports feature is fully integrated into the main Unimate app and uses the shared app authentication/session flow.
 
 ### Student-side Sports routes
 - `/sports`
@@ -237,7 +237,7 @@ Initial Sports testing usually requires:
 
 ## Clubs Feature Notes
 
-The Clubs feature is integrated into the main UniMate app rather than running as a separate mini-app.
+The Clubs feature is integrated into the main Unimate app rather than running as a separate mini-app.
 
 ### Student-side Clubs routes
 - `/clubs`
@@ -264,7 +264,34 @@ should be able to access the Clubs admin dashboard.
 
 ## Lost & Found Feature Notes
 
-Lost & Found is part of the main UniMate app and follows the same shared authentication/session flow.
+Lost & Found is integrated into the main Unimate app. Student-facing Lost & Found pages use the shared main app authentication flow, while Lost & Found admin access currently uses a separate admin session flag stored in localStorage.
+
+### Student-side Lost & Found routes
+- `/lost-found`
+- `/lost-found/report-lost`
+- `/lost-found/report-found`
+- `/lost-found/browse`
+- `/lost-found/item/:id`
+- `/lost-found/claim/:id`
+- `/lost-found/my-reports`
+- `/lost-found/messages`
+- `/lost-found/submission-success`
+
+### Admin-side Lost & Found routes
+- `/lost-found/admin-login`
+- `/lost-found/admin`
+
+### Routing and auth notes
+- Student Lost & Found pages are wrapped with `ProtectedRoute allowedRoles={["student"]}`
+- Student Lost & Found pages use `LostFoundLayout`
+- `/lost-found/admin` is protected by `LostFoundAdminRouteGuard`
+- if Lost & Found admin authentication is missing, users are redirected to `/lost-found/admin-login`
+- the attempted route is preserved in router state for post-login redirect
+- Lost & Found admin authentication is currently checked using a separate localStorage flag:
+  - key: `lf_admin_auth`
+  - authenticated value: `"true"`
+- Lost & Found also stores a current user email separately in localStorage:
+  - key: `lf_user_email`
 
 ### Typical Lost & Found student usage
 Students should be able to:
@@ -273,9 +300,11 @@ Students should be able to:
 - create found item reports
 - browse item listings
 - view item details and status
+- access claim flows
+- view their own reports and messages
 
-### Typical Lost & Found admin/staff usage
-Depending on your branch implementation, admins or staff may be able to:
+### Typical Lost & Found admin usage
+Depending on your branch implementation, Lost & Found admins may be able to:
 - review submitted reports
 - update report status
 - mark items as claimed/resolved
@@ -283,10 +312,17 @@ Depending on your branch implementation, admins or staff may be able to:
 
 ### Lost & Found testing notes
 When testing Lost & Found on a fresh setup, verify:
-- list page loads correctly
-- create/report flow works
+- `/lost-found` loads correctly
+- report lost and report found flows work
+- browse page loads correctly
+- item detail page loads correctly
+- claim flow works if applicable
+- my reports and messages pages load correctly
 - uploaded images or attachments work if supported
 - item status updates persist after refresh
+- authenticated Lost & Found admin can access `/lost-found/admin`
+- unauthenticated access to `/lost-found/admin` redirects to `/lost-found/admin-login`
+- Lost & Found admin login correctly sets `lf_admin_auth` in localStorage
 
 ---
 
@@ -367,8 +403,21 @@ After starting both apps, verify the following:
    - `/sports/admin/priority`
    - `/sports/admin/occupancy`
 8. Non-sports-admin users cannot access Sports admin pages
-9. Lost & Found student pages load correctly
-10. Lost & Found create/view flows work if included in your branch
+9. Student can open Lost & Found pages:
+   - `/lost-found`
+   - `/lost-found/report-lost`
+   - `/lost-found/report-found`
+   - `/lost-found/browse`
+   - `/lost-found/my-reports`
+   - `/lost-found/messages`
+10. Student can open Lost & Found item and claim flows if test data exists:
+    - `/lost-found/item/:id`
+    - `/lost-found/claim/:id`
+11. Lost & Found admin login page loads:
+    - `/lost-found/admin-login`
+12. Authenticated Lost & Found admin can access:
+    - `/lost-found/admin`
+13. Unauthenticated access to `/lost-found/admin` redirects to `/lost-found/admin-login`
 
 ---
 
@@ -422,6 +471,13 @@ Check:
 - cancellation rule fields exist and are numeric
 - booking date/time parsing is valid in the booking controller
 
+### Lost & Found admin access does not work
+Check:
+- `lf_admin_auth` exists in localStorage
+- `lf_admin_auth` is exactly `"true"`
+- unauthenticated users should be redirected to `/lost-found/admin-login`
+- Lost & Found admin auth is separate from the main app admin permission model
+
 ### Theme looks inconsistent on integrated pages
 Check:
 - page-specific CSS was updated to use the shared theme variables
@@ -474,3 +530,4 @@ git commit -m "Complete sports feature integration and admin workflow"
 - If you reseed the database, ensure any Sports admin test user includes the `sports_admin` permission.
 - If frontend routing depends on `permissions`, make sure the stored `user` object in localStorage includes those values.
 - For Sports testing, create facilities/services and generate slots before testing bookings.
+- Lost & Found admin access currently uses a separate localStorage-based admin session flag (`lf_admin_auth`) rather than the shared Clubs/Sports role-permission model.
