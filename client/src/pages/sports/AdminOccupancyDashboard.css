@@ -1,20 +1,22 @@
 .occupancy-dashboard {
-    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
 .dashboard-header {
-    margin-bottom: 24px;
+    margin-bottom: 0;
 }
 
 .dashboard-header h2 {
     margin: 0 0 8px 0;
     font-size: 24px;
-    color: #2c3e50;
+    color: var(--text-primary);
 }
 
 .dashboard-header p {
     margin: 0;
-    color: #7f8c8d;
+    color: var(--text-secondary);
     font-size: 14px;
 }
 
@@ -22,11 +24,10 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
-    margin-bottom: 24px;
-    background: white;
+    background: var(--bg-card);
     padding: 16px;
-    border-radius: 8px;
-    border: 1px solid #ecf0f1;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-card);
 }
 
 .control-group {
@@ -37,26 +38,35 @@
 
 .control-group label {
     font-size: 13px;
-    font-weight: 600;
-    color: #2c3e50;
+    font-weight: 700;
+    color: var(--text-primary);
 }
 
 .control-group select,
-.control-group .form-input {
-    padding: 10px 12px;
-    border: 1px solid #bdc3c7;
-    border-radius: 6px;
+.control-group .form-input,
+.control-group .react-datepicker-wrapper,
+.control-group .react-datepicker__input-container input {
+    width: 100%;
+}
+
+.control-group select,
+.control-group .form-input,
+.control-group .react-datepicker__input-container input {
+    padding: 12px 14px;
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
     font-size: 13px;
-    background: white;
-    color: #2c3e50;
+    background: var(--bg-elevated);
+    color: var(--text-primary);
     font-family: inherit;
 }
 
 .control-group select:focus,
-.control-group .form-input:focus {
+.control-group .form-input:focus,
+.control-group .react-datepicker__input-container input:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: var(--border-primary);
+    box-shadow: 0 0 0 3px rgba(232, 184, 75, 0.12);
 }
 
 .stats-grid {
@@ -67,24 +77,13 @@
 }
 
 .stat-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    color: var(--text-primary);
     padding: 20px;
-    border-radius: 8px;
+    border-radius: var(--radius-xl);
     text-align: center;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-}
-
-.stat-card:nth-child(2) {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.stat-card:nth-child(3) {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.stat-card:nth-child(4) {
-    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    box-shadow: var(--shadow-sm);
 }
 
 .stat-icon {
@@ -94,34 +93,37 @@
 
 .stat-value {
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 800;
     margin-bottom: 4px;
+    color: var(--text-primary);
 }
 
 .stat-label {
     font-size: 12px;
-    opacity: 0.9;
-    font-weight: 500;
+    color: var(--text-secondary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .occupancy-chart {
-    background: white;
-    border: 1px solid #ecf0f1;
-    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-xl);
     padding: 20px;
-    margin-bottom: 24px;
 }
 
 .occupancy-chart h3 {
     margin: 0 0 16px 0;
     font-size: 15px;
-    color: #2c3e50;
+    color: var(--text-primary);
 }
 
 .progress-bar {
     height: 24px;
-    background: #ecf0f1;
-    border-radius: 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-full);
     overflow: hidden;
     position: relative;
 }
@@ -143,21 +145,20 @@
     justify-content: space-between;
     margin-top: 8px;
     font-size: 12px;
-    color: #7f8c8d;
+    color: var(--text-secondary);
 }
 
 .slots-list {
-    background: white;
-    border: 1px solid #ecf0f1;
-    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-xl);
     padding: 20px;
-    margin-bottom: 24px;
 }
 
 .slots-list h3 {
     margin: 0 0 16px 0;
     font-size: 15px;
-    color: #2c3e50;
+    color: var(--text-primary);
 }
 
 .slots-header {
@@ -165,11 +166,12 @@
     grid-template-columns: 100px 150px 150px 100px;
     gap: 12px;
     padding: 12px;
-    background: #f5f7fa;
-    border-radius: 6px;
-    font-weight: 600;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    font-weight: 700;
     font-size: 12px;
-    color: #2c3e50;
+    color: var(--text-primary);
     margin-bottom: 12px;
 }
 
@@ -184,33 +186,34 @@
     grid-template-columns: 100px 150px 150px 100px;
     gap: 12px;
     padding: 12px;
-    background: #f9f9f9;
-    border-radius: 6px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-lg);
     align-items: center;
-    border-left: 3px solid #bdc3c7;
-    transition: all 0.2s;
+    border-left: 3px solid var(--border-card);
+    transition: all var(--transition-fast);
 }
 
 .slot-item:hover {
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: var(--shadow-sm);
 }
 
 .slot-item.full {
-    border-left-color: #f44336;
+    border-left-color: var(--accent-red);
 }
 
 .slot-item.medium {
-    border-left-color: #ff9800;
+    border-left-color: var(--accent-primary);
 }
 
 .slot-item.low {
-    border-left-color: #4caf50;
+    border-left-color: var(--accent-green);
 }
 
 .slot-time {
-    font-weight: 600;
-    color: #2c3e50;
+    font-weight: 700;
+    color: var(--text-primary);
     font-size: 13px;
 }
 
@@ -222,7 +225,7 @@
 
 .occupancy-bar-small {
     height: 6px;
-    background: #ecf0f1;
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 3px;
     overflow: hidden;
     flex: 1;
@@ -235,8 +238,8 @@
 
 .occupancy-percent {
     font-size: 12px;
-    font-weight: 600;
-    color: #2c3e50;
+    font-weight: 700;
+    color: var(--text-secondary);
     min-width: 40px;
     text-align: right;
 }
@@ -244,8 +247,8 @@
 .slot-capacity {
     text-align: center;
     font-size: 13px;
-    color: #555;
-    font-weight: 500;
+    color: var(--text-secondary);
+    font-weight: 600;
 }
 
 .slot-status {
@@ -262,31 +265,31 @@
 }
 
 .status-badge.status-full {
-    background: #ffcdd2;
-    color: #c62828;
+    background: var(--accent-red-bg);
+    color: var(--accent-red);
 }
 
 .status-badge.status-low {
-    background: #c8e6c9;
-    color: #1b5e20;
+    background: var(--accent-green-bg);
+    color: var(--accent-green);
 }
 
 .status-badge.status-medium {
-    background: #ffe0b2;
-    color: #e65100;
+    background: rgba(232, 184, 75, 0.12);
+    color: var(--accent-primary);
 }
 
 .legend-section {
-    background: white;
-    border: 1px solid #ecf0f1;
-    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-xl);
     padding: 20px;
 }
 
 .legend-section h3 {
     margin: 0 0 16px 0;
     font-size: 15px;
-    color: #2c3e50;
+    color: var(--text-primary);
 }
 
 .legend-items {
@@ -300,7 +303,7 @@
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    color: #555;
+    color: var(--text-secondary);
 }
 
 .legend-color {
@@ -313,8 +316,11 @@
 .empty-state {
     text-align: center;
     padding: 40px 20px;
-    color: #7f8c8d;
+    color: var(--text-secondary);
     font-size: 14px;
+    background: var(--bg-elevated);
+    border: 1px dashed var(--border-card);
+    border-radius: var(--radius-lg);
 }
 
 @media (max-width: 1024px) {
@@ -333,10 +339,6 @@
 }
 
 @media (max-width: 768px) {
-    .padding-dashboard {
-        padding: 16px;
-    }
-
     .stats-grid {
         grid-template-columns: 1fr;
     }

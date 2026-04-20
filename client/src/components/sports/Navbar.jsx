@@ -1,148 +1,245 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  FiHome, FiCalendar, FiUser, FiLogOut,
-  FiMenu, FiX, FiSettings, FiBarChart2
+  FiHome,
+  FiCalendar,
+  FiUser,
+  FiLogOut,
+  FiArrowLeft,
+  FiMenu,
+  FiX,
+  FiSettings,
+  FiBarChart2,
 } from 'react-icons/fi';
 import NotificationCenter from './NotificationCenter';
 import './Navbar.css';
 
-const Navbar = () => {
-  const navigate = useNavigate();
+const Navbar = ({ user }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
-  const user = useMemo(() => {
-    try {
-      return JSON.parse(localStorage.getItem('user') || 'null');
-    } catch {
-      return null;
-    }
-  }, []);
+  const permissions = Array.isArray(user?.permissions)
+    ? user.permissions
+    : typeof user?.permissions === 'string'
+      ? [user.permissions]
+      : [];
+
+  const isSportsManager =
+    user?.role === 'admin' &&
+    permissions.includes('sports_admin');
+
+  const studentLinks = useMemo(
+    () => [
+      { to: '/sports', label: 'Home', icon: <FiHome /> },
+      { to: '/sports/my-bookings', label: 'My Bookings', icon: <FiCalendar /> },
+    ],
+    []
+  );
+
+  const adminLinks = useMemo(
+    () => [
+      { to: '/sports/admin', label: 'Dashboard', icon: <FiBarChart2 /> },
+      { to: '/sports/admin/bookings', label: 'Bookings', icon: <FiCalendar /> },
+      { to: '/sports/admin/slots', label: 'Slots', icon: <FiSettings /> },
+      { to: '/sports/admin/reports', label: 'Reports', icon: <FiBarChart2 /> },
+      { to: '/sports/admin/priority', label: 'Priority', icon: <FiBarChart2 /> },
+      { to: '/sports/admin/occupancy', label: 'Occupancy', icon: <FiBarChart2 /> },
+    ],
+    []
+  );
+
+  const links = isSportsManager ? adminLinks : studentLinks;
+  const showDashboardBack = !isSportsManager;
+
+  const isActive = (path) => {
+    if (path === '/sports/admin') return location.pathname === '/sports/admin';
+    return location.pathname.startsWith(path);
+  };
 
   const handleLogout = () => {
+    setProfileOpen(false);
+    setLogoutConfirmOpen(true);
+  };
+
+  const confirmLogout = () => {
+    setLogoutConfirmOpen(false);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
   };
 
-  const isActive = (path) => location.pathname.startsWith(path);
-
-  const studentLinks = [
-    { to: '/sports', label: 'Home', icon: <FiHome /> },
-    { to: '/sports/my-bookings', label: 'My Bookings', icon: <FiCalendar /> },
-  ];
-
-  const adminLinks = [
-    { to: '/sports/admin', label: 'Dashboard', icon: <FiBarChart2 /> },
-    { to: '/sports/admin/bookings', label: 'Bookings', icon: <FiCalendar /> },
-    { to: '/sports/admin/slots', label: 'Slots', icon: <FiSettings /> },
-    { to: '/sports/admin/reports', label: 'Reports', icon: <FiBarChart2 /> },
-    { to: '/sports/admin/priority', label: 'Priority', icon: <FiBarChart2 /> },
-    { to: '/sports/admin/occupancy', label: 'Occupancy', icon: <FiBarChart2 /> },
-  ];
-
-  const isSportsManager =
-    user?.role === 'admin' ||
-    (user?.role === 'staff' && user?.staffType === 'sports');
-
-  const links = isSportsManager ? adminLinks : studentLinks;
+  const closeLogoutConfirm = () => {
+    setLogoutConfirmOpen(false);
+  };
 
   return (
-    <nav className="navbar">
-      <div className="navbar-inner">
-        <Link to={isSportsManager ? '/sports/admin' : '/sports'} className="navbar-logo">
-          <div className="navbar-logo-icon">U</div>
-          <span className="navbar-logo-text">UniMate</span>
-        </Link>
-
-        <div className="navbar-links">
-          {links.map((l) => (
+    <>
+      <nav className="navbar">
+        <div className="navbar-inner">
+          {showDashboardBack && (
             <Link
-              key={l.to}
-              to={l.to}
-              className={`navbar-link ${isActive(l.to) ? 'active' : ''}`}
+              to="/dashboard"
+              className="navbar-link navbar-back-link navbar-back-edge"
             >
-              {l.icon}
-              <span>{l.label}</span>
+              <FiArrowLeft />
+              <span>Dashboard</span>
             </Link>
-          ))}
-        </div>
+          )}
 
-        <div className="navbar-actions">
-          <div className="navbar-notif-wrap">
-            <NotificationCenter />
+          <div className="navbar-left">
+            <Link
+              to={isSportsManager ? '/sports/admin' : '/sports'}
+              className="navbar-logo"
+            >
+              <div className="navbar-logo-icon">U</div>
+              <span className="navbar-logo-text">UniMate</span>
+            </Link>
           </div>
 
-          <div className="navbar-profile-wrap">
-            <button
-              className="navbar-avatar"
-              onClick={() => {
-                setProfileOpen(!profileOpen);
-              }}
-            >
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
+          <div className="navbar-links">
+            {links.map((l) => (
+              <Link
+                key={l.to}
+                to={l.to}
+                className={`navbar-link ${isActive(l.to) ? 'active' : ''}`}
+              >
+                {l.icon}
+                <span>{l.label}</span>
+              </Link>
+            ))}
+          </div>
+
+          <div className="navbar-actions">
+            <div className="navbar-notif-wrap">
+              <NotificationCenter />
+            </div>
+
+            <div className="navbar-profile-wrap">
+              <button
+                className="navbar-avatar"
+                onClick={() => setProfileOpen((v) => !v)}
+              >
+                {(user?.name || user?.email || 'U').charAt(0).toUpperCase()}
+              </button>
+
+              {profileOpen && (
+                <div className="profile-dropdown">
+                  <div className="profile-header">
+                    <div className="profile-avatar-lg">
+                      {(user?.name || user?.email || 'U').charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="profile-name">{user?.name || 'User'}</div>
+                      <div className="profile-email">{user?.email || ''}</div>
+                    </div>
+                  </div>
+
+                  <div className="profile-menu">
+                    <button className="profile-menu-item">
+                      <FiUser />
+                      <span>Profile</span>
+                    </button>
+
+                    <button
+                      className="profile-menu-item danger"
+                      onClick={handleLogout}
+                    >
+                      <FiLogOut />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button className="navbar-logout-btn" onClick={handleLogout}>
+              <FiLogOut />
+              <span>Logout</span>
             </button>
 
-            {profileOpen && (
-              <div className="profile-dropdown">
-                <div className="profile-header">
-                  <div className="profile-avatar-lg">
-                    {user?.name?.charAt(0).toUpperCase() || 'U'}
-                  </div>
-                  <div>
-                    <p className="profile-name">{user?.name}</p>
-                    <p className="profile-email">{user?.email}</p>
-                    <span
-                      className={`badge badge-${user?.role === 'admin' ? 'completed' : 'approved'}`}
-                    >
-                      {user?.role}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="profile-menu">
-                  <button
-                    className="profile-menu-item"
-                    onClick={() => {
-                      setProfileOpen(false);
-                    }}
-                  >
-                    <FiUser /> Profile
-                  </button>
-                  <button className="profile-menu-item danger" onClick={handleLogout}>
-                    <FiLogOut /> Sign Out
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <button className="navbar-hamburger" onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? <FiX /> : <FiMenu />}
-          </button>
-        </div>
-      </div>
-
-      {menuOpen && (
-        <div className="navbar-mobile-menu">
-          {links.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              className={`navbar-mobile-link ${isActive(l.to) ? 'active' : ''}`}
-              onClick={() => setMenuOpen(false)}
+            <button
+              className="navbar-hamburger"
+              onClick={() => setMenuOpen((v) => !v)}
             >
-              {l.icon} {l.label}
-            </Link>
-          ))}
-          <button className="navbar-mobile-link danger" onClick={handleLogout}>
-            <FiLogOut /> Sign Out
-          </button>
+              {menuOpen ? <FiX /> : <FiMenu />}
+            </button>
+          </div>
         </div>
-      )}
-    </nav>
+
+              {menuOpen && (
+          <div className="navbar-mobile-menu">
+            {showDashboardBack && (
+              <Link
+                to="/dashboard"
+                className="navbar-mobile-link"
+                onClick={() => setMenuOpen(false)}
+              >
+                <FiArrowLeft />
+                <span>Back to Dashboard</span>
+              </Link>
+            )}
+
+            {links.map((l) => (
+              <Link
+                key={l.to}
+                to={l.to}
+                className={`navbar-mobile-link ${isActive(l.to) ? 'active' : ''}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                {l.icon}
+                <span>{l.label}</span>
+              </Link>
+            ))}
+
+            <button
+              className="navbar-mobile-link danger"
+              onClick={handleLogout}
+            >
+              <FiLogOut />
+              <span>Logout</span>
+            </button>
+          </div>
+        )}  
+      </nav>
+
+    {logoutConfirmOpen && (
+        <div className="sports-logout-modal-overlay" onClick={closeLogoutConfirm}>
+          <div
+            className="sports-logout-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sports-logout-modal-header">
+              <div className="sports-logout-modal-icon">
+                <FiLogOut />
+              </div>
+              <div>
+                <h3>Log out</h3>
+                <p>Are you sure you want to log out from Sports?</p>
+              </div>
+            </div>
+
+            <div className="sports-logout-modal-actions">
+              <button
+                className="sports-logout-cancel-btn"
+                onClick={closeLogoutConfirm}
+              >
+                Cancel
+              </button>
+              <button
+                className="sports-logout-confirm-btn"
+                onClick={confirmLogout}
+              >
+                <FiLogOut />
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}     
+    </>
   );
 };
 

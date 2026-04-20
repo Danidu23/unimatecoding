@@ -14,11 +14,11 @@ function SportsManagerRouteGuard() {
   } catch {
     return <Navigate to="/login" replace />;
   }
+  const isSportsAdmin =
+    user?.role === 'admin' &&
+    user?.permissions?.includes('sports_admin');
 
-  const isAdmin = user.role === 'admin';
-  const isSportsStaff = user.role === 'staff' && user.staffType === 'sports';
-
-  if (!isAdmin && !isSportsStaff) {
+  if (!isSportsAdmin) {
     return <Navigate to="/login" replace />;
   }
 

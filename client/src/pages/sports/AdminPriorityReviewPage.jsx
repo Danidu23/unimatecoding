@@ -38,6 +38,7 @@ const AdminPriorityReviewPage = () => {
             await fetchPriorityBookings();
             setModal(false);
             setSelectedBooking(null);
+            setActionData({});
         } catch (error) {
             console.error('Error updating booking:', error);
         }
@@ -51,6 +52,7 @@ const AdminPriorityReviewPage = () => {
             await fetchPriorityBookings();
             setModal(false);
             setSelectedBooking(null);
+            setActionData({});
         } catch (error) {
             console.error('Error updating booking:', error);
         }
@@ -63,7 +65,7 @@ const AdminPriorityReviewPage = () => {
     return (
         <div className="priority-review-page">
             <div className="page-header">
-                <h2>🔴 Priority Booking Review</h2>
+                <h2>Priority Booking Review</h2>
                 <p>Review and verify urgent booking requests</p>
             </div>
 
@@ -136,6 +138,7 @@ const AdminPriorityReviewPage = () => {
                                             className="action-btn view-btn"
                                             onClick={() => {
                                                 setSelectedBooking(booking);
+                                                setActionData({});
                                                 setModal(true);
                                             }}
                                         >
@@ -150,11 +153,27 @@ const AdminPriorityReviewPage = () => {
             )}
 
             {modal && selectedBooking && (
-                <div className="modal-overlay" onClick={() => setModal(false)}>
+                <div
+                    className="modal-overlay"
+                    onClick={() => {
+                        setModal(false);
+                        setSelectedBooking(null);
+                        setActionData({});
+                    }}
+                >
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
                             <h3>Review Priority Booking</h3>
-                            <button className="close-btn" onClick={() => setModal(false)}>×</button>
+                            <button
+                                className="close-btn"
+                                onClick={() => {
+                                    setModal(false);
+                                    setSelectedBooking(null);
+                                    setActionData({});
+                                }}
+                            >
+                                ×
+                            </button>
                         </div>
 
                         <div className="modal-body">
@@ -234,7 +253,14 @@ const AdminPriorityReviewPage = () => {
                         </div>
 
                         <div className="modal-footer">
-                            <button className="btn btn-ghost" onClick={() => setModal(false)}>
+                            <button
+                                className="btn btn-ghost"
+                                onClick={() => {
+                                    setModal(false);
+                                    setSelectedBooking(null);
+                                    setActionData({});
+                                }}
+                            >
                                 Close
                             </button>
                         </div>

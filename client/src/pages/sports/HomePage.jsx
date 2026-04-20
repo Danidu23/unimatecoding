@@ -3,7 +3,6 @@ import { FiArrowRight, FiCalendar, FiClock, FiTrendingUp } from 'react-icons/fi'
 import { GiWeightLiftingUp } from 'react-icons/gi';
 import { MdOutlineLocalHospital } from 'react-icons/md';
 import './HomePage.css';
-import Navbar from '../../components/sports/Navbar';
 
 const QUICK_STATS = [
   { label: 'Available Sports Slots', value: '24', icon: <FiTrendingUp />, color: 'accent' },

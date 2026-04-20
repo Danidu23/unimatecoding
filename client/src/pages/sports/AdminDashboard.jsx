@@ -150,6 +150,7 @@ const AdminDashboard = () => {
 
           <div className="dash-admin-nav">
             {[
+              { label: '🏟️ Manage Facilities & Services', path: '/sports/admin/facilities' },
               { label: '📅 Manage Slots', path: '/sports/admin/slots' },
               { label: '⚙️ Limits & Rules', path: '/sports/admin/limits' },
               { label: '📊 View Reports', path: '/sports/admin/reports' },

@@ -1,0 +1,242 @@
+
+
+.facility-management-page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.facility-page-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.facility-loading-state {
+  padding: 8px 2px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.facility-empty-state {
+  margin-top: 8px;
+  padding: 28px 24px;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border-card);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.facility-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.facility-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.facility-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-primary);
+}
+
+.facility-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.facility-type-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+
+.facility-type-pill.sport {
+  background: rgba(168, 85, 247, 0.1);
+  color: var(--accent-purple);
+}
+
+.facility-type-pill.service {
+  background: var(--accent-green-bg);
+  color: var(--accent-green);
+}
+
+.facility-card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.facility-card-category {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-transform: capitalize;
+}
+
+.facility-card-description {
+  margin: 14px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  min-height: 52px;
+  font-size: 0.92rem;
+}
+
+.facility-card-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+}
+
+.facility-card-provider {
+  margin-top: 12px;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+
+.facility-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 8, 20, 0.78);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.facility-modal {
+  width: 100%;
+  max-width: 760px;
+  max-height: calc(100vh - 48px);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.facility-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-card);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.facility-modal-body {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.facility-modal-body label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.facility-modal-body input,
+.facility-modal-body select,
+.facility-modal-body textarea {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-card);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font: inherit;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.facility-modal-body textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.facility-modal-body input:focus,
+.facility-modal-body select:focus,
+.facility-modal-body textarea:focus {
+  outline: none;
+  border-color: var(--border-primary);
+  box-shadow: 0 0 0 3px rgba(232, 184, 75, 0.12);
+}
+
+.facility-modal-actions {
+  padding: 0 24px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.facility-modal-header,
+.facility-modal-actions {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .facility-page-actions {
+    width: 100%;
+  }
+
+  .facility-page-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .facility-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .facility-card-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .facility-modal-body {
+    grid-template-columns: 1fr;
+  }
+
+  .facility-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .facility-modal-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

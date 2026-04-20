@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FiFilter, FiClock, FiUsers, FiSearch } from 'react-icons/fi';
 import api from '../../api/sportsApi';
 import './FacilityListPage.css';
@@ -9,14 +9,13 @@ const CATEGORY_FILTERS = {
   services:   ['All', 'Medical', 'Wellness'],
 };
 
-const FacilityListPage = () => {
-  const { type } = useParams(); // 'facilities' | 'services'
+const FacilityListPage = ({ type }) => {
   const navigate = useNavigate();
-  const isSport = type === 'facilities';
+  const isSport = type === 'sport';
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const filters = CATEGORY_FILTERS[type] || ['All'];
+  const filters = CATEGORY_FILTERS[isSport ? 'facilities' : 'services'] || ['All'];
 
   const [activeFilter, setActiveFilter] = useState('All');
   const [search, setSearch] = useState('');
@@ -96,7 +95,7 @@ const FacilityListPage = () => {
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="empty-state">
+        <div className="sports-empty-state">
           <div className="empty-state-icon">🔍</div>
           <h3>No results found</h3>
           <p>Try adjusting your search or filter</p>
@@ -111,7 +110,7 @@ const FacilityListPage = () => {
                 key={item._id}
                 item={{...item, availableToday: mockAvail}}
                 getAvailabilityColor={getAvailabilityColor}
-                onClick={() => navigate(`/sports/book/${type}/${item._id}`)}
+                onClick={() => navigate(`/sports/book/${isSport ? 'facilities' : 'services'}/${item._id}`)}
               />
             );
           })}

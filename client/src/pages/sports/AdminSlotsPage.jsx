@@ -195,12 +195,12 @@ const AdminSlotsPage = () => {
           </div>
 
           {!generated && !generating ? (
-            <div className="empty-state" style={{ padding: '60px 20px' }}>
+            <div className="empty-state">
               <div className="empty-state-icon">📅</div>
               <p>Configure options above and click "Load / Generate Slots"</p>
             </div>
           ) : slots.length === 0 && generated ? (
-            <div className="empty-state" style={{ padding: '60px 20px' }}>
+            <div className="empty-state">
               <div className="empty-state-icon">❌</div>
               <p>No slots generated. Check operating hours vs duration.</p>
             </div>

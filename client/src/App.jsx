@@ -32,12 +32,14 @@ import SportsFacilityListPage from './pages/sports/FacilityListPage'
 import SportsBookingPage from './pages/sports/BookingPage'
 import SportsMyBookingsPage from './pages/sports/MyBookingsPage'
 import SportsAdminDashboardPage from './pages/sports/AdminDashboard'
+import SportsAdminFacilityManagementPage from './pages/sports/AdminFacilityManagementPage'
 import SportsAdminBookingsPage from './pages/sports/AdminBookingsPage'
 import SportsAdminSlotsPage from './pages/sports/AdminSlotsPage'
 import SportsAdminReportsPage from './pages/sports/AdminReportsPage'
 import SportsAdminLimitsPage from './pages/sports/AdminLimitsPage'
 import SportsAdminPriorityReviewPage from './pages/sports/AdminPriorityReviewPage'
 import SportsAdminOccupancyDashboardPage from './pages/sports/AdminOccupancyDashboard'
+
 
 import ClubsPage from './pages/clubs/ClubsPage'
 import ClubsAuthPage from './pages/clubs/ClubsAuthPage'
@@ -145,7 +147,7 @@ function App() {
             path="/sports/book/facilities"
             element={
               <ProtectedRoute allowedRoles={["student"]}>
-                <SportsFacilityListPage />
+                <SportsFacilityListPage type="sport" />
               </ProtectedRoute>
             }
           />
@@ -153,7 +155,7 @@ function App() {
             path="/sports/book/services"
             element={
               <ProtectedRoute allowedRoles={["student"]}>
-                <SportsFacilityListPage />
+                <SportsFacilityListPage type="service" />
               </ProtectedRoute>
             }
           />
@@ -230,6 +232,7 @@ function App() {
         <Route element={<SportsManagerRouteGuard />}>
           <Route element={<SportsLayout />}>
             <Route path="/sports/admin" element={<SportsAdminDashboardPage />} />
+            <Route path="/sports/admin/facilities" element={<SportsAdminFacilityManagementPage />} />
             <Route path="/sports/admin/bookings" element={<SportsAdminBookingsPage />} />
             <Route path="/sports/admin/slots" element={<SportsAdminSlotsPage />} />
             <Route path="/sports/admin/reports" element={<SportsAdminReportsPage />} />

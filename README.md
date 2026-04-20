@@ -1,6 +1,6 @@
 # Unimate
 
-UniMate is a full-stack campus services platform built with a React client and a Node.js/Express backend. It currently includes student-facing and admin/staff-facing flows for features such as canteen services, lost and found, sports, and clubs.
+UniMate is a full-stack campus services platform built with a React client and a Node.js/Express backend. It includes student-facing and admin/staff-facing flows for major university services such as canteen services, Lost & Found, Sports, and Clubs.
 
 This README explains how to set up the project on a new machine, run both applications locally, understand the main login behavior, and avoid common setup issues.
 
@@ -159,18 +159,14 @@ The app uses role-based routing.
 
 ### Student users
 - Log in to the main dashboard
-- Can access student features such as canteen, lost and found, sports, and clubs
-- Clubs student pages include routes such as:
-  - `/clubs`
-  - `/clubs/advisor`
-  - `/clubs/chat`
-  - `/clubs/my-applications`
+- Can access student features such as canteen, Lost & Found, Sports, and Clubs
+- Feature-specific pages depend on what is enabled in the current branch
 
 ### Staff users
 - Are redirected to `/staff`
 
 ### Clubs admin users
-A clubs admin must satisfy both of these conditions:
+A Clubs admin must satisfy both of these conditions:
 - `role === "admin"`
 - `permissions` includes `"clubs_admin"`
 
@@ -182,11 +178,66 @@ When such a user logs in, they are redirected to:
 
 A normal admin without the `clubs_admin` permission should not access the Clubs admin dashboard.
 
+### Sports admin users
+A Sports admin must satisfy both of these conditions:
+- `role === "admin"`
+- `permissions` includes `"sports_admin"`
+
+When such a user logs in or accesses Sports admin routes, they should be allowed into:
+
+```text
+/sports/admin
+```
+
+A normal admin without the `sports_admin` permission should not access Sports admin pages.
+
+---
+
+## Sports Feature Notes
+
+The Sports feature is fully integrated into the main UniMate app and uses the shared app authentication/session flow.
+
+### Student-side Sports routes
+- `/sports`
+- `/sports/book/facilities`
+- `/sports/book/services`
+- `/sports/my-bookings`
+
+### Sports admin routes
+- `/sports/admin`
+- `/sports/admin/facilities`
+- `/sports/admin/bookings`
+- `/sports/admin/slots`
+- `/sports/admin/reports`
+- `/sports/admin/priority`
+- `/sports/admin/occupancy`
+
+### Sports admin access rule
+Only users with both:
+
+```js
+role === "admin" && permissions.includes("sports_admin")
+```
+
+should be able to access Sports admin pages.
+
+### Sports setup notes
+Initial Sports testing usually requires:
+- creating at least one Sports facility
+- creating at least one Sports service
+- generating slots before testing booking flows
+
+### Sports feature notes
+- Student pages and admin pages use the shared Sports layout/navbar
+- Student Sports pages should show student navigation only
+- Sports admin pages should show admin navigation only
+- The logout confirmation modal is shared through the Sports navbar
+
 ---
 
 ## Clubs Feature Notes
 
-The Clubs feature is now integrated into the main UniMate app rather than running as a separate mini-app.
+The Clubs feature is integrated into the main UniMate app rather than running as a separate mini-app.
 
 ### Student-side Clubs routes
 - `/clubs`
@@ -211,6 +262,34 @@ should be able to access the Clubs admin dashboard.
 
 ---
 
+## Lost & Found Feature Notes
+
+Lost & Found is part of the main UniMate app and follows the same shared authentication/session flow.
+
+### Typical Lost & Found student usage
+Students should be able to:
+- access the Lost & Found entry point from the dashboard or main navigation
+- create lost item reports
+- create found item reports
+- browse item listings
+- view item details and status
+
+### Typical Lost & Found admin/staff usage
+Depending on your branch implementation, admins or staff may be able to:
+- review submitted reports
+- update report status
+- mark items as claimed/resolved
+- manage listings or moderation actions
+
+### Lost & Found testing notes
+When testing Lost & Found on a fresh setup, verify:
+- list page loads correctly
+- create/report flow works
+- uploaded images or attachments work if supported
+- item status updates persist after refresh
+
+---
+
 ## Uploads Directory
 
 If the project uses payment slip uploads, make sure this folder exists:
@@ -218,6 +297,8 @@ If the project uses payment slip uploads, make sure this folder exists:
 ```bash
 mkdir -p server/uploads/payment-slips
 ```
+
+If Lost & Found or other features use uploads in your branch, make sure the required upload folders also exist and are served correctly.
 
 ---
 
@@ -265,14 +346,29 @@ After starting both apps, verify the following:
 
 1. Student can log in and reach the dashboard
 2. Staff user can log in and reach `/staff`
-3. Student can open Clubs from the dashboard or header nav
-4. Clubs pages load without request loops:
+3. Student can open Clubs pages:
    - `/clubs`
    - `/clubs/my-applications`
    - `/clubs/advisor`
    - `/clubs/chat`
-5. Clubs admin with correct permission is redirected to `/clubs/admin`
-6. Non-clubs-admin users cannot access `/clubs/admin`
+4. Clubs admin with correct permission is redirected to `/clubs/admin`
+5. Non-clubs-admin users cannot access `/clubs/admin`
+6. Student can open Sports pages:
+   - `/sports`
+   - `/sports/book/facilities`
+   - `/sports/book/services`
+   - `/sports/my-bookings`
+7. Sports admin with correct permission can access:
+   - `/sports/admin`
+   - `/sports/admin/facilities`
+   - `/sports/admin/bookings`
+   - `/sports/admin/slots`
+   - `/sports/admin/reports`
+   - `/sports/admin/priority`
+   - `/sports/admin/occupancy`
+8. Non-sports-admin users cannot access Sports admin pages
+9. Lost & Found student pages load correctly
+10. Lost & Found create/view flows work if included in your branch
 
 ---
 
@@ -293,10 +389,10 @@ Check:
 - backend is running on port `5001`
 - there are no typos in the `.env` file
 
-### Uploaded slips are not opening
+### Uploaded files are not opening
 Check:
-- backend is serving `/uploads` statically
-- `server/uploads/payment-slips` exists
+- backend is serving upload directories statically
+- required upload folders exist
 
 ### Clubs admin login does not redirect correctly
 Check:
@@ -305,6 +401,31 @@ Check:
 - the user has both:
   - `role: "admin"`
   - `permissions: ["clubs_admin"]`
+
+### Sports admin navbar shows student links
+Check:
+- `SportsLayout` passes the stored `user` object into `Navbar`
+- the stored `user` object in localStorage includes `permissions`
+- the user has both:
+  - `role: "admin"`
+  - `permissions: ["sports_admin"]` or `permissions: "sports_admin"`
+
+### Sports admin access does not work
+Check:
+- route guards are using strict Sports admin logic
+- the logged-in user includes the `sports_admin` permission
+- localStorage `user` matches the backend login response
+
+### Sports booking creation fails on cancel deadline
+Check:
+- Sports global rules model/defaults are correct
+- cancellation rule fields exist and are numeric
+- booking date/time parsing is valid in the booking controller
+
+### Theme looks inconsistent on integrated pages
+Check:
+- page-specific CSS was updated to use the shared theme variables
+- old standalone light-theme CSS was not left behind in integrated pages
 
 ---
 
@@ -318,8 +439,11 @@ Check:
 6. Start the frontend
 7. Test student login
 8. Test staff login
-9. Test Clubs student routes
+9. Test Clubs student routes if relevant to your branch
 10. Test Clubs admin access if relevant to your branch
+11. Test Sports student routes if relevant to your branch
+12. Test Sports admin access if relevant to your branch
+13. Test Lost & Found flows if relevant to your branch
 
 ---
 
@@ -334,10 +458,11 @@ git commit -m "Your commit message"
 git push origin <your-branch-name>
 ```
 
-Example:
+Examples:
 
 ```bash
 git commit -m "Integrate clubs feature with main app auth and routing"
+git commit -m "Complete sports feature integration and admin workflow"
 ```
 
 ---
@@ -345,5 +470,7 @@ git commit -m "Integrate clubs feature with main app auth and routing"
 ## Notes
 
 - Keep backend auth responses consistent with frontend needs. If role-based frontend routing depends on fields like `permissions` or `staffType`, make sure those are returned in the login/profile payloads.
-- If you reseed the database, ensure any clubs admin test user includes the `clubs_admin` permission.
-```
+- If you reseed the database, ensure any Clubs admin test user includes the `clubs_admin` permission.
+- If you reseed the database, ensure any Sports admin test user includes the `sports_admin` permission.
+- If frontend routing depends on `permissions`, make sure the stored `user` object in localStorage includes those values.
+- For Sports testing, create facilities/services and generate slots before testing bookings.

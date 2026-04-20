@@ -151,8 +151,14 @@ export default function LoginPage() {
       user?.role === "admin" &&
       user?.permissions?.includes("clubs_admin");
 
+    const isSportsAdmin =
+      user?.role === "admin" &&
+      user?.permissions?.includes("sports_admin");
+
     if (isClubsAdmin) {
       navigate("/clubs/admin");
+    } else if (isSportsAdmin) {
+      navigate("/sports/admin");
     } else if (user?.role === "staff") {
       navigate("/staff");
     } else {
