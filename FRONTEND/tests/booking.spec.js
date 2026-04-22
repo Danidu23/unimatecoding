@@ -1,14 +1,8 @@
 import { test, expect } from '@playwright/test';
-
-async function login(page, email, password = 'password123') {
-  await page.goto('/login');
-  await page.getByPlaceholder('you@sliit.lk').fill(email);
-  await page.getByPlaceholder('Enter your password').fill(password);
-  await page.getByRole('button', { name: /Sign In/i }).click();
-  await page.waitForURL(/home|admin/);
-}
+import { login, setupMocks } from './test-helpers';
 
 test.beforeEach(async ({ page }) => {
+  await setupMocks(page);
   // Most tests here represent student actions
   await login(page, 'kaveesha@sliit.lk');
 });
@@ -37,7 +31,7 @@ test('Student can book a sports facility', async ({ page }) => {
     if (await slot.count() > 0) {
       await slot.click();
       await page.click('text=Confirm Booking');
-      await expect(page.locator('text=Booking successful').first()).toBeVisible();
+      await expect(page.locator('text=Booking Submitted!').first()).toBeVisible();
     } else {
       console.log('No available slots found');
     }

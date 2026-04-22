@@ -1,12 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { login, setupMocks } from './test-helpers';
 
-async function login(page, email, password = 'password123') {
-  await page.goto('/login');
-  await page.getByPlaceholder('you@sliit.lk').fill(email);
-  await page.getByPlaceholder('Enter your password').fill(password);
-  await page.getByRole('button', { name: /Sign In/i }).click();
-  await page.waitForURL(/home|admin/);
-}
+test.beforeEach(async ({ page }) => {
+  await setupMocks(page);
+});
 
 test('Admin approves booking', async ({ page }) => {
   await login(page, 'admin@sliit.lk');
