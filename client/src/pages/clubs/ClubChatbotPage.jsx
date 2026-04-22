@@ -12,7 +12,7 @@ const CSS = `
   body{font-family:'Inter',sans-serif;background:#050A18;color:#fff;overflow-x:hidden;}
 
   .chat-layout{display:flex;height:100vh;background:#050A18;}
-  .chat-main{flex:1;display:flex;flex-direction:column;position:relative;background:radial-gradient(circle at top right, rgba(255,215,0,0.03), transparent 40%);}
+  .chat-main{flex:1;display:flex;flex-direction:column;position:relative;background:radial-gradient(circle at top right, rgba(245,166,35,0.03), transparent 40%);}
   .chat-sidebar{
     width:340px;background:rgba(14,21,40,0.5);backdrop-filter:blur(20px);
     border-left:1px solid rgba(255,255,255,0.06);padding:28px;overflow-y:auto;
@@ -30,7 +30,7 @@ const CSS = `
     background:rgba(255,255,255,0.05);transition:all 0.25s;
     border:none;cursor:pointer;outline:none;
   }
-  .header-btn:hover{background:rgba(255,215,0,0.1);color:#FFD700;transform:translateY(-1px);}
+  .header-btn:hover{background:rgba(245,166,35,0.1);color:#F5A623;transform:translateY(-1px);}
 
   .chat-messages{flex:1;padding:40px 32px;overflow-y:auto;display:flex;flex-direction:column;gap:24px;}
   .message-row{display:flex;gap:16px;max-width:80%;align-items:flex-end;}
@@ -40,7 +40,7 @@ const CSS = `
     width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;
     flex-shrink:0;transition:all 0.3s;
   }
-  .avatar-box.bot{background:linear-gradient(135deg, #FFD700, #b8860b);box-shadow:0 4px 15px rgba(255,215,0,0.25);}
+  .avatar-box.bot{background:linear-gradient(135deg, #F5A623, #c68642);box-shadow:0 4px 15px rgba(245,166,35,0.25);}
   .avatar-box.user{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.1);}
 
   .bubble{
@@ -52,10 +52,10 @@ const CSS = `
     border-bottom-left-radius:4px;
   }
   .message-row.user .bubble{
-    background:linear-gradient(135deg, #FFD700, #d4af37);color:#050A18;
+    background:linear-gradient(135deg, #F5A623, #c68642);color:#050A18;
     border-bottom-right-radius:4px;font-weight:600;
   }
-  .bubble strong{color:#FFD700;font-weight:800;}
+  .bubble strong{color:#F5A623;font-weight:800;}
 
   .message-time{font-size:10px;color:rgba(255,255,255,0.2);margin-top:6px;padding:0 4px;}
 
@@ -70,7 +70,7 @@ const CSS = `
     padding:8px 16px;border-radius:100px;font-size:12px;font-weight:600;
     color:rgba(255,255,255,0.6);transition:all 0.2s;cursor:pointer;outline:none;
   }
-  .s-chip:hover{background:rgba(255,215,0,0.1);border-color:rgba(255,215,0,0.3);color:#FFD700;}
+  .s-chip:hover{background:rgba(245,166,35,0.1);border-color:rgba(245,166,35,0.3);color:#F5A623;}
   .s-chip:disabled{opacity:0.4;cursor:not-allowed;}
 
   .input-box{
