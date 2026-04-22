@@ -147,18 +147,31 @@ export default function LoginPage() {
 
     login(res.data.data);
     const user = res.data?.data?.user;
+
+    const permissions = Array.isArray(user?.permissions)
+      ? user.permissions
+      : typeof user?.permissions === "string"
+        ? [user.permissions]
+        : [];
+
     const isClubsAdmin =
       user?.role === "admin" &&
-      user?.permissions?.includes("clubs_admin");
+      permissions.includes("clubs_admin");
 
     const isSportsAdmin =
       user?.role === "admin" &&
-      user?.permissions?.includes("sports_admin");
+      permissions.includes("sports_admin");
+
+    const isLostFoundAdmin =
+      user?.role === "admin" &&
+      permissions.includes("lostfound_admin");
 
     if (isClubsAdmin) {
       navigate("/clubs/admin");
     } else if (isSportsAdmin) {
       navigate("/sports/admin");
+    } else if (isLostFoundAdmin) {
+      navigate("/lost-found/admin");
     } else if (user?.role === "staff") {
       navigate("/staff");
     } else {

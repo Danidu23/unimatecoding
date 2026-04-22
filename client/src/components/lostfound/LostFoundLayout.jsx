@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, User, ShoppingCart, ArrowLeft } from "lucide-react";
 import unimateLogo from "../../assets/unimatelogo.png";
 import LostFoundNotificationDropdown from './LostFoundNotificationDropdown';
@@ -99,9 +99,6 @@ export default function LostFoundLayout() {
             <div style={{ position: "absolute", top: "54px", right: "0", background: "#101222", border: "1px solid rgba(255,255,255,.08)", borderRadius: "12px", padding: "8px", minWidth: "160px", boxShadow: "0 8px 32px rgba(0,0,0,.4)", zIndex: 100, display: "flex", flexDirection: "column", gap: "4px" }}>
               <button onClick={() => { setShowProfileMenu(false); navigate("/profile"); }} style={{ background: "transparent", border: "none", color: "#fff", padding: "10px 14px", textAlign: "left", fontSize: "13px", fontWeight: 600, fontFamily: "Manrope,sans-serif", borderRadius: "8px", cursor: "pointer", transition: "background .2s" }} onMouseOver={e => e.currentTarget.style.background="rgba(255,255,255,.05)"} onMouseOut={e => e.currentTarget.style.background="transparent"}>
                 My Profile
-              </button>
-              <button onClick={() => { setShowProfileMenu(false); navigate("/lost-found/admin-login"); }} style={{ background: "transparent", border: "none", color: "#F5A623", padding: "10px 14px", textAlign: "left", fontSize: "13px", fontWeight: 800, fontFamily: "Manrope,sans-serif", borderRadius: "8px", cursor: "pointer", transition: "background .2s" }} onMouseOver={e => e.currentTarget.style.background="rgba(245,166,35,.1)"} onMouseOut={e => e.currentTarget.style.background="transparent"}>
-                Admin Login
               </button>
             </div>
           )}

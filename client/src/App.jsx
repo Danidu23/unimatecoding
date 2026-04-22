@@ -20,7 +20,6 @@ import ClaimLostFoundItemPage from './pages/lostfound/ClaimLostFoundItemPage'
 import MyLostFoundReportsPage from './pages/lostfound/MyLostFoundReportsPage'
 import LostFoundMessagesPage from './pages/lostfound/LostFoundMessagesPage'
 import LostFoundSubmissionSuccessPage from './pages/lostfound/LostFoundSubmissionSuccessPage'
-import LostFoundAdminLoginPage from './pages/lostfound/LostFoundAdminLoginPage'
 import LostFoundAdminDashboardPage from './pages/lostfound/LostFoundAdminDashboardPage'
 import LostFoundLayout from './components/lostfound/LostFoundLayout'
 import LostFoundAdminRouteGuard from './components/lostfound/LostFoundAdminRouteGuard'
@@ -222,8 +221,6 @@ function App() {
           <Route path="messages" element={<LostFoundMessagesPage />} />
           <Route path="submission-success" element={<LostFoundSubmissionSuccessPage />} />
         </Route>
-
-        <Route path="/lost-found/admin-login" element={<LostFoundAdminLoginPage />} />
 
         <Route element={<LostFoundAdminRouteGuard />}>
           <Route path="/lost-found/admin" element={<LostFoundAdminDashboardPage />} />
