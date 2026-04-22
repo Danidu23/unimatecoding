@@ -6,7 +6,6 @@ import {
 } from "lucide-react";
 import { clubsAPI, applicationsAPI, recommendationsAPI, getSession, clearSession } from "../../api/clubsApi";
 import ClubDetailsModal from "../../components/clubs/ClubDetailsModal";
-import unimateLogo from "../../assets/unimatelogo.png";
 
 const CATEGORIES = [
   "All",
@@ -42,7 +41,7 @@ const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
   *, *::before, *::after{margin:0;padding:0;box-sizing:border-box;}
   html,body,#root{width:100%;min-height:100vh;}
-  body{font-family:'Inter',system-ui,sans-serif;background:#07091a;color:#fff;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#0A0A0A;color:#fff;}
   button{font-family:inherit;cursor:pointer;border:none;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -51,20 +50,16 @@ const CSS = `
 
   .cd-nav{
     position:sticky;top:0;z-index:100;
-    background:rgba(7,9,26,.97);backdrop-filter:blur(16px);
-    border-bottom:1px solid rgba(245,166,35,.12);
+    background:rgba(10,10,10,.95);backdrop-filter:blur(16px);
+    border-bottom:1px solid rgba(255,215,0,.12);
     display:flex;align-items:center;justify-content:space-between;
     padding:0 clamp(16px,4vw,48px);height:64px;
   }
-  .cd-logo{
-    height:32px;width:auto;object-fit:contain;
-    filter:drop-shadow(0 4px 10px rgba(0,0,0,.25));
-  }
   .cd-badge{
     display:inline-flex;align-items:center;gap:6px;
-    background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.25);
+    background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);
     border-radius:100px;padding:4px 12px;
-    font-size:11px;font-weight:700;color:#F5A623;letter-spacing:.5px;
+    font-size:11px;font-weight:700;color:#FFD700;letter-spacing:.5px;
   }
   .cd-icon-btn{
     background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
@@ -72,7 +67,7 @@ const CSS = `
     font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;
     transition:all .22s;
   }
-  .cd-icon-btn:hover{border-color:rgba(245,166,35,.4);color:#F5A623;background:rgba(245,166,35,.07);}
+  .cd-icon-btn:hover{border-color:rgba(255,215,0,.4);color:#FFD700;background:rgba(255,215,0,.07);}
   .cd-icon-btn.logout-btn{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.22);color:#f87171;}
   .cd-icon-btn.logout-btn:hover{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.38);color:#fecaca;}
   .cd-search{
@@ -81,7 +76,7 @@ const CSS = `
     border-radius:10px;padding:10px 16px;
     transition:border-color .22s;flex:1;max-width:420px;
   }
-  .cd-search:focus-within{border-color:rgba(245,166,35,.5);}
+  .cd-search:focus-within{border-color:rgba(255,215,0,.5);}
   .cd-search input{background:none;border:none;outline:none;color:#fff;font-size:14px;font-family:'Inter',sans-serif;width:100%;}
   .cd-search input::placeholder{color:rgba(255,255,255,.35);}
   .cat-pill{
@@ -91,29 +86,29 @@ const CSS = `
     color:rgba(255,255,255,.65);cursor:pointer;white-space:nowrap;
     transition:all .2s;
   }
-  .cat-pill:hover{border-color:rgba(245,166,35,.4);color:#F5A623;background:rgba(245,166,35,.07);}
-  .cat-pill.active{background:#F5A623;color:#0A0A0A;border-color:#F5A623;box-shadow:0 4px 16px rgba(245,166,35,.4);}
+  .cat-pill:hover{border-color:rgba(255,215,0,.4);color:#FFD700;background:rgba(255,215,0,.07);}
+  .cat-pill.active{background:#FFD700;color:#0A0A0A;border-color:#FFD700;box-shadow:0 4px 16px rgba(255,215,0,.4);}
   .club-card{
     background:#111;border:1.5px solid rgba(255,255,255,.08);border-radius:20px;
     transition:all .3s;display:flex;flex-direction:column;overflow:hidden;
     position:relative;
   }
-  .club-card:hover{border-color:rgba(245,166,35,.4);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.5), 0 0 20px rgba(245,166,35,.05);}
+  .club-card:hover{border-color:rgba(255,215,0,.4);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.5), 0 0 20px rgba(255,215,0,.05);}
   .join-btn{
     display:flex;align-items:center;justify-content:center;gap:7px;
-    background:transparent;color:#F5A623;border:1.5px solid rgba(245,166,35,.4);
+    background:transparent;color:#FFD700;border:1.5px solid rgba(255,215,0,.4);
     border-radius:12px;padding:14px 20px;font-size:14px;font-weight:700;
     cursor:pointer;transition:all .22s;width:100%;text-transform:none;
   }
-  .join-btn:hover{background:rgba(245,166,35,.1);border-color:#F5A623;transform:translateY(-1px);}
+  .join-btn:hover{background:rgba(255,215,0,.1);border-color:#FFD700;transform:translateY(-1px);}
 
   .ai-assist-btn{
     margin-left:auto;display:inline-flex;align-items:center;gap:6px;
-    background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.3);color:#F5A623;
+    background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.3);color:#FFD700;
     font-size:10px;font-weight:800;padding:5px 10px;border-radius:100px;cursor:pointer;
     transition:all .2s;letter-spacing:.2px;
   }
-  .ai-assist-btn:hover{background:rgba(245,166,35,.2);border-color:#F5A623;}
+  .ai-assist-btn:hover{background:rgba(255,215,0,.2);border-color:#FFD700;}
   .ai-assist-btn.loading{opacity:.6;cursor:wait;}
 
   .notif-btn{position:relative;}
@@ -127,8 +122,8 @@ const CSS = `
   .rec-row-title{font-size:20px;font-weight:900;color:#fff;margin-bottom:12px;}
   .rec-row-sub{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:16px;}
   .rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;}
-  .rec-card{background:#111;border:1.5px solid rgba(245,166,35,.15);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s;}
-  .rec-card:hover{border-color:rgba(245,166,35,.4);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.4);} 
+  .rec-card{background:#111;border:1.5px solid rgba(255,215,0,.15);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s;}
+  .rec-card:hover{border-color:rgba(255,215,0,.4);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.4);} 
   .rec-card-body{padding:16px;}
   .rec-card-name{font-size:14px;font-weight:800;color:#fff;margin-bottom:6px;}
   .rec-card-desc{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5;}
@@ -141,23 +136,23 @@ const CSS = `
     box-shadow:0 4px 12px rgba(34,197,94,.4);
   }
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:600;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);animation:fadeIn .25s;padding:20px;}
-  .modal{background:#111;border:1.5px solid rgba(245,166,35,.2);border-radius:20px;max-width:480px;width:100%;animation:popIn .3s cubic-bezier(.22,.68,0,1.2);overflow:hidden;}
+  .modal{background:#111;border:1.5px solid rgba(255,215,0,.2);border-radius:20px;max-width:480px;width:100%;animation:popIn .3s cubic-bezier(.22,.68,0,1.2);overflow:hidden;}
   .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);z-index:950;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;}
-  .confirm-box{width:100%;max-width:420px;background:#111;border:1.5px solid rgba(245,166,35,.2);border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 20px rgba(245,166,35,.06);overflow:hidden;animation:popIn .22s ease;}
+  .confirm-box{width:100%;max-width:420px;background:#111;border:1.5px solid rgba(255,215,0,.2);border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 20px rgba(255,215,0,.06);overflow:hidden;animation:popIn .22s ease;}
   .confirm-title{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.3px;}
   .confirm-text{font-size:13px;line-height:1.65;color:rgba(255,255,255,.5);margin-top:8px;}
   .confirm-actions{display:flex;gap:10px;justify-content:flex-end;}
   .confirm-btn{border:none;border-radius:12px;padding:12px 16px;font-size:13px;font-weight:800;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;}
   .confirm-btn.cancel{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.8);}
-  .confirm-btn.cancel:hover{border-color:rgba(245,166,35,.28);color:#F5A623;background:rgba(245,166,35,.06);}
-  .confirm-btn.logout{background:#F5A623;color:#0A0A0A;box-shadow:0 8px 26px rgba(245,166,35,.22);}
-  .confirm-btn.logout:hover{transform:translateY(-1px);box-shadow:0 12px 32px rgba(245,166,35,.28);}
+  .confirm-btn.cancel:hover{border-color:rgba(255,215,0,.28);color:#FFD700;background:rgba(255,215,0,.06);}
+  .confirm-btn.logout{background:#FFD700;color:#0A0A0A;box-shadow:0 8px 26px rgba(255,215,0,.22);}
+  .confirm-btn.logout:hover{transform:translateY(-1px);box-shadow:0 12px 32px rgba(255,215,0,.28);}
   .form-input{
     width:100%;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);
     border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;
     font-family:'Inter',sans-serif;outline:none;transition:border-color .22s;
   }
-  .form-input:focus{border-color:rgba(245,166,35,.5);}
+  .form-input:focus{border-color:rgba(255,215,0,.5);}
   .form-input.err{border-color:rgba(239,68,68,.5);}
   .form-input::placeholder{color:rgba(255,255,255,.3);}
   .form-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;display:block;}
@@ -178,11 +173,11 @@ const CSS = `
     display:flex;align-items:center;justify-content:space-between;
     cursor:pointer;text-align:left;
   }
-  .role-dropdown-btn:hover,.role-dropdown-btn.open{border-color:rgba(245,166,35,.5);}
+  .role-dropdown-btn:hover,.role-dropdown-btn.open{border-color:rgba(255,215,0,.5);}
   .role-dropdown-btn.placeholder{color:rgba(255,255,255,.3);}
   .role-dropdown-menu{
     position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:900;
-    background:#1a1a1a;border:1.5px solid rgba(245,166,35,.25);
+    background:#1a1a1a;border:1.5px solid rgba(255,215,0,.25);
     border-radius:12px;overflow:hidden;
     box-shadow:0 16px 48px rgba(0,0,0,.6);
     animation:fadeIn .15s ease;
@@ -193,10 +188,10 @@ const CSS = `
     border-bottom:1px solid rgba(255,255,255,.04);
   }
   .role-option:last-child{border-bottom:none;}
-  .role-option:hover{background:rgba(245,166,35,.1);color:#F5A623;}
-  .role-option.selected{background:rgba(245,166,35,.08);color:#F5A623;}
-  .role-option .role-dot{width:7px;height:7px;border-radius:50%;background:rgba(245,166,35,.4);flex-shrink:0;}
-  .role-option.selected .role-dot{background:#F5A623;box-shadow:0 0 6px rgba(245,166,35,.5);}
+  .role-option:hover{background:rgba(255,215,0,.1);color:#FFD700;}
+  .role-option.selected{background:rgba(255,215,0,.08);color:#FFD700;}
+  .role-option .role-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,215,0,.4);flex-shrink:0;}
+  .role-option.selected .role-dot{background:#FFD700;box-shadow:0 0 6px rgba(255,215,0,.5);}
 
   @media(max-width:640px){
     .clubs-grid{grid-template-columns:1fr!important;}
@@ -307,7 +302,7 @@ function ApplicationModal({ club, user, onClose, onSuccess }) {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div style={{ padding: "20px 24px 0", borderBottom: "1px solid rgba(255,255,255,.07)", paddingBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: "11px", color: "#F5A623", fontWeight: 700, marginBottom: "4px", letterSpacing: ".5px" }}>JOIN REQUEST</div>
+            <div style={{ fontSize: "11px", color: "#FFD700", fontWeight: 700, marginBottom: "4px", letterSpacing: ".5px" }}>JOIN REQUEST</div>
             <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#fff" }}>{club.name}</h3>
           </div>
           <button onClick={onClose} style={{ background: "rgba(255,255,255,.07)", border: "none", color: "#fff", width: "32px", height: "32px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -342,7 +337,7 @@ function ApplicationModal({ club, user, onClose, onSuccess }) {
               </label>
               <textarea className="form-input" rows={4} placeholder="Why do you want to join this club? (min 50 characters)" value={form.reason} onChange={e => setForm(p => ({ ...p, reason: e.target.value }))} style={{ resize: "vertical", minHeight: "90px" }} disabled={isDrafting || loading} />
             </div>
-            <button type="submit" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#F5A623", color: "#0A0A0A", border: "none", borderRadius: "10px", padding: "13px", fontSize: "14px", fontWeight: 700, cursor: "pointer", transition: "all .22s", boxShadow: "0 4px 18px rgba(245,166,35,.3)", opacity: loading ? .6 : 1 }} disabled={loading}>
+            <button type="submit" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#FFD700", color: "#0A0A0A", border: "none", borderRadius: "10px", padding: "13px", fontSize: "14px", fontWeight: 700, cursor: "pointer", transition: "all .22s", boxShadow: "0 4px 18px rgba(255,215,0,.3)", opacity: loading ? .6 : 1 }} disabled={loading}>
               {loading ? "Submitting..." : "Submit Application"}
             </button>
           </form>
@@ -515,7 +510,7 @@ export default function ClubsPage() {
     <>
       <style>{CSS}</style>
       {toast.show && (
-        <div style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 9999, background: "#F5A623", color: "#0A0A0A", borderRadius: "12px", padding: "14px 20px", fontWeight: 700, fontSize: "14px", boxShadow: "0 8px 32px rgba(245,166,35,.4)", animation: "fadeUp .3s ease", display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 9999, background: "#FFD700", color: "#0A0A0A", borderRadius: "12px", padding: "14px 20px", fontWeight: 700, fontSize: "14px", boxShadow: "0 8px 32px rgba(255,215,0,.4)", animation: "fadeUp .3s ease", display: "flex", alignItems: "center", gap: "8px" }}>
           ✅ {toast.msg}
         </div>
       )}
@@ -542,12 +537,6 @@ export default function ClubsPage() {
       )}
       <nav className="cd-nav">
         <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-          <img
-            src={unimateLogo}
-            alt="Unimate"
-            className="cd-logo"
-            onError={e => { e.currentTarget.style.display = "none"; }}
-          />
           <div className="cd-badge">🏛️ UniMate Clubs</div>
           {user && <span style={{ fontSize: "13px", color: "rgba(255,255,255,.5)" }}>Hi, {(user.name || "Student").split(" ")[0]}</span>}
         </div>
@@ -565,10 +554,10 @@ export default function ClubsPage() {
       </nav>
 
       {/* Hero */}
-      <div style={{ background: "linear-gradient(145deg,#07091a,#0c1130)", borderBottom: "1px solid rgba(245,166,35,.08)", padding: "40px clamp(16px,4vw,48px)" }}>
+      <div style={{ background: "linear-gradient(145deg,#0A0A0A,#111)", borderBottom: "1px solid rgba(255,215,0,.08)", padding: "40px clamp(16px,4vw,48px)" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <h1 style={{ fontSize: "clamp(26px,4vw,40px)", fontWeight: 900, color: "#fff", letterSpacing: "-1px", marginBottom: "10px" }}>
-            Discover <span style={{ color: "#F5A623" }}>Clubs & Societies</span>
+            Discover <span style={{ color: "#FFD700" }}>Clubs & Societies</span>
           </h1>
           <p style={{ fontSize: "15px", color: "rgba(255,255,255,.5)", marginBottom: "24px" }}>Find your community. Explore {clubs.length} active student clubs at SLIIT.</p>
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
@@ -577,7 +566,7 @@ export default function ClubsPage() {
               <input placeholder="Search clubs..." value={search} onChange={e => setSearch(e.target.value)} />
               {search && <X size={14} color="rgba(255,255,255,.4)" style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearch("")} />}
             </div>
-            <button style={{ display: "flex", alignItems: "center", gap: "7px", background: "#F5A623", color: "#0A0A0A", borderRadius: "10px", padding: "10px 18px", fontSize: "13px", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 16px rgba(245,166,35,.3)", border: "none" }} onClick={() => navigate("/clubs/chat")}>
+            <button style={{ display: "flex", alignItems: "center", gap: "7px", background: "#FFD700", color: "#0A0A0A", borderRadius: "10px", padding: "10px 18px", fontSize: "13px", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 16px rgba(255,215,0,.3)", border: "none" }} onClick={() => navigate("/clubs/chat")}>
               <Bot size={14} /> Ask AI Chatbot
             </button>
           </div>
@@ -610,8 +599,8 @@ export default function ClubsPage() {
               style={{
                 width: "36px",
                 height: "36px",
-                border: "3px solid rgba(245,166,35,.2)",
-                borderTopColor: "#F5A623",
+                border: "3px solid rgba(255,215,0,.2)",
+                borderTopColor: "#FFD700",
                 borderRadius: "50%",
                 animation: "spin 1s linear infinite",
                 margin: "0 auto"
@@ -653,7 +642,7 @@ export default function ClubsPage() {
                         </div>
                       )}
                       <div className="rec-card-body">
-                        <div style={{ fontSize: "11px", color: "rgba(245,166,35,.8)", fontWeight: 800, textTransform: "uppercase", marginBottom: "6px" }}>
+                        <div style={{ fontSize: "11px", color: "rgba(255,215,0,.8)", fontWeight: 800, textTransform: "uppercase", marginBottom: "6px" }}>
                           {club.category}
                         </div>
                         <div className="rec-card-name">{club.name}</div>
@@ -692,8 +681,8 @@ export default function ClubsPage() {
                   <div style={{ padding: "24px" }}>
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "10px", marginBottom: "10px" }}>
                       <div>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "rgba(245,166,35,.1)", border: "1px solid rgba(245,166,35,.2)", borderRadius: "100px", padding: "2px 10px", marginBottom: "6px" }}>
-                          <span style={{ fontSize: "11px", fontWeight: 700, color: "#F5A623" }}>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "rgba(255,215,0,.1)", border: "1px solid rgba(255,215,0,.2)", borderRadius: "100px", padding: "2px 10px", marginBottom: "6px" }}>
+                          <span style={{ fontSize: "11px", fontWeight: 700, color: "#FFD700" }}>
                             {CAT_ICONS[club.category]} {club.category}
                           </span>
                         </div>
@@ -743,7 +732,7 @@ export default function ClubsPage() {
               <a
                 href="#"
                 style={{
-                  color: "#F5A623",
+                  color: "#FFD700",
                   fontSize: "14px",
                   fontWeight: 600,
                   textDecoration: "none",

@@ -8,9 +8,9 @@ const CSS = `
     animation: fadeIn 0.3s ease;
   }
   .det-modal{
-    background:#0F0F0F;border:1px solid rgba(245,166,35,0.2);border-radius:24px;
+    background:#0F0F0F;border:1px solid rgba(255,215,0,0.2);border-radius:24px;
     width:100%;max-width:900px;max-height:90vh;overflow-y:auto;position:relative;
-    box-shadow:0 25px 50px -12px rgba(245,166,35,0.1);display:flex;flex-direction:column;
+    box-shadow:0 25px 50px -12px rgba(255,215,0,0.1);display:flex;flex-direction:column;
   }
   .det-header{
     height:300px;position:relative;overflow:hidden;
@@ -28,15 +28,15 @@ const CSS = `
     justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,0.2);
     transition:all 0.2s;z-index:10;
   }
-  .det-close:hover{background:#F5A623;color:#000;border-color:#F5A623;}
+  .det-close:hover{background:#FFD700;color:#000;border-color:#FFD700;}
   
   .det-content{padding:0 40px 40px;}
   .det-title-section{margin-top:-60px;position:relative;z-index:2;margin-bottom:32px;}
   .det-name{font-size:32px;font-weight:900;color:#fff;letter-spacing:-1px;}
   .det-cat{
-    display:inline-flex;align-items:center;gap:6px;background:rgba(245,166,35,0.1);
-    color:#F5A623;padding:4px 12px;border-radius:100px;font-size:12px;font-weight:700;
-    border:1px solid rgba(245,166,35,0.2);margin-top:8px;
+    display:inline-flex;align-items:center;gap:6px;background:rgba(255,215,0,0.1);
+    color:#FFD700;padding:4px 12px;border-radius:100px;font-size:12px;font-weight:700;
+    border:1px solid rgba(255,215,0,0.2);margin-top:8px;
   }
   
   .det-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;}
@@ -53,7 +53,7 @@ const CSS = `
     height:100px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);
     cursor:pointer;transition:transform 0.2s;
   }
-  .gallery-item:hover{transform:scale(1.05);border-color:#F5A623;}
+  .gallery-item:hover{transform:scale(1.05);border-color:#FFD700;}
   .gallery-item img{width:100%;height:100%;object-fit:cover;}
   
   .det-sidebar{
@@ -62,19 +62,19 @@ const CSS = `
   }
   .det-stat{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
   .det-stat-icon{
-    width:40px;height:40px;background:rgba(245,166,35,0.1);border-radius:10px;
-    display:flex;align-items:center;justify-content:center;color:#F5A623;
+    width:40px;height:40px;background:rgba(255,215,0,0.1);border-radius:10px;
+    display:flex;align-items:center;justify-content:center;color:#FFD700;
   }
   .det-stat-label{font-size:12px;color:rgba(255,255,255,0.4);display:block;}
   .det-stat-val{font-size:14px;color:#fff;font-weight:600;}
   
   .det-apply-btn{
-    width:100%;background:#F5A623;color:#000;padding:14px;border-radius:12px;
+    width:100%;background:#FFD700;color:#000;padding:14px;border-radius:12px;
     font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;
-    gap:8px;margin-top:20px;box-shadow:0 10px 20px rgba(245,166,35,0.2);
+    gap:8px;margin-top:20px;box-shadow:0 10px 20px rgba(255,215,0,0.2);
     transition:all 0.2s;
   }
-  .det-apply-btn:hover{transform:translateY(-2px);box-shadow:0 15px 30px rgba(245,166,35,0.3);}
+  .det-apply-btn:hover{transform:translateY(-2px);box-shadow:0 15px 30px rgba(255,215,0,0.3);}
 
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   
@@ -107,10 +107,10 @@ export default function ClubDetailsModal({ club, onClose, onJoin }) {
           
           <div className="det-grid">
             <div className="det-left">
-              <h3 className="det-section-title"><Target size={18} color="#F5A623" /> About the Club</h3>
+              <h3 className="det-section-title"><Target size={18} color="#FFD700" /> About the Club</h3>
               <p className="det-about-p">{club.about || club.description}</p>
               
-              <h3 className="det-section-title"><ImageIcon size={18} color="#F5A623" /> Gallery & Events</h3>
+              <h3 className="det-section-title"><ImageIcon size={18} color="#FFD700" /> Gallery & Events</h3>
               <div className="det-gallery">
                 {[club.logoUrl, ...(club.gallery || [])].map((img, i) => (
                   <div key={i} className="gallery-item" onClick={() => setActiveImg(img)}>
