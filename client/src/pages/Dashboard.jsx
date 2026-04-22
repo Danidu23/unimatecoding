@@ -1,14 +1,13 @@
-import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowRight, Play, Clock, LayoutGrid, ShieldCheck,
-  LogIn, LayoutList, CheckCircle, PackageCheck,
-  Eye, Star, ChevronLeft, ChevronRight,
+  LogIn, LayoutList, Eye, Star, ChevronLeft, ChevronRight,
   Calendar, User, MapPin, Phone, Mail,
-  Facebook, Twitter, Instagram, Bell, ShoppingCart, Menu, X,
-  Send, BellRing
+  Facebook, Twitter, Instagram, Send, BellRing
 } from "lucide-react";
 import unimateLogo from "../assets/unimatelogo.png";
+import AppHeader from "../components/AppHeader";
 
 /* ── Scroll-reveal hook ───────────────────────────────────────────────────── */
 function useInView(threshold = 0.12) {
@@ -54,39 +53,6 @@ const GLOBAL_CSS = `
 
   .u-fadeUp { animation:fadeUp .75s cubic-bezier(.22,.68,0,1.2) both; }
   .u-fadeIn { animation:fadeIn .6s ease both; }
-
-  /* ── Navbar ── */
-  .nav-lnk {
-    color:rgba(255,255,255,.6); font-size:14px; font-weight:600;
-    font-family:'Manrope',sans-serif; padding:4px 0; position:relative; transition:color .2s;
-  }
-  .nav-lnk::after {
-    content:''; position:absolute; bottom:-3px; left:0; right:0;
-    height:2px; background:#F5A623; border-radius:2px;
-    transform:scaleX(0); transform-origin:left; transition:transform .25s;
-  }
-  .nav-lnk:hover { color:#fff; }
-  .nav-lnk:hover::after { transform:scaleX(1); }
-  .nav-lnk.active { color:#F5A623; }
-  .nav-lnk.active::after { transform:scaleX(1); }
-
-  /* Mobile nav link */
-  .mob-nav-lnk {
-    display:block; padding:14px 24px; color:rgba(255,255,255,.75);
-    font-size:16px; font-weight:600; font-family:'Manrope',sans-serif;
-    border-bottom:1px solid rgba(255,255,255,.06); transition:color .2s, background .2s;
-    text-decoration:none;
-  }
-  .mob-nav-lnk:hover { color:#F5A623; background:rgba(245,166,35,.06); }
-  .mob-nav-lnk.active { color:#F5A623; }
-
-  .icon-btn {
-    background:none; border:none; color:rgba(255,255,255,.55);
-    width:38px; height:38px; border-radius:10px;
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer; transition:background .2s, color .2s;
-  }
-  .icon-btn:hover { background:rgba(255,255,255,.09); color:#fff; }
 
   /* ── Buttons ── */
   .btn-primary {
@@ -211,8 +177,6 @@ const GLOBAL_CSS = `
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
-    .desktop-nav { display:none !important; }
-    .mobile-menu-btn { display:flex !important; }
     .hero-btns { flex-direction:column; align-items:stretch !important; }
     .hero-btns button { width:100%; justify-content:center; }
     .services-grid { grid-template-columns:1fr !important; }
@@ -228,130 +192,23 @@ const GLOBAL_CSS = `
     .footer-grid { grid-template-columns:1fr !important; }
     .orders-grid { grid-template-columns:1fr !important; }
   }
+
+  .dashboard-shell{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+    padding-top:66px;
+  }
+
+  @media (max-width: 900px) {
+    .dashboard-shell{
+      padding-top:66px;
+    }
+  }
+
 `;
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   NAVBAR
-═══════════════════════════════════════════════════════════════════════════ */
-function Navbar() {
-  const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", fn);
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
-
-  // Lock body scroll when mobile menu open
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [mobileOpen]);
-
-  const navLinks = ["Dashboard", "Canteen", "Lost & Found", "Sports", "Clubs", "Orders"];
-
-  return (
-    <>
-      <nav style={{
-        position:"fixed", top:0, left:0, right:0, zIndex:300,
-        background: scrolled ? "rgba(7,9,26,.98)" : "rgba(7,9,26,.85)",
-        backdropFilter:"blur(18px)",
-        borderBottom: scrolled ? "1px solid rgba(245,166,35,.2)" : "1px solid rgba(255,255,255,.06)",
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        padding:"0 clamp(16px,4vw,60px)", height:"66px",
-        transition:"background .4s, border-color .4s, box-shadow .4s",
-        boxShadow: scrolled ? "0 6px 40px rgba(0,0,0,.5)" : "none"
-      }}>
-        {/* Logo */}
-        <div style={{display:"flex", alignItems:"center"}}>
-          <img
-            src={unimateLogo}
-            alt="Unimate"
-            style={{height:"40px", width:"auto", objectFit:"contain"}}
-            onError={e => {
-              // Fallback if image missing
-              e.target.style.display = "none";
-              e.target.nextSibling.style.display = "flex";
-            }}
-          />
-          {/* Fallback text logo (hidden by default) */}
-          <div style={{display:"none", alignItems:"center", gap:"8px"}}>
-            <div style={{width:"34px",height:"34px",background:"#F5A623",borderRadius:"9px",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 14px rgba(245,166,35,.45)"}}>
-              <span style={{color:"#07091a",fontWeight:900,fontSize:"17px",fontFamily:"Manrope,sans-serif"}}>U</span>
-            </div>
-            <span style={{color:"#fff",fontWeight:900,fontSize:"21px",fontFamily:"Manrope,sans-serif",letterSpacing:"-0.5px"}}>
-              Uni<span style={{color:"#F5A623"}}>mate</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Desktop links */}
-        <div className="desktop-nav" style={{display:"flex", gap:"clamp(18px,3vw,32px)"}}
->
-          {navLinks.map((item,i) => (
-            <a key={i} href="#" className={`nav-lnk${item==="Dashboard"?" active":""}`} onClick={e=>{e.preventDefault();if(item==="Canteen")navigate("/canteen");if(item==="Dashboard")navigate("/dashboard");}}>{item}</a>
-          ))}
-        </div>
-
-        {/* Actions */}
-        <div style={{display:"flex", alignItems:"center", gap:"4px"}}>
-          <button className="icon-btn"><Bell size={19}/></button>
-          <button className="icon-btn" style={{display:"none"}} className="icon-btn"><ShoppingCart size={19}/></button>
-          <div style={{
-            width:"38px", height:"38px", borderRadius:"50%", background:"#F5A623",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            marginLeft:"8px", cursor:"pointer",
-            transition:"transform .25s, box-shadow .25s",
-            boxShadow:"0 2px 14px rgba(245,166,35,.4)"
-          }}
-            onClick={() => navigate("/profile")}
-            onMouseOver={e=>{e.currentTarget.style.transform="scale(1.12)";e.currentTarget.style.boxShadow="0 4px 22px rgba(245,166,35,.65)";}}
-            onMouseOut={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 2px 14px rgba(245,166,35,.4)";}}
-          >
-            <User size={18} color="#07091a"/>
-          </div>
-          {/* Hamburger */}
-          <button
-            className="mobile-menu-btn icon-btn"
-            style={{display:"none", marginLeft:"4px"}}
-            onClick={() => setMobileOpen(v => !v)}
-          >
-            {mobileOpen ? <X size={20}/> : <Menu size={20}/>}
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile Menu Drawer */}
-      {mobileOpen && (
-        <>
-          <div onClick={()=>setMobileOpen(false)} style={{
-            position:"fixed", inset:0, background:"rgba(0,0,0,.6)", zIndex:290,
-            backdropFilter:"blur(4px)", animation:"fadeIn .25s ease"
-          }}/>
-          <div style={{
-            position:"fixed", top:"66px", left:0, right:0, zIndex:295,
-            background:"#0a0d22", borderBottom:"1px solid rgba(255,255,255,.08)",
-            animation:"slideDown .3s cubic-bezier(.22,.68,0,1.2)"
-          }}>
-            {navLinks.map((item,i) => (
-              <a key={i} href="#" className={`mob-nav-lnk${item==="Dashboard"?" active":""}`} onClick={e=>{e.preventDefault();setMobileOpen(false);if(item==="Canteen")navigate("/canteen");if(item==="Dashboard")navigate("/dashboard");}}
-                onClick={()=>setMobileOpen(false)}>
-                {item}
-              </a>
-            ))}
-            <div style={{padding:"16px 24px", display:"flex", gap:"12px", borderTop:"1px solid rgba(255,255,255,.06)"}}>
-              <button className="btn-primary" style={{flex:1, justifyContent:"center", padding:"12px 16px", fontSize:"14px"}}>
-                Explore Services
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-    </>
-  );
-}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    HERO
@@ -448,13 +305,13 @@ function CoreServices() {
       title:"Lost & Found",
       desc:"Report lost items or browse found items on campus. Reunite with your belongings fast.",
       img:"https://images.unsplash.com/photo-1586769852836-bc069f19e1b6?w=800&q=80",
-      nav:null
+      nav:"lost-found"
     },
     {
       title:"Clubs",
       desc:"Discover and join student clubs, view upcoming events and stay connected with campus life.",
       img:"https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80",
-      nav:null
+      nav:"clubs"
     },
     {
       title:"Campus Facilities & Services Booking",
@@ -704,16 +561,16 @@ export default function Dashboard() {
   return (
     <>
       <style>{GLOBAL_CSS}</style>
-      <div style={{width:"100%",maxWidth:"100%",overflowX:"hidden"}}>
-        <Navbar/>
-        <Hero/>
-        <WhyUnimate/>
-        <CoreServices/>
-        <HowItWorks/>
-        <ActiveOrders/>
-        <Testimonials/>
-        <Announcements/>
-        <Footer/>
+      <AppHeader />
+      <div className="dashboard-shell">
+        <Hero />
+        <WhyUnimate />
+        <CoreServices />
+        <HowItWorks />
+        <ActiveOrders />
+        <Testimonials />
+        <Announcements />
+        <Footer />
       </div>
     </>
   );

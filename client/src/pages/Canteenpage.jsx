@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import api from "../api/axios";
 import {
   ArrowLeft, ShoppingCart, Search, Clock, Star, Plus, Minus,
   X, MapPin, Timer, ChevronRight, CheckCircle, Bell, User,
@@ -387,7 +388,7 @@ const MENU = [
     ]
   },
   {
-    category: "Choupsy & Sides", icon: <Zap size={14}/>,
+    category: "Chopsuey & Sides", icon: <Zap size={14}/>,
     items: [
       { id:22, name:"Chicken Choupsy",         price:320, rating:4.8, img:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80", tags:["pop","spicy"], desc:"Crispy noodles with chicken in sweet chilli sauce", cal:560, time:"12 min" },
       { id:23, name:"Vegetable Choupsy",       price:260, rating:4.5, img:"https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=400&q=80", tags:["veg","pop"],  desc:"Crispy noodles with mixed vegetables & soy sauce",  cal:440, time:"10 min" },
@@ -408,6 +409,108 @@ const MENU = [
   },
 ];
 
+const CATEGORY_LABELS = {
+  rice_curry: "Rice & Curry",
+  kottu: "Kottu",
+  fried_rice: "Fried Rice",
+  additional_curries: "Additional Curries",
+  meats: "Meats",
+  chopsuey_sides: "Chopsuey & Sides",
+  beverages: "Beverages",
+};
+
+const CATEGORY_ORDER = [
+  "rice_curry",
+  "kottu",
+  "fried_rice",
+  "additional_curries",
+  "meats",
+  "chopsuey_sides",
+  "beverages",
+];
+
+const BACKEND_TAG_TO_UI = {
+  popular: "pop",
+  veg: "veg",
+  spicy: "spicy",
+  new: "new",
+  "best seller": "pop",
+  bestseller: "pop",
+  "chef's pick": "new",
+  "chef pick": "new",
+};
+
+const CATEGORY_ICONS = {
+  "Rice & Curry": <UtensilsCrossed size={14}/> ,
+  "Kottu": <Zap size={14}/> ,
+  "Fried Rice": <UtensilsCrossed size={14}/> ,
+  "Additional Curries": <Soup size={14}/> ,
+  "Meats": <Beef size={14}/> ,
+  "Chopsuey & Sides": <Zap size={14}/> ,
+  "Beverages": <CupSoda size={14}/> ,
+};
+
+const MENU_ITEM_META = MENU.flatMap(section =>
+  section.items.map(item => ({
+    ...item,
+    category: section.category,
+  }))
+).reduce((acc, item) => {
+  acc[item.name.toLowerCase()] = item;
+  return acc;
+}, {});
+
+const FALLBACK_ITEM_IMAGE = "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400&q=80";
+
+function normalizeBackendTags(tags = []) {
+  return tags
+    .map(tag => BACKEND_TAG_TO_UI[String(tag).trim().toLowerCase()])
+    .filter(Boolean);
+}
+
+function transformBackendMenu(items = []) {
+  const grouped = CATEGORY_ORDER.map((categoryKey) => ({
+    category: CATEGORY_LABELS[categoryKey],
+    icon: CATEGORY_ICONS[CATEGORY_LABELS[categoryKey]],
+    items: [],
+  }));
+
+  items.forEach((item) => {
+    const groupIndex = CATEGORY_ORDER.indexOf(item.category);
+    if (groupIndex === -1) return;
+
+    const meta = MENU_ITEM_META[item.name?.toLowerCase()] || {};
+
+    grouped[groupIndex].items.push({
+      id: item._id,
+      name: item.name,
+      price: item.price,
+      rating: meta.rating || 4.5,
+      img: meta.img || FALLBACK_ITEM_IMAGE,
+      tags: normalizeBackendTags(item.tags),
+      isAvailable: item.isAvailable !== false,
+      desc: item.description || meta.desc || "Freshly prepared item from the main canteen.",
+      cal: meta.cal,
+      time: meta.time || "8 min",
+    });
+  });
+
+  grouped.forEach((group) => {
+    group.items.sort((a, b) => {
+      const aPopular = a.tags.includes("pop") ? 1 : 0;
+      const bPopular = b.tags.includes("pop") ? 1 : 0;
+
+      if (aPopular !== bPopular) {
+        return bPopular - aPopular;
+      }
+
+      return a.name.localeCompare(b.name);
+    });
+  });
+
+  return grouped.filter(group => group.items.length > 0);
+}
+
 const TAGS = {
   spicy: { label:<><Flame size={9}/> Spicy</>,    cls:"tag-spicy" },
   veg:   { label:<><Leaf  size={9}/> Veg</>,      cls:"tag-veg"   },
@@ -417,6 +520,9 @@ const TAGS = {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    NAVBAR
+
+   Navbar shown at the top of the canteen flow.
+   Handles dashboard back navigation, active nav links, cart shortcut, notifications, and profile access.
 ───────────────────────────────────────────────────────────────────────────── */
 function Navbar({ cartCount, onCartOpen }) {
   const navigate = useNavigate();
@@ -481,6 +587,9 @@ function Navbar({ cartCount, onCartOpen }) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    CANTEEN SELECTOR
+
+   First screen of the flow.
+   Lets the user choose which canteen to open before viewing the menu.
 ───────────────────────────────────────────────────────────────────────────── */
 function CanteenSelector({ onSelect }) {
   const today = new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric" });
@@ -625,18 +734,26 @@ function CanteenSelector({ onSelect }) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    MENU PAGE
+
+   Main menu screen for the selected canteen.
+   Handles search, category navigation, menu rendering, and add/remove cart actions.
 ───────────────────────────────────────────────────────────────────────────── */
-function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
-  const [activeCategory, setActiveCategory] = useState(MENU[0].category);
+function MenuPage({ canteen, cart, onAdd, onRemove, onBack, menuSections, menuLoading, menuError }) {
+  const [activeCategory, setActiveCategory] = useState("");
   const [search, setSearch] = useState("");
   const sectionRefs = useRef({});
 
   const getQty = id => cart.find(c => c.id===id)?.qty || 0;
-  const allItems = MENU.flatMap(cat => cat.items.map(i => ({...i, category:cat.category})));
-  const searchResults = search ? allItems.filter(i =>
-    i.name.toLowerCase().includes(search.toLowerCase()) ||
-    i.desc.toLowerCase().includes(search.toLowerCase())
-  ) : null;
+  const allItems = useMemo(
+    () => menuSections.flatMap(cat => cat.items.map(i => ({ ...i, category: cat.category }))),
+    [menuSections]
+  );
+  const searchResults = search
+    ? allItems.filter(i =>
+        i.name.toLowerCase().includes(search.toLowerCase()) ||
+        i.desc.toLowerCase().includes(search.toLowerCase())
+      )
+    : null;
 
   const goToCategory = cat => {
     setActiveCategory(cat);
@@ -646,7 +763,7 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
 
   useEffect(() => {
     const fn = () => {
-      for (const cat of MENU.map(c => c.category)) {
+      for (const cat of menuSections.map(c => c.category)) {
         const el = sectionRefs.current[cat];
         if (!el) continue;
         const r = el.getBoundingClientRect();
@@ -655,7 +772,13 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
     };
     window.addEventListener("scroll", fn, { passive:true });
     return () => window.removeEventListener("scroll", fn);
-  }, []);
+  }, [menuSections]);
+
+  useEffect(() => {
+    if (menuSections.length > 0 && !menuSections.some(section => section.category === activeCategory)) {
+      setActiveCategory(menuSections[0].category);
+    }
+  }, [menuSections, activeCategory]);
 
   return (
     <div style={{ width:"100%", background:"#07091a", minHeight:"calc(100vh - 66px)" }}>
@@ -704,7 +827,7 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
         </div>
         {!search && (
           <div className="cat-scroll">
-            {MENU.map((cat,i) => (
+            {menuSections.map((cat,i) => (
               <button key={i} className={`cat-pill${activeCategory===cat.category?" active":""}`}
                 onClick={() => goToCategory(cat.category)}>
                 <span style={{ display:"flex", alignItems:"center" }}>{cat.icon}</span>
@@ -717,6 +840,18 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
 
       {/* Menu content */}
       <div style={{ maxWidth:"1100px", margin:"0 auto", padding:"32px clamp(20px,6vw,60px) 120px" }}>
+
+        {menuLoading && (
+          <div style={{ marginBottom:"16px", padding:"14px 16px", borderRadius:"12px", background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.08)", color:"rgba(255,255,255,.65)", fontSize:"13px" }}>
+            Loading main canteen menu...
+          </div>
+        )}
+
+        {menuError && (
+          <div style={{ marginBottom:"16px", padding:"14px 16px", borderRadius:"12px", background:"rgba(239,68,68,.08)", border:"1px solid rgba(239,68,68,.2)", color:"#f87171", fontSize:"13px" }}>
+            {menuError}
+          </div>
+        )}
 
         {/* Search results */}
         {search && (
@@ -740,7 +875,7 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
         )}
 
         {/* Category sections */}
-        {!search && MENU.map((cat,ci) => (
+        {!search && menuSections.map((cat,ci) => (
           <div key={ci} ref={el => sectionRefs.current[cat.category]=el} style={{ marginBottom:"40px" }}>
             {/* Section header */}
             <div className="sec-head">
@@ -763,15 +898,38 @@ function MenuPage({ canteen, cart, onAdd, onRemove, onBack }) {
   );
 }
 
-/* ── Single menu item ─────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────── 
+   Single menu item 
+   
+   Single menu item card used inside each category section.
+   Shows tags, availability, price, description, and quantity controls.
+   
+   ─────────────────────────────────────────────────────── */
 function MenuItem({ item, qty, onAdd, onRemove }) {
   return (
-    <div className="menu-item">
+    <div
+      className="menu-item"
+      style={{
+        opacity: item.isAvailable === false ? 0.45 : 1,
+      }}
+    >
       {/* Text */}
       <div style={{ flex:1, minWidth:0 }}>
-        {item.tags.length > 0 && (
+        {(item.tags.length > 0 || item.isAvailable === false) && (
           <div style={{ display:"flex", gap:"5px", flexWrap:"wrap", marginBottom:"6px" }}>
-            {item.tags.map(t => <span key={t} className={`tag ${TAGS[t]?.cls}`}>{TAGS[t]?.label}</span>)}
+            {item.tags.map(t => (
+              <span key={t} className={`tag ${TAGS[t]?.cls}`}>
+                {TAGS[t]?.label}
+              </span>
+            ))}
+            {item.isAvailable === false && (
+              <span
+                className="tag"
+                style={{ background:"rgba(255,255,255,.10)", color:"rgba(255,255,255,.72)" }}
+              >
+                Unavailable
+              </span>
+            )}
           </div>
         )}
         <h4 style={{ fontSize:"15px", fontWeight:800, color:"#fff", fontFamily:"Manrope,sans-serif", marginBottom:"5px", lineHeight:1.3 }}>{item.name}</h4>
@@ -795,13 +953,39 @@ function MenuItem({ item, qty, onAdd, onRemove }) {
         <img className="menu-item-img" src={item.img} alt={item.name}
           onError={e => { e.target.src="https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400&q=80"; }}
         />
-        {qty === 0 ? (
-          <button className="add-btn" onClick={() => onAdd(item)}><Plus size={16}/></button>
+        {item.isAvailable === false ? (
+          <button
+            type="button"
+            disabled
+            style={{
+              minWidth:"96px",
+              height:"34px",
+              borderRadius:"999px",
+              background:"rgba(255,255,255,.08)",
+              color:"rgba(255,255,255,.55)",
+              fontSize:"12px",
+              fontWeight:800,
+              fontFamily:"Manrope,sans-serif",
+              cursor:"not-allowed",
+            }}
+          >
+            Unavailable
+          </button>
+        ) : qty === 0 ? (
+          <button className="add-btn" onClick={() => onAdd(item)}>
+            <Plus size={16}/>
+          </button>
         ) : (
           <div className="qty-row">
-            <button className="qty-btn qty-minus" onClick={() => onRemove(item.id)}><Minus size={12}/></button>
-            <span style={{ fontSize:"15px", fontWeight:900, color:"#fff", fontFamily:"Manrope,sans-serif", minWidth:"18px", textAlign:"center" }}>{qty}</span>
-            <button className="qty-btn qty-plus"  onClick={() => onAdd(item)}><Plus size={12}/></button>
+            <button className="qty-btn qty-minus" onClick={() => onRemove(item.id)}>
+              <Minus size={12}/>
+            </button>
+            <span style={{ fontSize:"15px", fontWeight:900, color:"#fff", fontFamily:"Manrope,sans-serif", minWidth:"18px", textAlign:"center" }}>
+              {qty}
+            </span>
+            <button className="qty-btn qty-plus" onClick={() => onAdd(item)}>
+              <Plus size={12}/>
+            </button>
           </div>
         )}
       </div>
@@ -811,6 +995,9 @@ function MenuItem({ item, qty, onAdd, onRemove }) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    CART PANEL
+
+   Slide-in cart panel.
+   Shows selected items, totals, quantity controls, and the checkout entry point.
 ───────────────────────────────────────────────────────────────────────────── */
 function CartPanel({ cart, canteen, onAdd, onRemove, onClose, onCheckout }) {
   const subtotal = cart.reduce((s,i) => s + i.price*i.qty, 0);
@@ -897,21 +1084,46 @@ function CartPanel({ cart, canteen, onAdd, onRemove, onClose, onCheckout }) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    PAYMENT MODAL
+
+   Payment selection modal.
+   Supports cash on pickup and bank transfer with receipt upload.
 ───────────────────────────────────────────────────────────────────────────── */
 const BANK = {
   bank: "Bank of Ceylon",
   branch: "Maradana Branch",
   account: "8001234567",
   name: "SLIT Canteen Services",
-  ref: "Use your Order ID as reference",
 };
 
-function PaymentModal({ order, canteen, onConfirm, onClose }) {
+function PaymentModal({ order, canteen, onConfirm, onClose, placingOrder, orderError }) {
   const [method, setMethod] = useState(null);
   const [copied, setCopied] = useState(false);
   const [receipt, setReceipt] = useState(null);
+  const [paymentReference, setPaymentReference] = useState("");
+  const [loadingReference, setLoadingReference] = useState(false);
+  useEffect(() => {
+    const fetchPaymentReference = async () => {
+      try {
+        setLoadingReference(true);
+        const res = await api.get("/orders/payment-reference");
+        setPaymentReference(res.data?.data?.paymentReference || "");
+      } catch (error) {
+        setPaymentReference("");
+      } finally {
+        setLoadingReference(false);
+      }
+    };
+
+    if (method === "bank_transfer" && !paymentReference) {
+      fetchPaymentReference();
+    }
+
+    if (method !== "bank_transfer") {
+      setReceipt(null);
+      setPaymentReference("");
+    }
+  }, [method]);
   const total = order.reduce((s,i) => s+i.price*i.qty, 0) + 10;
-  const orderId = useRef("#CN" + Math.floor(1000+Math.random()*9000)).current;
 
   const copyAccount = () => {
     navigator.clipboard.writeText(BANK.account).then(() => {
@@ -920,7 +1132,9 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
     });
   };
 
-  const canConfirm = method === "collect" || method === "bank";
+  const canConfirm =
+    method === "cash" ||
+    (method === "bank_transfer" && receipt && paymentReference && !loadingReference);
 
   return (
     <div className="modal-bg" onClick={onClose}>
@@ -945,7 +1159,7 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
 
         <div style={{ padding:"0 26px 24px" }}>
           {/* Pay when collect */}
-          <div className={`pay-opt${method==="collect"?" selected":""}`} onClick={() => setMethod("collect")}>
+          <div className={`pay-opt${method==="cash"?" selected":""}`} onClick={() => setMethod("cash")}>
             <div className="pay-opt-icon">
               <HandCoins size={20} color="#F5A623"/>
             </div>
@@ -955,14 +1169,14 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
             </div>
             <div style={{
               width:"18px", height:"18px", borderRadius:"50%", flexShrink:0,
-              border: method==="collect" ? "5px solid #F5A623" : "2px solid rgba(255,255,255,.2)",
-              background: method==="collect" ? "#F5A623" : "transparent",
+              border: method==="cash" ? "5px solid #F5A623" : "2px solid rgba(255,255,255,.2)",
+              background: method==="cash" ? "#F5A623" : "transparent",
               transition:"all .2s"
             }}/>
           </div>
 
           {/* Bank transfer */}
-          <div className={`pay-opt${method==="bank"?" selected":""}`} onClick={() => setMethod("bank")}>
+          <div className={`pay-opt${method==="bank_transfer"?" selected":""}`} onClick={() => setMethod("bank_transfer")}>
             <div className="pay-opt-icon">
               <Banknote size={20} color="#F5A623"/>
             </div>
@@ -972,14 +1186,14 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
             </div>
             <div style={{
               width:"18px", height:"18px", borderRadius:"50%", flexShrink:0,
-              border: method==="bank" ? "5px solid #F5A623" : "2px solid rgba(255,255,255,.2)",
-              background: method==="bank" ? "#F5A623" : "transparent",
+              border: method==="bank_transfer" ? "5px solid #F5A623" : "2px solid rgba(255,255,255,.2)",
+              background: method==="bank_transfer" ? "#F5A623" : "transparent",
               transition:"all .2s"
             }}/>
           </div>
 
           {/* Bank details — shown when bank selected */}
-          {method === "bank" && (
+          {method === "bank_transfer" && (
             <div style={{ background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.09)", borderRadius:"14px", padding:"16px", marginBottom:"16px", animation:"trackReveal .3s ease both" }}>
               <p style={{ fontSize:"11px", fontWeight:800, color:"#F5A623", fontFamily:"Manrope,sans-serif", letterSpacing:"1px", textTransform:"uppercase", marginBottom:"14px" }}>Bank Details</p>
               {[
@@ -987,7 +1201,7 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
                 ["Branch",      BANK.branch],
                 ["Account No.", BANK.account],
                 ["Account Name",BANK.name],
-                ["Reference",   orderId],
+                ["Reference",   loadingReference ? "Generating..." : paymentReference || "Not available"],
               ].map(([l,v],i) => (
                 <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: i<4 ? "10px":"0" }}>
                   <span style={{ fontSize:"12px", color:"rgba(255,255,255,.4)" }}>{l}</span>
@@ -1006,13 +1220,15 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
                 </div>
               ))}
               <div style={{ marginTop:"12px", paddingTop:"12px", borderTop:"1px solid rgba(255,255,255,.07)", display:"flex", alignItems:"flex-start", gap:"6px" }}>
-                <span style={{ fontSize:"11px", color:"#F5A623", lineHeight:1.7 }}>⚠ Transfer Rs. {total} and use your Order ID <strong>{orderId}</strong> as the payment reference. Your order will be prepared once payment is confirmed.</span>
+              <span style={{ fontSize:"11px", color:"#F5A623", lineHeight:1.7 }}>
+                ⚠ Transfer Rs. {total} and use reference <strong>{loadingReference ? "Generating..." : paymentReference || "Not available"}</strong> in your bank transfer. Your order will be prepared once payment is confirmed.
+              </span>
               </div>
             </div>
           )}
 
           {/* Receipt upload — only for bank transfer */}
-          {method === "bank" && (
+          {method === "bank_transfer" && (
             <div style={{ marginBottom:"14px", animation:"trackReveal .3s ease both" }}>
               <p style={{ fontSize:"11px", fontWeight:800, color:"rgba(255,255,255,.5)", fontFamily:"Manrope,sans-serif", letterSpacing:"1px", textTransform:"uppercase", marginBottom:"8px" }}>
                 Upload Payment Receipt
@@ -1060,15 +1276,44 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
             </div>
           )}
 
+          {orderError && (
+            <div
+              style={{
+                marginTop: "12px",
+                marginBottom: "12px",
+                padding: "10px 12px",
+                borderRadius: "10px",
+                background: "rgba(239,68,68,.10)",
+                border: "1px solid rgba(239,68,68,.22)",
+                color: "#f87171",
+                fontSize: "12px",
+                lineHeight: 1.6,
+              }}
+            >
+              {orderError}
+            </div>
+          )}
+
           {/* Confirm button */}
           <button
             className="btn-primary"
-            style={{ width:"100%", justifyContent:"center", padding:"15px", fontSize:"15px", opacity: canConfirm ? 1 : 0.45, cursor: canConfirm ? "pointer" : "not-allowed" }}
-            onClick={() => canConfirm && onConfirm(method, orderId)}
+            style={{
+              width: "100%",
+              justifyContent: "center",
+              padding: "15px",
+              fontSize: "15px",
+              opacity: canConfirm && !placingOrder ? 1 : 0.45,
+              cursor: canConfirm && !placingOrder ? "pointer" : "not-allowed",
+            }}
+            onClick={() => canConfirm && !placingOrder && onConfirm(method, receipt, paymentReference)}
           >
-            {method === null && "Select a payment method"}
-            {method === "collect" && <><HandCoins size={16}/> Confirm — Pay on Collect</>}
-            {method === "bank" && <><Banknote size={16}/> Confirm — Bank Transfer</>}
+            {placingOrder
+              ? "Placing Order..."
+              : method === null
+              ? "Select a payment method"
+              : method === "cash"
+              ? "Confirm — Pay on Collect"
+              : "Confirm — Bank Transfer"}
           </button>
         </div>
       </div>
@@ -1078,6 +1323,9 @@ function PaymentModal({ order, canteen, onConfirm, onClose }) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    ORDER CONFIRMED MODAL
+
+   Confirmation modal shown after successful order placement.
+   Summarizes the order and gives quick actions like tracking or cancel.
 ───────────────────────────────────────────────────────────────────────────── */
 function OrderConfirmedModal({ order, canteen, payMethod, orderId, onTrack, onClose, onCancel }) {
   const total = order.reduce((s,i) => s+i.price*i.qty, 0) + 10;
@@ -1099,7 +1347,7 @@ function OrderConfirmedModal({ order, canteen, payMethod, orderId, onTrack, onCl
             {[
               ["Order ID",  orderId,                                   "#F5A623"],
               ["Canteen",   canteen?.name||"–",                        "rgba(255,255,255,.8)"],
-              ["Payment",   payMethod==="collect"?"Pay on Collect":"Bank Transfer", payMethod==="bank"?"#60a5fa":"#22c55e"],
+              ["Payment",   payMethod==="cash"?"Pay on Collect":"Bank Transfer", payMethod==="bank_transfer"?"#60a5fa":"#22c55e"],
               ["Total",     `Rs. ${total}`,                            "#F5A623"],
               ["Ready in",  canteen?.waitTime||"10–15 min",            "#22c55e"],
             ].map(([l,v,c],i) => (
@@ -1110,9 +1358,20 @@ function OrderConfirmedModal({ order, canteen, payMethod, orderId, onTrack, onCl
             ))}
           </div>
 
-          {payMethod === "bank" && (
-            <div style={{ background:"rgba(96,165,250,.08)", border:"1px solid rgba(96,165,250,.2)", borderRadius:"8px", padding:"8px 12px", marginBottom:"10px", fontSize:"11px", color:"rgba(255,255,255,.6)", lineHeight:1.65 }}>
-              💳 Please complete your bank transfer using Order ID <strong style={{ color:"#F5A623" }}>{orderId}</strong> as the reference. Your order will be prepared once we confirm receipt.
+          {payMethod === "bank_transfer" && (
+            <div
+              style={{
+                background:"rgba(96,165,250,.08)",
+                border:"1px solid rgba(96,165,250,.2)",
+                borderRadius:"8px",
+                padding:"8px 12px",
+                marginBottom:"10px",
+                fontSize:"11px",
+                color:"rgba(255,255,255,.6)",
+                lineHeight:1.65
+              }}
+            >
+              💳 Your payment slip has been submitted successfully. We’ll verify the payment and start preparing your order once it is confirmed.
             </div>
           )}
 
@@ -1136,50 +1395,73 @@ function OrderConfirmedModal({ order, canteen, payMethod, orderId, onTrack, onCl
 
 /* ─────────────────────────────────────────────────────────────────────────────
    ORDER TRACKING MODAL
-───────────────────────────────────────────────────────────────────────────── */
-function TrackingModal({ orderId, canteen, payMethod, onClose }) {
-  const [activeStep, setActiveStep] = useState(1);
 
-  // Auto-advance steps for demo
-  useEffect(() => {
-    const timers = [
-      setTimeout(() => setActiveStep(2), 3000),
-      setTimeout(() => setActiveStep(3), 7000),
-    ];
-    return () => timers.forEach(clearTimeout);
-  }, []);
+   Order tracking modal.
+   Builds the timeline using current backend order/payment status.
+───────────────────────────────────────────────────────────────────────────── */
+function TrackingModal({ orderId, canteen, payMethod, trackedOrder, trackingLoading, trackingError, onClose }) {
+
+  const getTrackingStepFromStatus = (status) => {
+    switch (status) {
+      case "pending":
+        return 1;
+      case "confirmed":
+        return 2;
+      case "preparing":
+        return 3;
+      case "ready":
+        return 4;
+      case "completed":
+        return 5;
+      case "cancelled":
+        return 0;
+      default:
+        return 1;
+    }
+  };
+
+  const activeStep = getTrackingStepFromStatus(trackedOrder?.orderStatus);
 
   const steps = [
     {
-      icon: <CheckCircle size={15}/>,
+      icon: <CheckCircle size={15} />,
       label: "Order Confirmed",
       sub: "Your order has been received",
-      time: "Just now",
-      done: true,
-    },
-    {
-      icon: payMethod==="bank" ? <Banknote size={15}/> : <HandCoins size={15}/>,
-      label: payMethod==="bank" ? "Payment Verification" : "Payment on Collect",
-      sub: payMethod==="bank" ? "Verifying your bank transfer" : "Pay cash when you collect",
-      time: activeStep >= 2 ? "In progress" : "Pending",
-      done: activeStep >= 2,
+      time: activeStep >= 1 ? "Done" : "Pending",
+      done: activeStep >= 1,
       active: activeStep === 1,
     },
     {
-      icon: <ChefHat size={15}/>,
-      label: "Preparing Your Order",
-      sub: "The canteen is cooking your food",
-      time: activeStep >= 3 ? "In progress" : "Pending",
-      done: activeStep >= 3,
+      icon: payMethod === "bank_transfer" ? <Banknote size={15} /> : <HandCoins size={15} />,
+      label: payMethod === "bank_transfer" ? "Payment Verification" : "Payment on Collect",
+      sub: payMethod === "bank_transfer" ? "Waiting for payment verification" : "Pay cash when you collect",
+      time: activeStep >= 2 ? "In progress" : "Pending",
+      done: activeStep >= 2,
       active: activeStep === 2,
     },
     {
-      icon: <PackageCheck size={15}/>,
-      label: "Ready for Pickup",
-      sub: `Collect from ${canteen?.name||"canteen"}`,
-      time: "Estimated " + (canteen?.waitTime||"10–15 min"),
-      done: false,
+      icon: <ChefHat size={15} />,
+      label: "Preparing Your Order",
+      sub: "The canteen is preparing your food",
+      time: activeStep >= 3 ? "In progress" : "Pending",
+      done: activeStep >= 3,
       active: activeStep === 3,
+    },
+    {
+      icon: <PackageCheck size={15} />,
+      label: "Ready for Pickup",
+      sub: `Collect from ${canteen?.name || "canteen"}`,
+      time: activeStep >= 4 ? "Ready" : "Pending",
+      done: activeStep >= 4,
+      active: activeStep === 4,
+    },
+    {
+      icon: <CheckCircle size={15} />,
+      label: "Completed",
+      sub: "Order picked up successfully",
+      time: activeStep >= 5 ? "Done" : "Pending",
+      done: activeStep >= 5,
+      active: activeStep === 5,
     },
   ];
 
@@ -1200,6 +1482,56 @@ function TrackingModal({ orderId, canteen, payMethod, onClose }) {
             <span style={{ fontSize:"13px", color:"rgba(255,255,255,.45)" }}>{canteen?.name}</span>
           </div>
         </div>
+
+        {trackingLoading && (
+          <div
+            style={{
+              marginTop: "12px",
+              padding: "10px 12px",
+              borderRadius: "10px",
+              background: "rgba(255,255,255,.05)",
+              border: "1px solid rgba(255,255,255,.08)",
+              color: "rgba(255,255,255,.65)",
+              fontSize: "12px",
+            }}
+          >
+            Loading tracking details...
+          </div>
+        )}
+
+        {trackingError && (
+          <div
+            style={{
+              marginTop: "12px",
+              padding: "10px 12px",
+              borderRadius: "10px",
+              background: "rgba(239,68,68,.10)",
+              border: "1px solid rgba(239,68,68,.22)",
+              color: "#f87171",
+              fontSize: "12px",
+              lineHeight: 1.6,
+            }}
+          >
+            {trackingError}
+          </div>
+        )}
+
+        {trackedOrder?.orderStatus === "cancelled" && (
+          <div
+            style={{
+              marginTop: "12px",
+              padding: "10px 12px",
+              borderRadius: "10px",
+              background: "rgba(239,68,68,.10)",
+              border: "1px solid rgba(239,68,68,.22)",
+              color: "#f87171",
+              fontSize: "12px",
+              lineHeight: 1.6,
+            }}
+          >
+            This order has been cancelled.
+          </div>
+        )}
 
         {/* Timeline */}
         <div style={{ padding:"0 22px 16px", display:"flex", flexDirection:"column", gap:"0" }}>
@@ -1304,11 +1636,63 @@ function CancelConfirmModal({ orderId, onConfirmCancel, onDismiss }) {
    ROOT
 ───────────────────────────────────────────────────────────────────────────── */
 export default function CanteenPage() {
+
+  // Router helpers for navigation and URL query state.
+
   const navigate = useNavigate();
-  const [view, setView]               = useState("select");
-  const [canteen, setCanteen]         = useState(null);
-  const [cart, setCart]               = useState([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Persist only the cart so refresh keeps selected items.
+  
+  const STORAGE_KEYS = {
+    cart: "canteen_cart",
+  };
+
+  const getSavedCanteen = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.canteen);
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      return CANTEENS.find((c) => c.id === parsed.id) || null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Read saved cart from localStorage on first load.
+
+  const getSavedCart = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.cart);
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
+  // Core page state:
+  // - view: selector screen or menu screen
+  // - canteen: currently selected canteen
+  // - cart: current cart items
+
+  const [view, setView]               = useState(() => {
+    const hasTrackedOrder = searchParams.get("trackOrderId");
+    const queryCanteenId = searchParams.get("canteenId");
+    return hasTrackedOrder || queryCanteenId ? "menu" : "select";
+  });
+  const [canteen, setCanteen]         = useState(() => {
+    const queryCanteenId = searchParams.get("canteenId");
+    if (queryCanteenId) {
+      return CANTEENS.find((c) => String(c.id) === queryCanteenId) || null;
+    }
+    return null;
+  });
+  const [cart, setCart]               = useState(() => getSavedCart());
   const [cartOpen, setCartOpen]       = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
+  const [orderError, setOrderError] = useState("");
 
   // flow: null | "payment" | "confirmed" | "tracking" | "cancelConfirm"
   const [modal, setModal]             = useState(null);
@@ -1316,6 +1700,31 @@ export default function CanteenPage() {
   const [lastOrder, setLastOrder]     = useState([]);
   const [payMethod, setPayMethod]     = useState(null);
   const [orderId, setOrderId]         = useState(null);
+  // Menu data and request state for loading backend-driven main canteen data.
+  const [mainMenuSections, setMainMenuSections] = useState(transformBackendMenu([]));
+  const [menuLoading, setMenuLoading] = useState(false);
+  const [menuError, setMenuError] = useState("");
+  const [trackedOrder, setTrackedOrder] = useState(null);
+  const [trackingLoading, setTrackingLoading] = useState(false);
+  const [trackingError, setTrackingError] = useState("");
+
+  const fetchMainCanteenMenu = async () => {
+    try {
+      setMenuLoading(true);
+      setMenuError("");
+
+      const res = await api.get("/menu");
+      const transformed = transformBackendMenu(res.data?.data || []);
+      setMainMenuSections(transformed);
+    } catch (err) {
+      setMenuError(err.response?.data?.message || "Failed to load main canteen menu.");
+      setMainMenuSections(transformBackendMenu([]));
+    } finally {
+      setMenuLoading(false);
+    }
+  };
+
+  // Cart helpers used by menu cards and the cart panel.
 
   const addToCart = item => setCart(prev => {
     const ex = prev.find(c => c.id===item.id);
@@ -1327,34 +1736,232 @@ export default function CanteenPage() {
     return ex.qty===1 ? prev.filter(c => c.id!==id) : prev.map(c => c.id===id ? {...c,qty:c.qty-1} : c);
   });
 
+  // Keep cart items after refresh.
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(cart));
+  }, [cart]);
+
+  useEffect(() => {
+
+    // Sync selected canteen/menu view with URL query params.
+    // This keeps refresh behavior predictable without forcing
+    // the page to reopen the last canteen from Dashboard.
+
+    const trackedOrderId = searchParams.get("trackOrderId");
+    const queryCanteenId = searchParams.get("canteenId");
+
+    if (trackedOrderId) return;
+
+    if (queryCanteenId) {
+      const matched = CANTEENS.find((c) => String(c.id) === queryCanteenId) || null;
+      setCanteen(matched);
+      setView(matched ? "menu" : "select");
+      return;
+    }
+
+    setCanteen(null);
+    setView("select");
+  }, [searchParams]);
+
+  // Load backend menu only when the selected canteen is the main canteen.
+  // Other canteens still use fallback local menu data for now.
+
+  useEffect(() => {
+    if (view === "menu" && canteen?.id === 1) {
+      fetchMainCanteenMenu();
+    }
+  }, [view, canteen]);
+
+  // Pickup date helpers used when building order requests.
+
+  const getTodayPickupDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const getTomorrowPickupDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const year = tomorrow.getFullYear();
+    const month = String(tomorrow.getMonth() + 1).padStart(2, "0");
+    const day = String(tomorrow.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
   // Cart → open payment modal
   const handleCheckout = () => {
-    setLastOrder([...cart]);
-    setCart([]);
-    setCartOpen(false);
+    if (cart.length === 0) return;
+    setOrderError("");
+    setLastOrder(cart);
     setModal("payment");
   };
 
-  // Payment confirmed → show order confirmed
-  const handlePayConfirm = (method, id) => {
-    setPayMethod(method);
-    setOrderId(id);
-    setModal("confirmed");
+  // Submit a same-day cash order.
+
+  const submitCashOrder = async () => {
+    try {
+      setPlacingOrder(true);
+      setOrderError("");
+
+      const payload = {
+        items: cart.map((item) => ({
+          menuItemId: item.id,
+          quantity: item.qty,
+        })),
+        paymentMethod: "cash",
+        pickupDate: getTodayPickupDate(),
+      };
+
+      const res = await api.post("/orders", payload);
+
+      const createdOrder = res.data?.data;
+
+      setOrderId(createdOrder?._id || null);
+      setPayMethod("cash");
+      setModal("confirmed");
+      setCartOpen(false);
+      setCart([]);
+      localStorage.removeItem(STORAGE_KEYS.cart);
+    } catch (err) {
+      setOrderError(err.response?.data?.message || "Failed to place order.");
+    } finally {
+      setPlacingOrder(false);
+    }
   };
 
+  // Submit a preorder with bank transfer receipt upload.
+
+  const submitBankTransferOrder = async (receipt, paymentReference) => {
+    try {
+      setPlacingOrder(true);
+      setOrderError("");
+
+      const formData = new FormData();
+
+      formData.append(
+        "items",
+        JSON.stringify(
+          cart.map((item) => ({
+            menuItemId: item.id,
+            quantity: item.qty,
+          }))
+        )
+      );
+
+      formData.append("paymentMethod", "bank_transfer");
+      formData.append("pickupDate", getTomorrowPickupDate());
+      formData.append("paymentReference", paymentReference);
+      formData.append("slip", receipt);
+
+      const res = await api.post("/orders", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const createdOrder = res.data?.data;
+
+      setOrderId(createdOrder?._id || null);
+      setPayMethod("bank_transfer");
+      setModal("confirmed");
+      setCartOpen(false);
+      setCart([]);
+      localStorage.removeItem(STORAGE_KEYS.cart);
+    } catch (err) {
+      setOrderError(err.response?.data?.message || "Failed to place bank transfer order.");
+    } finally {
+      setPlacingOrder(false);
+    }
+  };
+
+  // Payment confirmed → show order confirmed
+  const handlePayConfirm = async (method, receipt, paymentReference) => {
+    if (method === "cash") {
+      await submitCashOrder();
+      return;
+    }
+
+    if (method === "bank_transfer") {
+      await submitBankTransferOrder(receipt, paymentReference);
+      return;
+    }
+  };
+
+  const fetchTrackedOrder = async (orderIdValue) => {
+    try {
+      setTrackingLoading(true);
+      setTrackingError("");
+
+      const res = await api.get(`/orders/${orderIdValue}`);
+      setTrackedOrder(res.data?.data || null);
+    } catch (err) {
+      setTrackingError(err.response?.data?.message || "Failed to load order tracking.");
+      setTrackedOrder(null);
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Open tracking modal directly from URL when a tracked order ID is provided.
+    const queryOrderId = searchParams.get("trackOrderId");
+
+    if (!queryOrderId) return;
+
+    const openTrackedOrderFromQuery = async () => {
+      await fetchTrackedOrder(queryOrderId);
+      setOrderId(queryOrderId);
+      setPayMethod("");
+      setCanteen(CANTEENS[0]);
+      setView("menu");
+      setModal("tracking");
+      setSearchParams({ canteenId: "1" }, { replace: true });
+    };
+
+    openTrackedOrderFromQuery();
+  }, [searchParams]);
+
   // Track My Order clicked
-  const handleTrack = () => setModal("tracking");
+  const handleTrack = async () => {
+    if (!orderId) return;
+    await fetchTrackedOrder(orderId);
+    setModal("tracking");
+  };
 
   // Cancel order flow
   const handleCancelOrder   = () => setModal("cancelConfirm");
   const handleConfirmCancel = () => { setCancelledId(orderId); setModal("cancelled"); setTimeout(() => setModal(null), 2800); };
 
-  const handleSelectCanteen = c => { setCanteen(c); setCart([]); setView("menu"); window.scrollTo({top:0,behavior:"instant"}); };
-  const handleBackToSelect  = () => { setView("select"); setCart([]); window.scrollTo({top:0,behavior:"instant"}); };
+  // Navigation helpers between canteen list, menu view, checkout, and tracking.
+  const handleSelectCanteen = c => {
+    setCanteen(c);
+    setView("menu");
+    setSearchParams({ canteenId: String(c.id) }, { replace: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
+  const handleBackToSelect  = () => {
+    setView("select");
+    setCanteen(null);
+    setSearchParams({}, { replace: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
+
+  const currentMenuSections = canteen?.id === 1 && mainMenuSections.length > 0 ? mainMenuSections : MENU;
 
   const cartCount = cart.reduce((s,i) => s+i.qty, 0);
   const cartTotal = cart.reduce((s,i) => s+i.price*i.qty, 0) + 10;
 
+  // Page layout:
+  // 1. Global styles injection
+  // 2. Navbar
+  // 3. Either canteen selector or selected canteen menu
+  // 4. Floating cart + active modals
   return (
     <>
       <style>{CSS}</style>
@@ -1363,7 +1970,18 @@ export default function CanteenPage() {
 
         <div style={{ paddingTop:"66px" }}>
           {view==="select" && <CanteenSelector onSelect={handleSelectCanteen}/>}
-          {view==="menu"   && canteen && <MenuPage canteen={canteen} cart={cart} onAdd={addToCart} onRemove={removeFromCart} onBack={handleBackToSelect}/>}
+          {view==="menu"   && canteen && (
+            <MenuPage
+              canteen={canteen}
+              cart={cart}
+              onAdd={addToCart}
+              onRemove={removeFromCart}
+              onBack={handleBackToSelect}
+              menuSections={currentMenuSections}
+              menuLoading={canteen?.id === 1 ? menuLoading : false}
+              menuError={canteen?.id === 1 ? menuError : ""}
+            />
+          )}
         </div>
 
         {cartOpen && (
@@ -1379,11 +1997,17 @@ export default function CanteenPage() {
           </button>
         )}
 
-        {modal==="payment" && (
+        {modal === "payment" && (
           <PaymentModal
-            order={lastOrder} canteen={canteen}
+            order={lastOrder}
+            canteen={canteen}
             onConfirm={handlePayConfirm}
-            onClose={() => setModal(null)}
+            onClose={() => {
+              setOrderError("");
+              setModal(null);
+            }}
+            placingOrder={placingOrder}
+            orderError={orderError}
           />
         )}
 
@@ -1393,14 +2017,27 @@ export default function CanteenPage() {
             payMethod={payMethod} orderId={orderId}
             onTrack={handleTrack}
             onCancel={handleCancelOrder}
-            onClose={() => setModal(null)}
+            onClose={() => {
+              setModal(null);
+              setTrackedOrder(null);
+              setTrackingError("");
+            }}
           />
         )}
 
-        {modal==="tracking" && (
+        {modal === "tracking" && (
           <TrackingModal
-            orderId={orderId} canteen={canteen} payMethod={payMethod}
-            onClose={() => setModal(null)}
+            orderId={trackedOrder?._id || orderId}
+            canteen={canteen}
+            payMethod={trackedOrder?.paymentMethod || payMethod}
+            trackedOrder={trackedOrder}
+            trackingLoading={trackingLoading}
+            trackingError={trackingError}
+            onClose={() => {
+              setModal(null);
+              setTrackedOrder(null);
+              setTrackingError("");
+            }}
           />
         )}
 

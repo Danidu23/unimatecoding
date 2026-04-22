@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, GraduationCap, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, GraduationCap } from "lucide-react";
 import unimateLogo from "../assets/unimatelogo.png";
+import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
@@ -118,6 +120,8 @@ const CSS = `
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [form, setForm]       = useState({ email:"", password:"" });
   const [showPw, setShowPw]   = useState(false);
   const [error, setError]     = useState("");
@@ -126,24 +130,59 @@ export default function LoginPage() {
 
   const set = (k, v) => { setForm(p => ({...p, [k]:v})); setError(""); };
 
-  const handleSubmit = async e => {
-    e.preventDefault();
-    if (!form.email)    return triggerError("Please enter your email address.");
-    if (!form.password) return triggerError("Please enter your password.");
-    if (!form.email.includes("@")) return triggerError("Please enter a valid email address.");
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
+  if (!form.email) return triggerError("Please enter your email address.");
+  if (!form.password) return triggerError("Please enter your password.");
+  if (!form.email.includes("@")) return triggerError("Please enter a valid email address.");
+
+  try {
     setLoading(true);
-    // Simulate API call
-    await new Promise(r => setTimeout(r, 1200));
-    setLoading(false);
 
-    // Demo: any credentials work — replace with real auth
-    if (form.password.length < 4) {
-      triggerError("Invalid email or password. Please try again.");
+    const res = await api.post("/auth/login", {
+      email: form.email,
+      password: form.password,
+    });
+
+    login(res.data.data);
+    const user = res.data?.data?.user;
+
+    const permissions = Array.isArray(user?.permissions)
+      ? user.permissions
+      : typeof user?.permissions === "string"
+        ? [user.permissions]
+        : [];
+
+    const isClubsAdmin =
+      user?.role === "admin" &&
+      permissions.includes("clubs_admin");
+
+    const isSportsAdmin =
+      user?.role === "admin" &&
+      permissions.includes("sports_admin");
+
+    const isLostFoundAdmin =
+      user?.role === "admin" &&
+      permissions.includes("lostfound_admin");
+
+    if (isClubsAdmin) {
+      navigate("/clubs/admin");
+    } else if (isSportsAdmin) {
+      navigate("/sports/admin");
+    } else if (isLostFoundAdmin) {
+      navigate("/lost-found/admin");
+    } else if (user?.role === "staff") {
+      navigate("/staff");
     } else {
       navigate("/dashboard");
     }
-  };
+  } catch (err) {
+    triggerError(err.response?.data?.message || "Login failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const triggerError = msg => {
     setError(msg);
@@ -261,12 +300,14 @@ export default function LoginPage() {
 
               {/* Forgot password */}
               <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:"24px", marginTop:"-8px" }}>
-                <a href="#" style={{ fontSize:"13px", color:"#F5A623", fontWeight:600, textDecoration:"none", transition:"opacity .2s" }}
+                <Link
+                  to="/forgot-password"
+                  style={{ fontSize:"13px", color:"#F5A623", fontWeight:600, textDecoration:"none", transition:"opacity .2s" }}
                   onMouseOver={e => e.currentTarget.style.opacity=".75"}
                   onMouseOut={e => e.currentTarget.style.opacity="1"}
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
 
               {/* Submit */}

@@ -1,20 +1,23 @@
-// src/context/AuthContext.jsx
-import { createContext, useState, useContext } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   const login = (userData) => {
-    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData.user);
+    localStorage.setItem('user', JSON.stringify(userData.user));
     localStorage.setItem('token', userData.token);
-    setUser(userData);
   };
 
   const logout = () => {
-    localStorage.clear();
     setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   return (

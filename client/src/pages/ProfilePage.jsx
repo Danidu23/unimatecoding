@@ -1,686 +1,1148 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo, useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  ArrowLeft, User, Mail, Phone, GraduationCap, Bell, ShoppingCart,
-  Camera, Edit3, Save, X, ChevronRight, LogOut, Shield,
-  BookOpen, Clock, Star, UtensilsCrossed, Package, Lock,
-  CheckCircle, AlertTriangle, Eye, EyeOff, Menu
+  User,
+  Mail,
+  Phone,
+  Shield,
+  PencilLine,
+  Save,
+  X,
+  Camera,
+  Bell,
+  Lock,
+  LogOut,
+  Settings,
+  CheckCircle2,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  UtensilsCrossed,
+  PackageCheck,
 } from "lucide-react";
-import unimateLogo from "../assets/unimatelogo.png";
+import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
+import AppHeader from "../components/AppHeader";
+import OrderTrackingModal from "../components/OrderTrackingModal";
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   CSS
-───────────────────────────────────────────────────────────────────────────── */
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
-  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-  html, body, #root { width:100%; max-width:100%; overflow-x:hidden; scroll-behavior:smooth; }
-  body { font-family:'DM Sans',system-ui,sans-serif; background:#07091a; }
-  a { text-decoration:none; }
-  button { font-family:inherit; cursor:pointer; border:none; }
-  ::-webkit-scrollbar { width:5px; }
-  ::-webkit-scrollbar-track { background:#07091a; }
-  ::-webkit-scrollbar-thumb { background:#F5A623; border-radius:3px; }
-
-  @keyframes fadeUp   { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
-  @keyframes glow     { 0%,100%{opacity:.4} 50%{opacity:.85} }
-  @keyframes pulse    { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.18);opacity:.8} }
-  @keyframes popIn    { from{transform:scale(.7);opacity:0} to{transform:scale(1);opacity:1} }
-  @keyframes shimmer  { 0%{background-position:200% center} 100%{background-position:-200% center} }
-
-  /* ── Navbar ── */
-  .p-nav {
-    position:fixed; top:0; left:0; right:0; z-index:400;
-    background:rgba(7,9,26,.97); backdrop-filter:blur(18px);
-    border-bottom:1px solid rgba(255,255,255,.07);
-    display:flex; align-items:center; justify-content:space-between;
-    padding:0 clamp(16px,4vw,60px); height:66px;
-    transition:border-color .4s, box-shadow .4s;
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html,body,#root{width:100%;max-width:100%;overflow-x:hidden}
+  body{
+    font-family:'DM Sans',system-ui,sans-serif;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(245,166,35,.10), transparent 28%),
+      radial-gradient(circle at 85% 15%, rgba(96,165,250,.10), transparent 26%),
+      linear-gradient(180deg,#07091a 0%,#090d22 35%,#0a1028 100%);
+    color:#fff;
   }
-  .p-nav.scrolled { border-bottom-color:rgba(245,166,35,.2); box-shadow:0 6px 40px rgba(0,0,0,.5); }
-  .nav-lnk {
-    color:rgba(255,255,255,.6); font-size:14px; font-weight:600;
-    font-family:'Manrope',sans-serif; padding:4px 0;
-    position:relative; transition:color .2s; text-decoration:none;
+  ::-webkit-scrollbar{width:6px}
+  ::-webkit-scrollbar-track{background:#07091a}
+  ::-webkit-scrollbar-thumb{background:#F5A623;border-radius:3px}
+  a{text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+  @keyframes pulseRing{0%{transform:scale(.9);opacity:.55}70%,100%{transform:scale(1.4);opacity:0}}
+  @keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+
+  .page-shell{min-height:100vh;padding:86px 24px 24px}
+
+  .layout{
+    width:min(1180px,100%);margin:0 auto;display:grid;grid-template-columns:340px 1fr;gap:22px
   }
-  .nav-lnk::after { content:''; position:absolute; bottom:-3px; left:0; right:0; height:2px; background:#F5A623; border-radius:2px; transform:scaleX(0); transform-origin:left; transition:transform .25s; }
-  .nav-lnk:hover { color:#fff; }
-  .nav-lnk:hover::after { transform:scaleX(1); }
-  .nav-lnk.active { color:#F5A623; }
-  .nav-lnk.active::after { transform:scaleX(1); }
 
-  /* ── Icon btn ── */
-  .icon-btn { background:none; border:none; color:rgba(255,255,255,.55); width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .2s, color .2s; position:relative; }
-  .icon-btn:hover { background:rgba(255,255,255,.09); color:#fff; }
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:28px;
+    backdrop-filter:blur(18px);
+    box-shadow:0 18px 45px rgba(0,0,0,.28);
+  }
 
-  /* ── Back btn ── */
-  .btn-back { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.13); border-radius:9px; padding:7px 14px; color:rgba(255,255,255,.75); font-size:13px; font-weight:600; cursor:pointer; transition:all .22s; }
-  .btn-back:hover { background:rgba(245,166,35,.12); border-color:rgba(245,166,35,.3); color:#F5A623; }
+  .profile-side{padding:24px;position:sticky;top:88px;height:fit-content;overflow:hidden}
+  .profile-side::before{
+    content:'';position:absolute;inset:0;
+    background:
+      radial-gradient(circle at 50% 0%,rgba(245,166,35,.10),transparent 42%),
+      linear-gradient(180deg,rgba(255,255,255,.02),transparent 30%);
+    pointer-events:none
+  }
+  .avatar-wrap{display:flex;justify-content:center;position:relative;margin-bottom:18px}
+  .avatar-ring{
+    position:absolute;inset:auto;width:124px;height:124px;border-radius:50%;
+    border:1px solid rgba(245,166,35,.24);animation:pulseRing 3.2s infinite
+  }
+  .avatar{
+    width:112px;height:112px;border-radius:50%;
+    background:linear-gradient(135deg,#1f2c6b,#10182f);
+    border:2px solid rgba(255,255,255,.1);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Manrope',sans-serif;font-size:34px;font-weight:900;color:#F5A623;
+    position:relative;overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,.35)
+  }
+  .avatar-edit{
+    position:absolute;right:calc(50% - 56px);bottom:0;
+    width:34px;height:34px;border-radius:50%;
+    border:1.5px solid rgba(255,255,255,.12);background:#F5A623;color:#07091a;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(245,166,35,.35)
+  }
 
-  /* ── Primary btn ── */
-  .btn-primary { display:inline-flex; align-items:center; gap:8px; background:#F5A623; color:#07091a; border:none; border-radius:10px; padding:11px 22px; font-size:14px; font-weight:800; font-family:'Manrope',sans-serif; cursor:pointer; transition:transform .22s, box-shadow .22s, background .22s; box-shadow:0 4px 20px rgba(245,166,35,.35); position:relative; overflow:hidden; }
-  .btn-primary::after { content:''; position:absolute; inset:0; background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.25) 50%,transparent 70%); transform:translateX(-100%); transition:transform .5s; }
-  .btn-primary:hover { transform:translateY(-2px); background:#f9ba3c; box-shadow:0 8px 28px rgba(245,166,35,.55); }
-  .btn-primary:hover::after { transform:translateX(100%); }
+  .side-name{
+    font-family:'Manrope',sans-serif;font-size:28px;font-weight:900;letter-spacing:-.8px;color:#fff;text-align:center
+  }
+  .side-sub{
+    margin-top:6px;text-align:center;font-size:14px;color:rgba(255,255,255,.48);line-height:1.65
+  }
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;
+    background:rgba(245,166,35,.10);border:1px solid rgba(245,166,35,.2);
+    font-size:11px;font-weight:800;font-family:'Manrope',sans-serif;color:#F5A623;letter-spacing:.45px;text-transform:uppercase
+  }
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+  .stat{
+    padding:14px 14px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)
+  }
+  .stat .label{font-size:11px;color:rgba(255,255,255,.42);text-transform:uppercase;font-weight:700;letter-spacing:.5px}
+  .stat .value{margin-top:6px;font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;color:#fff}
 
-  /* ── Card ── */
-  .p-card { background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.08); border-radius:20px; padding:24px; transition:border-color .25s; }
-  .p-card:hover { border-color:rgba(255,255,255,.13); }
+  .quick-actions{margin-top:20px;display:grid;gap:10px}
+  .qa-btn{
+    width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:13px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+    color:#fff;text-decoration:none;font-size:14px;font-weight:700;font-family:'Manrope',sans-serif;transition:.22s;cursor:pointer
+  }
+  .qa-btn:hover{background:rgba(245,166,35,.07);border-color:rgba(245,166,35,.24);transform:translateY(-1px)}
+  .qa-left{display:flex;align-items:center;gap:10px}
+  .qa-btn.danger:hover{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.24);color:#f87171}
 
-  /* ── Input ── */
-  .p-input { width:100%; background:rgba(255,255,255,.06); border:1.5px solid rgba(255,255,255,.1); border-radius:11px; padding:11px 14px 11px 40px; color:#fff; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; transition:border-color .22s, background .22s; }
-  .p-input:focus { border-color:rgba(245,166,35,.5); background:rgba(245,166,35,.04); }
-  .p-input:disabled { opacity:.5; cursor:not-allowed; }
-  .p-input::placeholder { color:rgba(255,255,255,.3); }
+  .main{padding:22px}
+  .hero{
+    position:relative;overflow:hidden;padding:24px 24px 22px;margin-bottom:20px;border-radius:24px;
+    background:
+      radial-gradient(circle at 0% 0%,rgba(245,166,35,.14),transparent 34%),
+      linear-gradient(135deg,rgba(17,24,39,.75),rgba(12,17,48,.92));
+    border:1px solid rgba(255,255,255,.07)
+  }
+  .hero::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(120deg,transparent 20%,rgba(255,255,255,.03) 50%,transparent 80%);
+    background-size:200% auto;animation:shimmer 5.5s linear infinite;pointer-events:none
+  }
+  .hero-title{
+    position:relative;z-index:1;
+    font-family:'Manrope',sans-serif;font-size:clamp(24px,3vw,34px);font-weight:900;letter-spacing:-1px;line-height:1.08
+  }
+  .hero-title .accent{
+    background-image:linear-gradient(90deg,#F5A623,#ffd166,#F5A623);background-size:200% auto;
+    -webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 3.5s linear infinite
+  }
+  .hero-sub{position:relative;z-index:1;margin-top:10px;font-size:14px;line-height:1.75;color:rgba(255,255,255,.55);max-width:680px}
 
-  /* ── Tab ── */
-  .p-tab { display:flex; align-items:center; gap:7px; padding:9px 18px; border-radius:10px; font-size:13px; font-weight:700; font-family:'Manrope',sans-serif; cursor:pointer; transition:all .22s; color:rgba(255,255,255,.5); background:none; border:none; white-space:nowrap; }
-  .p-tab:hover { color:#fff; background:rgba(255,255,255,.07); }
-  .p-tab.active { color:#F5A623; background:rgba(245,166,35,.1); }
+  .tabs{
+    display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px
+  }
+  .tab-btn{
+    border:none;cursor:pointer;padding:10px 16px;border-radius:14px;
+    font-size:13px;font-weight:800;font-family:'Manrope',sans-serif;letter-spacing:.2px;
+    background:rgba(255,255,255,.04);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.07);
+    transition:.22s
+  }
+  .tab-btn.active{
+    background:rgba(245,166,35,.12);color:#F5A623;border-color:rgba(245,166,35,.22);box-shadow:0 8px 20px rgba(245,166,35,.12)
+  }
 
-  /* ── Stat card ── */
-  .stat-card { background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.08); border-radius:16px; padding:18px 20px; flex:1; min-width:100px; transition:all .25s; }
-  .stat-card:hover { border-color:rgba(245,166,35,.3); background:rgba(245,166,35,.04); transform:translateY(-2px); }
+  .grid-2{display:grid;grid-template-columns:1.18fr .82fr;gap:18px}
+  .section-card{padding:20px;border-radius:22px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+  .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+  .section-title{
+    display:flex;align-items:center;gap:10px;font-family:'Manrope',sans-serif;font-weight:900;font-size:18px;letter-spacing:-.3px
+  }
 
-  /* ── Activity item ── */
-  .activity-item { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,.06); }
-  .activity-item:last-child { border-bottom:none; }
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .field-col-full{grid-column:1 / -1}
+  .label{
+    display:flex;align-items:center;gap:6px;margin-bottom:7px;font-size:11px;
+    color:rgba(255,255,255,.46);font-family:'Manrope',sans-serif;font-weight:800;letter-spacing:.55px;text-transform:uppercase
+  }
+  .input-wrap{position:relative}
+  .input-icon{
+    position:absolute;left:13px;top:50%;transform:translateY(-50%);display:flex;color:rgba(255,255,255,.34);pointer-events:none
+  }
+  .input{
+    width:100%;padding:12px 14px 12px 40px;border-radius:14px;background:rgba(255,255,255,.045);
+    border:1.5px solid rgba(255,255,255,.08);color:#fff;font-size:14px;outline:none;transition:.2s
+  }
+  .input:focus{border-color:rgba(245,166,35,.42);background:rgba(245,166,35,.04)}
+  .readonly{
+    width:100%;padding:12px 14px 12px 40px;border-radius:14px;background:rgba(255,255,255,.03);
+    border:1.5px solid rgba(255,255,255,.06);color:rgba(255,255,255,.72);font-size:14px
+  }
 
-  /* ── Setting row ── */
-  .setting-row { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid rgba(255,255,255,.06); cursor:pointer; transition:background .18s; border-radius:8px; }
-  .setting-row:last-child { border-bottom:none; }
-  .setting-row:hover { background:rgba(255,255,255,.03); padding-left:6px; }
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    border:none;cursor:pointer;padding:12px 16px;border-radius:14px;
+    font-size:13px;font-weight:800;font-family:'Manrope',sans-serif;transition:.22s
+  }
+  .btn-primary{
+    background:#F5A623;color:#07091a;box-shadow:0 8px 22px rgba(245,166,35,.28)
+  }
+  .btn-ghost{
+    background:rgba(255,255,255,.05);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.08)
+  }
 
-  /* ── Toggle switch ── */
-  .toggle { width:42px; height:24px; border-radius:100px; position:relative; cursor:pointer; transition:background .25s; flex-shrink:0; border:none; }
-  .toggle::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:transform .25s; }
-  .toggle.on { background:#F5A623; }
-  .toggle.off { background:rgba(255,255,255,.15); }
-  .toggle.on::after { transform:translateX(18px); }
+  .badge-success{
+    display:inline-flex;align-items:center;gap:7px;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.22);
+    border-radius:999px;padding:7px 12px;font-size:12px;font-weight:800;font-family:'Manrope',sans-serif
+  }
 
-  /* ── Modal ── */
-  .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:600; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px); animation:fadeIn .25s; padding:20px; }
-  .modal { background:#0d1130; border:1.5px solid rgba(245,166,35,.2); border-radius:24px; max-width:400px; width:100%; overflow:hidden; animation:popIn .32s cubic-bezier(.22,.68,0,1.2); }
+  .list{display:grid;gap:12px}
+  .activity-item{
+    display:flex;align-items:flex-start;gap:12px;padding:14px;border-radius:18px;
+    background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)
+  }
 
-  /* ── Responsive ── */
-  @media (max-width:768px) {
-    .desktop-nav { display:none !important; }
-    .profile-layout { flex-direction:column !important; }
-    .profile-sidebar { width:100% !important; }
+  .empty-state{
+    padding:18px;border-radius:18px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.08);
+    color:rgba(255,255,255,.48);font-size:14px
+  }
+
+  .setting-row{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)
+  }
+  .setting-row:last-child{border-bottom:none}
+
+  .switch{
+    width:48px;height:28px;border-radius:999px;background:rgba(255,255,255,.12);
+    position:relative;border:none;cursor:pointer;transition:.22s
+  }
+  .switch.active{background:rgba(245,166,35,.24)}
+  .switch-thumb{
+    position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;
+    background:#fff;transition:.22s
+  }
+  .switch.active .switch-thumb{left:23px;background:#F5A623}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);
+    display:flex;align-items:center;justify-content:center;padding:20px;z-index:999;animation:fadeIn .22s ease
+  }
+  .modal{
+    width:min(460px,100%);background:#0d1130;border:1px solid rgba(255,255,255,.08);
+    border-radius:26px;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,.42);animation:popIn .24s ease
+  }
+
+  .toggle-eye{
+    position:absolute;right:13px;top:50%;transform:translateY(-50%);
+    background:none;border:none;color:rgba(255,255,255,.35);
+    cursor:pointer;display:flex;padding:4px;transition:color .2s;
+  }
+
+  @media (max-width:980px){
+    .layout{grid-template-columns:1fr}
+    .profile-side{position:relative;top:0}
+    .grid-2{grid-template-columns:1fr}
+  }
+  @media (max-width:640px){
+    .page-shell{padding:82px 16px 16px}
+    .main,.profile-side{padding:18px}
+    .field-grid{grid-template-columns:1fr}
+    .hero{padding:20px}
   }
 `;
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   MOCK DATA
-───────────────────────────────────────────────────────────────────────────── */
-const USER = {
-  name: "Kamal Perera",
-  email: "kamal.perera@slit.lk",
-  phone: "0771234567",
-  role: "Student",
-  course: "BSc (Hons) in Information Technology",
-  studentId: "IT23224834",
-  year: "3rd Year",
-  joined: "January 2023",
-  avatar: null,
+const formatPaymentMethod = (method) => {
+  switch (method) {
+    case "cash":
+      return "Cash";
+    case "bank_transfer":
+      return "Bank Transfer";
+    default:
+      return method || "—";
+  }
 };
 
-const STATS = [
-  { icon: <UtensilsCrossed size={18} color="#F5A623"/>, label:"Orders Placed",   value:"47" },
-  { icon: <Star size={18} color="#F5A623"/>,            label:"Avg. Rating",      value:"4.8" },
-  { icon: <Clock size={18} color="#F5A623"/>,           label:"Time Saved",       value:"3.2h" },
-  { icon: <Package size={18} color="#F5A623"/>,         label:"Items Reported",   value:"2" },
-];
+const formatPaymentStatus = (status) => {
+  switch (status) {
+    case "pay_on_pickup":
+      return "Pay on Pickup";
+    case "payment_submitted":
+      return "Payment Submitted";
+    case "payment_verified":
+      return "Payment Verified";
+    case "payment_rejected":
+      return "Payment Rejected";
+    default:
+      return status || "—";
+  }
+};
 
-const ACTIVITY = [
-  { icon:<UtensilsCrossed size={15}/>, color:"#F5A623", bg:"rgba(245,166,35,.12)", title:"Rice & Chicken Curry", sub:"Main Canteen · Pay on Collect", time:"Today, 12:34 PM",  status:"completed" },
-  { icon:<UtensilsCrossed size={15}/>, color:"#F5A623", bg:"rgba(245,166,35,.12)", title:"Chicken Kottu + Iced Milo", sub:"24 Basement · Bank Transfer", time:"Yesterday, 1:10 PM", status:"completed" },
-  { icon:<Package size={15}/>,         color:"#60a5fa", bg:"rgba(96,165,250,.12)", title:"Lost: Black Backpack",    sub:"Lost & Found · Block C",        time:"Jun 18, 10:00 AM",  status:"pending" },
-  { icon:<UtensilsCrossed size={15}/>, color:"#F5A623", bg:"rgba(245,166,35,.12)", title:"Mixed Fried Rice",        sub:"Main Canteen · Pay on Collect", time:"Jun 17, 12:55 PM",  status:"completed" },
-  { icon:<UtensilsCrossed size={15}/>, color:"#F5A623", bg:"rgba(245,166,35,.12)", title:"Spring Rolls + Plain Tea", sub:"24 Basement · Pay on Collect", time:"Jun 16, 3:20 PM",  status:"cancelled" },
-];
+const formatOrderStatus = (status) => {
+  switch (status) {
+    case "pending":
+      return "Pending";
+    case "confirmed":
+      return "Confirmed";
+    case "preparing":
+      return "Preparing";
+    case "ready":
+      return "Ready for Pickup";
+    case "completed":
+      return "Completed";
+    case "cancelled":
+      return "Cancelled";
+    default:
+      return status || "—";
+  }
+};
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   NAVBAR
-───────────────────────────────────────────────────────────────────────────── */
-function Navbar() {
-  const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 40);
-    window.addEventListener("scroll", fn);
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
-
-  return (
-    <nav className={`p-nav${scrolled ? " scrolled" : ""}`}>
-      {/* Left */}
-      <div style={{ display:"flex", alignItems:"center", gap:"14px" }}>
-        <button className="btn-back" onClick={() => navigate("/dashboard")}>
-          <ArrowLeft size={14}/> Back
-        </button>
-        <div style={{ width:"1px", height:"22px", background:"rgba(255,255,255,.12)" }}/>
-        <img src={unimateLogo} alt="Unimate"
-          style={{ height:"36px", width:"auto", objectFit:"contain" }}
-          onError={e => { e.target.style.display="none"; e.target.nextSibling.style.display="block"; }}
-        />
-        <span style={{ display:"none", fontWeight:900, fontSize:"20px", fontFamily:"Manrope,sans-serif", color:"#fff" }}>
-          Uni<span style={{ color:"#F5A623" }}>mate</span>
-        </span>
-      </div>
-
-      {/* Center nav */}
-      <div className="desktop-nav" style={{ display:"flex", gap:"clamp(18px,3vw,32px)" }}>
-        {["Dashboard","Canteen","Lost & Found","Sports","Clubs","Orders"].map((item,i) => (
-          <a key={i} href="#" className="nav-lnk"
-            onClick={e => {
-              e.preventDefault();
-              if (item === "Dashboard") navigate("/dashboard");
-              if (item === "Canteen")   navigate("/canteen");
-            }}>
-            {item}
-          </a>
-        ))}
-      </div>
-
-      {/* Right */}
-      <div style={{ display:"flex", alignItems:"center", gap:"4px" }}>
-        <button className="icon-btn"><Bell size={19}/></button>
-        <div style={{
-          width:"38px", height:"38px", borderRadius:"50%", background:"#F5A623",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          marginLeft:"8px", cursor:"pointer",
-          transition:"transform .25s, box-shadow .25s",
-          boxShadow:"0 2px 14px rgba(245,166,35,.4)",
-          outline:"2.5px solid rgba(245,166,35,.5)"
-        }}
-          onClick={() => navigate("/profile")}
-          onMouseOver={e => { e.currentTarget.style.transform="scale(1.12)"; e.currentTarget.style.boxShadow="0 4px 22px rgba(245,166,35,.65)"; }}
-          onMouseOut={e  => { e.currentTarget.style.transform="scale(1)";    e.currentTarget.style.boxShadow="0 2px 14px rgba(245,166,35,.4)"; }}
-        >
-          <User size={18} color="#07091a"/>
-        </div>
-      </div>
-    </nav>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   CHANGE PASSWORD MODAL
-───────────────────────────────────────────────────────────────────────────── */
-function ChangePasswordModal({ onClose }) {
-  const [form, setForm]     = useState({ current:"", newPw:"", confirm:"" });
-  const [show, setShow]     = useState({ current:false, newPw:false, confirm:false });
-  const [error, setError]   = useState("");
-  const [success, setSuccess] = useState(false);
-
-  const handle = () => {
-    if (!form.current)              return setError("Enter your current password.");
-    if (form.newPw.length < 6)      return setError("New password must be at least 6 characters.");
-    if (form.newPw !== form.confirm) return setError("Passwords do not match.");
-    setSuccess(true);
-    setTimeout(onClose, 1800);
-  };
-
-  const fields = [
-    { key:"current", label:"Current Password" },
-    { key:"newPw",   label:"New Password" },
-    { key:"confirm", label:"Confirm New Password" },
-  ];
-
-  return (
-    <div className="modal-bg" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div style={{ padding:"22px 24px 0", borderBottom:"1px solid rgba(255,255,255,.07)", paddingBottom:"16px" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:"10px" }}>
-              <div style={{ width:"34px", height:"34px", borderRadius:"10px", background:"rgba(245,166,35,.12)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                <Lock size={16} color="#F5A623"/>
-              </div>
-              <h3 style={{ fontSize:"16px", fontWeight:900, color:"#fff", fontFamily:"Manrope,sans-serif" }}>Change Password</h3>
-            </div>
-            <button className="icon-btn" onClick={onClose}><X size={18}/></button>
-          </div>
-        </div>
-
-        <div style={{ padding:"20px 24px 24px" }}>
-          {success ? (
-            <div style={{ textAlign:"center", padding:"20px 0" }}>
-              <div style={{ width:"52px", height:"52px", borderRadius:"50%", background:"rgba(34,197,94,.12)", border:"1.5px solid rgba(34,197,94,.3)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px" }}>
-                <CheckCircle size={26} color="#22c55e"/>
-              </div>
-              <p style={{ fontSize:"15px", fontWeight:700, color:"#fff", fontFamily:"Manrope,sans-serif" }}>Password Updated!</p>
-              <p style={{ fontSize:"13px", color:"rgba(255,255,255,.45)", marginTop:"4px" }}>Your password has been changed successfully.</p>
-            </div>
-          ) : (
-            <>
-              {error && (
-                <div style={{ display:"flex", alignItems:"center", gap:"7px", background:"rgba(239,68,68,.08)", border:"1px solid rgba(239,68,68,.2)", borderRadius:"9px", padding:"9px 12px", marginBottom:"14px", fontSize:"12px", color:"#f87171" }}>
-                  <AlertTriangle size={13}/> {error}
-                </div>
-              )}
-              {fields.map(f => (
-                <div key={f.key} style={{ marginBottom:"12px" }}>
-                  <label style={{ fontSize:"11px", fontWeight:700, color:"rgba(255,255,255,.5)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"5px", marginBottom:"6px" }}>
-                    <Lock size={11}/> {f.label}
-                  </label>
-                  <div style={{ position:"relative" }}>
-                    <input
-                      type={show[f.key] ? "text" : "password"}
-                      className="p-input" style={{ paddingLeft:"14px", paddingRight:"40px" }}
-                      placeholder="••••••••"
-                      value={form[f.key]}
-                      onChange={e => { setForm(p => ({...p, [f.key]:e.target.value})); setError(""); }}
-                    />
-                    <button type="button" style={{ position:"absolute", right:"12px", top:"50%", transform:"translateY(-50%)", background:"none", border:"none", color:"rgba(255,255,255,.35)", cursor:"pointer" }}
-                      onClick={() => setShow(p => ({...p, [f.key]:!p[f.key]}))}>
-                      {show[f.key] ? <EyeOff size={15}/> : <Eye size={15}/>}
-                    </button>
-                  </div>
-                </div>
-              ))}
-              <button className="btn-primary" style={{ width:"100%", justifyContent:"center", marginTop:"8px", padding:"12px" }} onClick={handle}>
-                Update Password
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   MAIN PAGE
-───────────────────────────────────────────────────────────────────────────── */
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const [tab, setTab]         = useState("overview");
-  const [editing, setEditing] = useState(false);
-  const [showPwModal, setShowPwModal] = useState(false);
-  const [saved, setSaved]     = useState(false);
-  const [notifs, setNotifs]   = useState({ orders:true, announcements:true, reminders:false, promotions:false });
-  const [form, setForm]       = useState({ name:USER.name, email:USER.email, phone:USER.phone, course:USER.course });
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { user, logout } = useAuth();
 
-  const handleSave = () => {
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  const isClubsAdmin =
+  user?.role === "admin" &&
+  user?.permissions?.includes("clubs_admin");
+
+  const accountLabel = isClubsAdmin
+    ? "Clubs Admin Account"
+    : user?.role === "admin"
+    ? "Admin Account"
+    : user?.role === "staff"
+    ? "Staff Account"
+    : "Student Account";
+
+  const memberLabel = isClubsAdmin
+    ? "Clubs Admin"
+    : user?.role === "admin"
+    ? "Admin"
+    : user?.role === "staff"
+    ? "Staff"
+    : "Student";
+
+  const getInitialTab = () => {
+    const tab = searchParams.get("tab");
+    return ["overview", "orders", "settings"].includes(tab) ? tab : "overview";
   };
 
-  const TABS = [
-    { key:"overview",  label:"Overview",  icon:<User size={14}/> },
-    { key:"activity",  label:"Activity",  icon:<Clock size={14}/> },
-    { key:"settings",  label:"Settings",  icon:<Shield size={14}/> },
-  ];
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+  const [editing, setEditing] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
+  const [showPwModal, setShowPwModal] = useState(false);
+  const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
+  const [showPw, setShowPw] = useState({ current: false, next: false, confirm: false });
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState("");
+  const [pwSuccess, setPwSuccess] = useState("");
+
+  const [cancelLoadingId, setCancelLoadingId] = useState("");
+  const [cancelError, setCancelError] = useState("");
+
+  const [trackingOrderId, setTrackingOrderId] = useState("");
+  const [trackedOrder, setTrackedOrder] = useState(null);
+  const [trackingOpen, setTrackingOpen] = useState(false);
+  const [trackingLoading, setTrackingLoading] = useState(false);
+  const [trackingError, setTrackingError] = useState("");
+
+  const [notif, setNotif] = useState({
+    orderUpdates: true,
+    promotions: false,
+    securityAlerts: true,
+  });
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+  });
+
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const trackerOrderId = searchParams.get("trackOrderId");
+
+    if (["overview", "orders", "settings"].includes(tab)) {
+      setActiveTab(tab);
+    } else {
+      setActiveTab("overview");
+    }
+
+    if (trackerOrderId) {
+      setActiveTab("orders");
+      handleTrackOrder(trackerOrderId, true);
+    }
+  }, [searchParams]);
+
+  const resetPasswordModal = () => {
+    setPw({ current: "", next: "", confirm: "" });
+    setShowPw({ current: false, next: false, confirm: false });
+    setPwError("");
+    setPwSuccess("");
+  };
+
+  const fetchMyOrders = async () => {
+    try {
+      const res = await api.get("/orders/my");
+      setOrders(res.data?.data || []);
+    } catch (err) {
+      console.error("Failed to load orders:", err);
+    }
+  };
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        setLoadingProfile(true);
+
+        const [profileRes, ordersRes] = await Promise.all([
+          api.get("/users/me"),
+          api.get("/orders/my"),
+        ]);
+
+        const profile = profileRes.data.data;
+
+        setForm({
+          name: profile.name || "",
+          email: profile.email || "",
+          phone: profile.phone || "",
+        });
+
+        setOrders(ordersRes.data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch profile data:", err);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    fetchProfileData();
+  }, []);
+
+  const initials = useMemo(
+    () =>
+      (form.name || "U")
+        .split(" ")
+        .map((s) => s[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase(),
+    [form.name]
+  );
+
+  const pendingCount = useMemo(
+    () => orders.filter((o) => o.orderStatus === "pending").length,
+    [orders]
+  );
+
+  const completedCount = useMemo(
+    () => orders.filter((o) => o.orderStatus === "completed").length,
+    [orders]
+  );
+
+  const setField = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+
+  const handleSave = async () => {
+    try {
+      const res = await api.put("/users/me", {
+        name: form.name,
+        phone: form.phone,
+      });
+
+      setForm((prev) => ({
+        ...prev,
+        name: res.data.data.name,
+        phone: res.data.data.phone,
+        email: res.data.data.email,
+      }));
+
+      setEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setPwError("");
+    setPwSuccess("");
+
+    if (!pw.current || !pw.next || !pw.confirm) {
+      setPwError("Please fill all password fields.");
+      return;
+    }
+
+    if (pw.next.length < 8) {
+      setPwError("New password must be at least 8 characters.");
+      return;
+    }
+
+    if (pw.next !== pw.confirm) {
+      setPwError("New password and confirm password do not match.");
+      return;
+    }
+
+    if (pw.current === pw.next) {
+      setPwError("New password must be different from current password.");
+      return;
+    }
+
+    try {
+      setPwLoading(true);
+
+      const res = await api.put("/auth/change-password", {
+        currentPassword: pw.current,
+        newPassword: pw.next,
+      });
+
+      setPwSuccess(res.data.message || "Password changed successfully.");
+
+      setTimeout(() => {
+        resetPasswordModal();
+        setShowPwModal(false);
+      }, 1200);
+    } catch (err) {
+      setPwError(err.response?.data?.message || "Failed to change password.");
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    try {
+      setCancelLoadingId(orderId);
+      setCancelError("");
+
+      await api.patch(`/orders/${orderId}/cancel`);
+
+      await fetchMyOrders();
+    } catch (err) {
+      setCancelError(err.response?.data?.message || "Failed to cancel order.");
+    } finally {
+      setCancelLoadingId("");
+    }
+  };
+
+  const handleTrackOrder = async (orderId, preserveUrl = false) => {
+    try {
+      setTrackingLoading(true);
+      setTrackingError("");
+      setTrackingOrderId(orderId);
+      setTrackingOpen(true);
+
+      if (!preserveUrl) {
+        setSearchParams({ tab: "orders", trackOrderId: orderId });
+      }
+
+      const res = await api.get(`/orders/${orderId}`);
+      setTrackedOrder(res.data?.data || null);
+    } catch (err) {
+      setTrackingError(err.response?.data?.message || "Failed to load order tracking.");
+      setTrackedOrder(null);
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
+
+  const toggleNotif = (k) => setNotif((p) => ({ ...p, [k]: !p[k] }));
+
+  const doLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  if (loadingProfile) {
+    return (
+      <>
+        <style>{CSS}</style>
+        <AppHeader />
+        <div style={{ minHeight: "100vh", paddingTop: "98px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+          Loading profile...
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <style>{CSS}</style>
-      <div style={{ width:"100%", minHeight:"100vh", background:"#07091a" }}>
-        <Navbar/>
+      <AppHeader />
 
-        {/* ── Hero banner ── */}
-        <div style={{
-          background:"linear-gradient(135deg,#07091a 0%,#0c1130 55%,#14193a 100%)",
-          paddingTop:"66px", position:"relative", overflow:"hidden",
-          borderBottom:"1px solid rgba(255,255,255,.06)"
-        }}>
-          {/* Ambient orb */}
-          <div style={{ position:"absolute", top:0, left:"40%", width:"600px", height:"260px", background:"radial-gradient(ellipse,rgba(245,166,35,.09) 0%,transparent 68%)", animation:"glow 5s ease-in-out infinite", pointerEvents:"none" }}/>
-          {/* Left amber bar */}
-          <div style={{ position:"absolute", left:0, top:0, bottom:0, width:"4px", background:"linear-gradient(to bottom,#F5A623,rgba(245,166,35,.2))" }}/>
+      <div className="page-shell">
+        <div className="layout">
+          <aside className="card profile-side">
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+                <span className="pill">
+                  <Shield size={12} />
+                  {accountLabel}
+                </span>
+              </div>
 
-          <div style={{ maxWidth:"1100px", margin:"0 auto", padding:"36px clamp(20px,6vw,60px) 0", position:"relative" }}>
-            {/* Avatar + name row */}
-            <div style={{ display:"flex", alignItems:"flex-end", gap:"24px", flexWrap:"wrap", marginBottom:"28px" }}>
-              {/* Avatar */}
-              <div style={{ position:"relative", flexShrink:0 }}>
-                <div style={{
-                  width:"88px", height:"88px", borderRadius:"50%",
-                  background:"linear-gradient(135deg,#F5A623,#f9ba3c)",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  border:"3px solid rgba(245,166,35,.4)",
-                  boxShadow:"0 0 0 5px rgba(245,166,35,.1), 0 8px 32px rgba(245,166,35,.3)"
-                }}>
-                  <User size={38} color="#07091a"/>
+              <div className="avatar-wrap">
+                <div className="avatar-ring" />
+                <div className="avatar">{initials}</div>
+                <button className="avatar-edit" type="button" title="Change avatar">
+                  <Camera size={15} />
+                </button>
+              </div>
+
+              <h2 className="side-name">{form.name || "User"}</h2>
+              <p className="side-sub">
+                {form.email || "-"}
+                <br />
+                {memberLabel} • Unimate Member
+              </p>
+
+              <div className="stats-grid">
+                <div className="stat">
+                  <div className="label">Pending Orders</div>
+                  <div className="value">{pendingCount}</div>
                 </div>
-                {/* Camera badge */}
-                <div style={{
-                  position:"absolute", bottom:"2px", right:"2px",
-                  width:"24px", height:"24px", borderRadius:"50%",
-                  background:"#0a0d22", border:"2px solid rgba(245,166,35,.4)",
-                  display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-                  transition:"all .2s"
-                }}
-                  onMouseOver={e => { e.currentTarget.style.background="#F5A623"; e.currentTarget.children[0].style.color="#07091a"; }}
-                  onMouseOut={e =>  { e.currentTarget.style.background="#0a0d22"; e.currentTarget.children[0].style.color="#F5A623"; }}
+                <div className="stat">
+                  <div className="label">Completed</div>
+                  <div className="value">{completedCount}</div>
+                </div>
+              </div>
+
+              <div className="quick-actions">
+                <button className="qa-btn" type="button" onClick={() => setEditing(true)}>
+                  <span className="qa-left">
+                    <PencilLine size={16} color="#F5A623" />
+                    Edit Profile
+                  </span>
+                  <span style={{ transform: "rotate(180deg)" }}>➜</span>
+                </button>
+
+                <button
+                  className="qa-btn"
+                  type="button"
+                  onClick={() => {
+                    resetPasswordModal();
+                    setShowPwModal(true);
+                  }}
                 >
-                  <Camera size={11} color="#F5A623"/>
-                </div>
-              </div>
+                  <span className="qa-left">
+                    <Lock size={16} color="#F5A623" />
+                    Change Password
+                  </span>
+                  <span style={{ transform: "rotate(180deg)" }}>➜</span>
+                </button>
 
-              {/* Name + meta */}
-              <div style={{ flex:1, minWidth:0, paddingBottom:"4px" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:"10px", flexWrap:"wrap", marginBottom:"6px" }}>
-                  <h1 style={{ fontSize:"clamp(20px,3vw,28px)", fontWeight:900, color:"#fff", fontFamily:"Manrope,sans-serif", letterSpacing:"-0.6px" }}>{form.name}</h1>
-                  <div style={{ display:"inline-flex", alignItems:"center", gap:"5px", background:"rgba(245,166,35,.12)", border:"1px solid rgba(245,166,35,.25)", borderRadius:"100px", padding:"3px 10px" }}>
-                    <GraduationCap size={11} color="#F5A623"/>
-                    <span style={{ fontSize:"11px", fontWeight:700, color:"#F5A623", fontFamily:"Manrope,sans-serif" }}>{USER.role}</span>
-                  </div>
-                </div>
-                <div style={{ display:"flex", flexWrap:"wrap", gap:"14px" }}>
-                  {[
-                    { icon:<BookOpen size={12}/>, text:USER.course },
-                    { icon:<GraduationCap size={12}/>, text:`${USER.studentId} · ${USER.year}` },
-                    { icon:<Clock size={12}/>, text:`Joined ${USER.joined}` },
-                  ].map((m,i) => (
-                    <span key={i} style={{ display:"flex", alignItems:"center", gap:"5px", fontSize:"13px", color:"rgba(255,255,255,.5)" }}>
-                      <span style={{ color:"#F5A623" }}>{m.icon}</span> {m.text}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Edit button */}
-              <div style={{ paddingBottom:"6px" }}>
-                {editing ? (
-                  <div style={{ display:"flex", gap:"8px" }}>
-                    <button className="btn-primary" style={{ padding:"9px 18px", fontSize:"13px" }} onClick={handleSave}>
-                      <Save size={14}/> Save
-                    </button>
-                    <button style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(255,255,255,.07)", border:"1px solid rgba(255,255,255,.13)", borderRadius:"10px", padding:"9px 14px", color:"rgba(255,255,255,.7)", fontSize:"13px", fontWeight:600, cursor:"pointer", transition:"all .22s" }}
-                      onMouseOver={e => e.currentTarget.style.borderColor="rgba(239,68,68,.4)"}
-                      onMouseOut={e => e.currentTarget.style.borderColor="rgba(255,255,255,.13)"}
-                      onClick={() => setEditing(false)}>
-                      <X size={14}/> Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <button style={{ display:"inline-flex", alignItems:"center", gap:"7px", background:"rgba(255,255,255,.07)", border:"1px solid rgba(255,255,255,.13)", borderRadius:"10px", padding:"9px 18px", color:"rgba(255,255,255,.75)", fontSize:"13px", fontWeight:600, cursor:"pointer", transition:"all .22s" }}
-                    onMouseOver={e => { e.currentTarget.style.borderColor="rgba(245,166,35,.35)"; e.currentTarget.style.color="#F5A623"; }}
-                    onMouseOut={e =>  { e.currentTarget.style.borderColor="rgba(255,255,255,.13)"; e.currentTarget.style.color="rgba(255,255,255,.75)"; }}
-                    onClick={() => setEditing(true)}>
-                    <Edit3 size={14}/> Edit Profile
-                  </button>
-                )}
+                <button className="qa-btn danger" type="button" onClick={doLogout}>
+                  <span className="qa-left">
+                    <LogOut size={16} color="#f87171" />
+                    Sign Out
+                  </span>
+                  <span style={{ transform: "rotate(180deg)" }}>➜</span>
+                </button>
               </div>
             </div>
+          </aside>
 
-            {/* Stats strip */}
-            <div style={{ display:"flex", gap:"0", borderTop:"1px solid rgba(255,255,255,.07)", overflowX:"auto" }}>
-              {STATS.map((s,i) => (
-                <div key={i} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"16px 24px", borderRight: i<3 ? "1px solid rgba(255,255,255,.07)" : "none", flexShrink:0 }}>
-                  <div style={{ width:"34px", height:"34px", borderRadius:"10px", background:"rgba(245,166,35,.1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    {s.icon}
+          <main className="card main">
+            <section className="hero">
+              <h1 className="hero-title">
+                Manage your <span className="accent">profile</span>, orders, and settings
+              </h1>
+              <p className="hero-sub">
+                Keep your Unimate profile updated, review your recent orders, and manage how you receive notifications.
+              </p>
+            </section>
+
+            <div className="tabs">
+              {[
+                ["overview", "Overview"],
+                ["orders", "My Orders"],
+                ["settings", "Settings"],
+              ].map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`tab-btn ${activeTab === key ? "active" : ""}`}
+                  onClick={() => {
+                    setActiveTab(key);
+                    setSearchParams({ tab: key });
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {activeTab === "overview" && (
+              <div className="grid-2">
+                <section className="section-card">
+                  <div className="section-head">
+                    <div className="section-title">
+                      <User size={18} color="#F5A623" />
+                      Profile Information
+                    </div>
+
+                    <div className="btn-row">
+                      {!editing ? (
+                        <button className="btn btn-ghost" type="button" onClick={() => setEditing(true)}>
+                          <PencilLine size={15} /> Edit
+                        </button>
+                      ) : (
+                        <>
+                          <button className="btn btn-primary" type="button" onClick={handleSave}>
+                            <Save size={15} /> Save Changes
+                          </button>
+                          <button className="btn btn-ghost" type="button" onClick={() => setEditing(false)}>
+                            <X size={15} /> Cancel
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize:"16px", fontWeight:900, color:"#fff", fontFamily:"Manrope,sans-serif", lineHeight:1.1 }}>{s.value}</div>
-                    <div style={{ fontSize:"11px", color:"rgba(255,255,255,.45)", marginTop:"1px" }}>{s.label}</div>
+
+                  {saved && (
+                    <div className="badge-success" style={{ marginBottom: 14 }}>
+                      <CheckCircle2 size={14} />
+                      Profile updated successfully
+                    </div>
+                  )}
+
+                  <div className="field-grid">
+                    <div className="field-col-full">
+                      <label className="label"><User size={12} /> Full Name</label>
+                      <div className="input-wrap">
+                        <span className="input-icon"><User size={15} /></span>
+                        {editing ? (
+                          <input
+                            className="input"
+                            value={form.name}
+                            onChange={(e) => setField("name", e.target.value)}
+                            placeholder="Enter full name"
+                          />
+                        ) : (
+                          <div className="readonly">{form.name || "-"}</div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="label"><Mail size={12} /> Email Address</label>
+                      <div className="input-wrap">
+                        <span className="input-icon"><Mail size={15} /></span>
+                        <div className="readonly">{form.email || "-"}</div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="label"><Phone size={12} /> Phone Number</label>
+                      <div className="input-wrap">
+                        <span className="input-icon"><Phone size={15} /></span>
+                        {editing ? (
+                          <input
+                            className="input"
+                            value={form.phone}
+                            onChange={(e) => setField("phone", e.target.value)}
+                            placeholder="Enter phone number"
+                          />
+                        ) : (
+                          <div className="readonly">{form.phone || "-"}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="section-card">
+                  <div className="section-head">
+                    <div className="section-title">
+                      <Shield size={18} color="#F5A623" />
+                      Account Details
+                    </div>
+                  </div>
+
+                  {[
+                    ["Role", memberLabel],
+                    ["Email", form.email || "-"],
+                    ["Phone", form.phone || "-"],
+                  ].map(([l, v], i, arr) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "11px 0",
+                        borderBottom: i < arr.length - 1 ? "1px solid rgba(255,255,255,.06)" : "none",
+                      }}
+                    >
+                      <span style={{ fontSize: "13px", color: "rgba(255,255,255,.45)" }}>{l}</span>
+                      <span style={{ fontSize: "13px", fontWeight: 800, color: "rgba(255,255,255,.82)", fontFamily: "Manrope,sans-serif" }}>
+                        {v}
+                      </span>
+                    </div>
+                  ))}
+                </section>
+              </div>
+            )}
+
+            {activeTab === "orders" && (
+              <section className="section-card">
+                <div className="section-head">
+                  <div className="section-title">
+                    <UtensilsCrossed size={18} color="#F5A623" />
+                    My Orders
+                  </div>
+                </div>
+                {cancelError && (
+                  <div
+                    style={{
+                      marginBottom: "14px",
+                      padding: "10px 12px",
+                      borderRadius: "10px",
+                      background: "rgba(239,68,68,.10)",
+                      border: "1px solid rgba(239,68,68,.22)",
+                      color: "#f87171",
+                      fontSize: "12px",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {cancelError}
+                  </div>
+                )}
+
+                <div className="list">
+                  {orders.length === 0 ? (
+                    <div className="empty-state">No orders yet.</div>
+                  ) : (
+                    orders.map((order, i) => (
+                      <div key={order._id || i} className="activity-item" style={{ animation: `fadeUp .4s ease ${i * 0.07}s both` }}>
+                        <div
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "12px",
+                            background: "rgba(245,166,35,.12)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                            color: "#F5A623",
+                          }}
+                        >
+                          <UtensilsCrossed size={15} />
+                        </div>
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: "14px", fontWeight: 800, color: "#fff", fontFamily: "Manrope,sans-serif", marginBottom: "3px" }}>
+                            {order.items?.map((item) => `${item.name} x${item.quantity}`).join(", ")}
+                          </p>
+
+                          <p style={{ fontSize: "12px", color: "rgba(255,255,255,.45)" }}>
+                            {formatPaymentMethod(order.paymentMethod)} • {formatPaymentStatus(order.paymentStatus)}
+                          </p>
+
+                          <p style={{ fontSize: "11px", color: "rgba(255,255,255,.3)", marginTop: "2px" }}>
+                            Pickup: {new Date(order.pickupDate).toLocaleDateString()}
+                          </p>
+
+                          {order.paymentStatus === "payment_rejected" && order.paymentRejectionReason ? (
+                            <p
+                              style={{
+                                fontSize: "11px",
+                                color: "#f87171",
+                                marginTop: "6px",
+                                lineHeight: 1.6,
+                              }}
+                            >
+                              Payment Rejected: {order.paymentRejectionReason}
+                            </p>
+                          ) : order.cancellationReason ? (
+                            <p style={{ fontSize: "11px", color: "#f87171", marginTop: "6px" }}>
+                              Reason: {order.cancellationReason}
+                            </p>
+                          ) : null}
+
+                          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleTrackOrder(order._id)}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                padding: "8px 12px",
+                                borderRadius: "10px",
+                                border: "1px solid rgba(245,166,35,.25)",
+                                background: "rgba(245,166,35,.08)",
+                                color: "#F5A623",
+                                fontSize: "12px",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                              }}
+                            >
+                              <PackageCheck size={14} />
+                              Track Order
+                            </button>
+
+                            {order.orderStatus === "pending" && order.paymentMethod === "cash" && (
+                              <button
+                                type="button"
+                                onClick={() => handleCancelOrder(order._id)}
+                                disabled={cancelLoadingId === order._id}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: "10px",
+                                  border: "1px solid rgba(239,68,68,.25)",
+                                  background: "rgba(239,68,68,.08)",
+                                  color: "#f87171",
+                                  fontSize: "12px",
+                                  fontWeight: 700,
+                                  cursor: cancelLoadingId === order._id ? "not-allowed" : "pointer",
+                                  opacity: cancelLoadingId === order._id ? 0.6 : 1,
+                                }}
+                              >
+                                {cancelLoadingId === order._id ? "Cancelling..." : "Cancel Order"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            fontWeight: 800,
+                            fontFamily: "Manrope,sans-serif",
+                            padding: "4px 10px",
+                            borderRadius: "100px",
+                            flexShrink: 0,
+                            background:
+                              order.orderStatus === "completed"
+                                ? "rgba(34,197,94,.12)"
+                                : order.orderStatus === "pending"
+                                ? "rgba(245,166,35,.12)"
+                                : order.orderStatus === "cancelled"
+                                ? "rgba(239,68,68,.12)"
+                                : "rgba(96,165,250,.12)",
+                            color:
+                              order.orderStatus === "completed"
+                                ? "#4ade80"
+                                : order.orderStatus === "pending"
+                                ? "#F5A623"
+                                : order.orderStatus === "cancelled"
+                                ? "#f87171"
+                                : "#60a5fa",
+                          }}
+                        >
+                          {formatOrderStatus(order.orderStatus)}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </section>
+            )}
+
+            {activeTab === "settings" && (
+              <div className="grid-2">
+                <section className="section-card">
+                  <div className="section-head">
+                    <div className="section-title">
+                      <Bell size={18} color="#F5A623" />
+                      Notifications
+                    </div>
+                  </div>
+
+                  {[
+                    ["orderUpdates", "Order Updates", "Get notified about order status changes."],
+                    ["promotions", "Promotions", "Receive special offers and canteen promotions."],
+                    ["securityAlerts", "Security Alerts", "Important account and login notices."],
+                  ].map(([key, title, desc]) => (
+                    <div key={key} className="setting-row">
+                      <div>
+                        <div style={{ fontSize: "14px", fontWeight: 800, fontFamily: "Manrope,sans-serif" }}>{title}</div>
+                        <div style={{ fontSize: "12px", color: "rgba(255,255,255,.45)", marginTop: 4 }}>{desc}</div>
+                      </div>
+
+                      <button
+                        type="button"
+                        className={`switch ${notif[key] ? "active" : ""}`}
+                        onClick={() => toggleNotif(key)}
+                      >
+                        <div className="switch-thumb" />
+                      </button>
+                    </div>
+                  ))}
+                </section>
+
+                <section className="section-card">
+                  <div className="section-head">
+                    <div className="section-title">
+                      <Settings size={18} color="#F5A623" />
+                      Quick Actions
+                    </div>
+                  </div>
+
+                  <div className="quick-actions" style={{ marginTop: 0 }}>
+                    <button
+                      className="qa-btn"
+                      type="button"
+                      onClick={() => {
+                        resetPasswordModal();
+                        setShowPwModal(true);
+                      }}
+                    >
+                      <span className="qa-left">
+                        <Lock size={16} color="#F5A623" />
+                        Change Password
+                      </span>
+                      <span style={{ transform: "rotate(180deg)" }}>➜</span>
+                    </button>
+
+                    <button className="qa-btn danger" type="button" onClick={doLogout}>
+                      <span className="qa-left">
+                        <LogOut size={16} color="#f87171" />
+                        Sign Out
+                      </span>
+                      <span style={{ transform: "rotate(180deg)" }}>➜</span>
+                    </button>
+                  </div>
+                </section>
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+
+      {trackingOpen && (
+        <OrderTrackingModal
+          orderId={trackedOrder?._id || trackingOrderId}
+          canteenName="Main Canteen"
+          payMethod={trackedOrder?.paymentMethod || ""}
+          trackedOrder={trackedOrder}
+          trackingLoading={trackingLoading}
+          trackingError={trackingError}
+          onClose={() => {
+            setTrackingOpen(false);
+            setTrackedOrder(null);
+            setTrackingError("");
+            setTrackingOrderId("");
+            setSearchParams({ tab: "orders" });
+          }}
+        />
+      )}
+
+      {showPwModal && (
+        <div className="overlay">
+          <div className="modal">
+            <div className="section-head" style={{ marginBottom: 18 }}>
+              <div className="section-title">
+                <Lock size={18} color="#F5A623" />
+                Change Password
+              </div>
+              <button className="btn btn-ghost" type="button" onClick={() => {
+                resetPasswordModal();
+                setShowPwModal(false);
+              }}>
+                <X size={16} />
+              </button>
+            </div>
+            
+            {pwError && (
+              <div
+                style={{
+                  marginBottom: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "10px 12px",
+                  borderRadius: "12px",
+                  background: "rgba(239,68,68,.10)",
+                  border: "1px solid rgba(239,68,68,.22)",
+                  color: "#f87171",
+                  fontSize: 13,
+                }}
+              >
+                <AlertCircle size={15} />
+                {pwError}
+              </div>
+            )}
+
+            {pwSuccess && (
+              <div
+                style={{
+                  marginBottom: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "10px 12px",
+                  borderRadius: "12px",
+                  background: "rgba(34,197,94,.10)",
+                  border: "1px solid rgba(34,197,94,.22)",
+                  color: "#4ade80",
+                  fontSize: 13,
+                }}
+              >
+                <CheckCircle2 size={15} />
+                {pwSuccess}
+              </div>
+            )}
+
+            <div className="list">
+              {[
+                ["current", "Current Password"],
+                ["next", "New Password"],
+                ["confirm", "Confirm Password"],
+              ].map(([key, label]) => (
+                <div key={key}>
+                  <label className="label">
+                    <Lock size={12} />
+                    {label}
+                  </label>
+                  <div className="input-wrap">
+                    <span className="input-icon">
+                      <Lock size={15} />
+                    </span>
+                    <input
+                      className="input"
+                      type={showPw[key] ? "text" : "password"}
+                      value={pw[key]}
+                      onChange={(e) => setPw((p) => ({ ...p, [key]: e.target.value }))}
+                      placeholder={label}
+                      style={{ paddingRight: 44 }}
+                    />
+                    <button
+                      type="button"
+                      className="toggle-eye"
+                      onClick={() => setShowPw((p) => ({ ...p, [key]: !p[key] }))}
+                    >
+                      {showPw[key] ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
 
-        {/* ── Tabs ── */}
-        <div style={{ background:"rgba(7,9,26,.97)", backdropFilter:"blur(16px)", borderBottom:"1px solid rgba(255,255,255,.07)", position:"sticky", top:"66px", zIndex:100 }}>
-          <div style={{ maxWidth:"1100px", margin:"0 auto", padding:"0 clamp(20px,6vw,60px)", display:"flex", gap:"4px", overflowX:"auto" }}>
-            {TABS.map(t => (
-              <button key={t.key} className={`p-tab${tab===t.key?" active":""}`} onClick={() => setTab(t.key)}>
-                {t.icon} {t.label}
+            <div className="btn-row" style={{ marginTop: 18, justifyContent: "flex-end" }}>
+              <button className="btn btn-ghost" type="button" onClick={() => {
+                resetPasswordModal();
+                setShowPwModal(false);
+              }}>
+                Cancel
               </button>
-            ))}
+              <button className="btn btn-primary" type="button" onClick={handleChangePassword} disabled={pwLoading}>
+                {pwLoading ? "Updating..." : "Update Password"}
+              </button>
+            </div>
           </div>
         </div>
-
-        {/* ── Content ── */}
-        <div style={{ maxWidth:"1100px", margin:"0 auto", padding:"32px clamp(20px,6vw,60px) 80px" }}>
-
-          {/* ── OVERVIEW TAB ── */}
-          {tab === "overview" && (
-            <div style={{ display:"flex", gap:"24px", flexWrap:"wrap" }} className="profile-layout">
-
-              {/* Left — personal info */}
-              <div style={{ flex:"1 1 340px", display:"flex", flexDirection:"column", gap:"20px" }}>
-                <div className="p-card" style={{ animation:"fadeUp .5s ease both" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"20px" }}>
-                    <User size={15} color="#F5A623"/>
-                    <h3 style={{ fontSize:"14px", fontWeight:800, color:"#fff", fontFamily:"Manrope,sans-serif" }}>Personal Information</h3>
-                  </div>
-
-                  {[
-                    { icon:<User size={14}/>,          key:"name",   label:"Full Name",     placeholder:"Your full name" },
-                    { icon:<Mail size={14}/>,          key:"email",  label:"Email Address",  placeholder:"your@email.com" },
-                    { icon:<Phone size={14}/>,         key:"phone",  label:"Phone Number",   placeholder:"07X XXX XXXX" },
-                    { icon:<BookOpen size={14}/>,      key:"course", label:"Course",         placeholder:"Your course" },
-                  ].map(f => (
-                    <div key={f.key} style={{ marginBottom:"14px" }}>
-                      <label style={{ fontSize:"11px", fontWeight:700, color:"rgba(255,255,255,.45)", fontFamily:"Manrope,sans-serif", letterSpacing:"0.5px", textTransform:"uppercase", display:"flex", alignItems:"center", gap:"5px", marginBottom:"6px" }}>
-                        <span style={{ color:"rgba(245,166,35,.7)" }}>{f.icon}</span> {f.label}
-                      </label>
-                      <div style={{ position:"relative" }}>
-                        <span style={{ position:"absolute", left:"13px", top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,.3)", display:"flex" }}>{f.icon}</span>
-                        <input
-                          className="p-input"
-                          disabled={!editing}
-                          value={form[f.key]}
-                          placeholder={f.placeholder}
-                          onChange={e => setForm(p => ({...p, [f.key]:e.target.value}))}
-                        />
-                      </div>
-                    </div>
-                  ))}
-
-                  {saved && (
-                    <div style={{ display:"flex", alignItems:"center", gap:"7px", background:"rgba(34,197,94,.08)", border:"1px solid rgba(34,197,94,.2)", borderRadius:"9px", padding:"9px 12px", fontSize:"12px", color:"#4ade80", marginTop:"4px", animation:"fadeUp .3s ease" }}>
-                      <CheckCircle size={13}/> Profile saved successfully!
-                    </div>
-                  )}
-                </div>
-
-                {/* Student ID card */}
-                <div className="p-card" style={{ animation:"fadeUp .5s ease .1s both" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"16px" }}>
-                    <GraduationCap size={15} color="#F5A623"/>
-                    <h3 style={{ fontSize:"14px", fontWeight:800, color:"#fff", fontFamily:"Manrope,sans-serif" }}>Student Details</h3>
-                  </div>
-                  {[
-                    ["Student ID",  USER.studentId],
-                    ["Year",        USER.year],
-                    ["Role",        USER.role],
-                    ["Member Since",USER.joined],
-                  ].map(([l,v],i) => (
-                    <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 0", borderBottom: i<3 ? "1px solid rgba(255,255,255,.06)" : "none" }}>
-                      <span style={{ fontSize:"13px", color:"rgba(255,255,255,.45)" }}>{l}</span>
-                      <span style={{ fontSize:"13px", fontWeight:700, color: i===0 ? "#F5A623" : "rgba(255,255,255,.8)", fontFamily:"Manrope,sans-serif" }}>{v}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right — recent activity preview */}
-              <div style={{ flex:"1 1 300px", display:"flex", flexDirection:"column", gap:"20px" }}>
-                <div className="p-card" style={{ animation:"fadeUp .5s ease .15s both" }}>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"16px" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
-                      <Clock size={15} color="#F5A623"/>
-                      <h3 style={{ fontSize:"14px", fontWeight:800, color:"#fff", fontFamily:"Manrope,sans-serif" }}>Recent Activity</h3>
-                    </div>
-                    <button style={{ fontSize:"12px", color:"#F5A623", background:"none", border:"none", cursor:"pointer", fontWeight:600 }} onClick={() => setTab("activity")}>
-                      View all
-                    </button>
-                  </div>
-                  {ACTIVITY.slice(0,3).map((a,i) => (
-                    <div key={i} className="activity-item">
-                      <div style={{ width:"36px", height:"36px", borderRadius:"10px", background:a.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:a.color }}>
-                        {a.icon}
-                      </div>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <p style={{ fontSize:"13px", fontWeight:700, color:"#fff", fontFamily:"Manrope,sans-serif", marginBottom:"2px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.title}</p>
-                        <p style={{ fontSize:"11px", color:"rgba(255,255,255,.4)" }}>{a.time}</p>
-                      </div>
-                      <span style={{
-                        fontSize:"10px", fontWeight:700, fontFamily:"Manrope,sans-serif",
-                        padding:"2px 8px", borderRadius:"100px",
-                        background: a.status==="completed" ? "rgba(34,197,94,.12)" : a.status==="pending" ? "rgba(245,166,35,.12)" : "rgba(239,68,68,.12)",
-                        color: a.status==="completed" ? "#4ade80" : a.status==="pending" ? "#F5A623" : "#f87171",
-                        flexShrink:0
-                      }}>
-                        {a.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Quick links */}
-                <div className="p-card" style={{ animation:"fadeUp .5s ease .2s both" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"14px" }}>
-                    <Star size={15} color="#F5A623"/>
-                    <h3 style={{ fontSize:"14px", fontWeight:800, color:"#fff", fontFamily:"Manrope,sans-serif" }}>Quick Actions</h3>
-                  </div>
-                  {[
-                    { icon:<UtensilsCrossed size={15}/>, label:"Order Food",     action:() => navigate("/canteen") },
-                    { icon:<Package size={15}/>,         label:"Lost & Found",   action:() => {} },
-                    { icon:<Lock size={15}/>,            label:"Change Password",action:() => setShowPwModal(true) },
-                    { icon:<LogOut size={15}/>,          label:"Sign Out",        action:() => navigate("/login"), red:true },
-                  ].map((q,i) => (
-                    <div key={i} className="setting-row" onClick={q.action}>
-                      <div style={{ display:"flex", alignItems:"center", gap:"10px" }}>
-                        <span style={{ color: q.red ? "#f87171" : "#F5A623" }}>{q.icon}</span>
-                        <span style={{ fontSize:"13px", fontWeight:600, color: q.red ? "#f87171" : "rgba(255,255,255,.8)" }}>{q.label}</span>
-                      </div>
-                      <ChevronRight size={14} color="rgba(255,255,255,.3)"/>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── ACTIVITY TAB ── */}
-          {tab === "activity" && (
-            <div style={{ animation:"fadeUp .4s ease both" }}>
-              <div className="p-card">
-                <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"20px" }}>
-                  <Clock size={15} color="#F5A623"/>
-                  <h3 style={{ fontSize:"15px", fontWeight:800, color:"#fff", fontFamily:"Manrope,sans-serif" }}>All Activity</h3>
-                  <span style={{ background:"rgba(245,166,35,.12)", color:"#F5A623", borderRadius:"100px", padding:"2px 10px", fontSize:"11px", fontWeight:700, fontFamily:"Manrope,sans-serif" }}>{ACTIVITY.length}</span>
-                </div>
-                {ACTIVITY.map((a,i) => (
-                  <div key={i} className="activity-item" style={{ animation:`fadeUp .4s ease ${i*.07}s both` }}>
-                    <div style={{ width:"40px", height:"40px", borderRadius:"12px", background:a.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:a.color }}>
-                      {a.icon}
-                    </div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontSize:"14px", fontWeight:700, color:"#fff", fontFamily:"Manrope,sans-serif", marginBottom:"3px" }}>{a.title}</p>
-                      <p style={{ fontSize:"12px", color:"rgba(255,255,255,.45)" }}>{a.sub}</p>
-                      <p style={{ fontSize:"11px", color:"rgba(255,255,255,.3)", marginTop:"2px" }}>{a.time}</p>
-                    </div>
-                    <span style={{
-                      fontSize:"11px", fontWeight:700, fontFamily:"Manrope,sans-serif",
-                      padding:"3px 10px", borderRadius:"100px", flexShrink:0,
-                      background: a.status==="completed" ? "rgba(34,197,94,.12)" : a.status==="pending" ? "rgba(245,166,35,.12)" : "rgba(239,68,68,.12)",
-                      color: a.status==="completed" ? "#4ade80" : a.status==="pending" ? "#F5A623" : "#f87171",
-                    }}>
-                      {a.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── SETTINGS TAB ── */}
-          {tab === "settings" && (
-            <div style={{ display:"flex", gap:"24px", flexWrap:"wrap", animation:"fadeUp .4s ease both" }}>
-
-              {/* Notifications */}
-              <div style={{ flex:"1 1 300px" }}>
-                <div className="p-card" style={{ marginBottom:"20px" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"18px" }}>
-                    <Bell size={15} color="#F5A623"/>
-                    <h3 style={{ fontSize:"14px", fontWeight:800, color:"#fff", fontFamily:"Manrope,sans-serif" }}>Notifications</h3>
-                  </div>
-                  {[
-                    { key:"orders",        label:"Order Updates",        sub:"Get notified when your order is ready" },
-                    { key:"announcements", label:"Announcements",         sub:"Campus news and important updates" },
-                    { key:"reminders",     label:"Pickup Reminders",      sub:"Reminder before your order pickup time" },
-                    { key:"promotions",    label:"Promotions",            sub:"Special offers from campus canteens" },
-                  ].map(n => (
-                    <div key={n.key} className="setting-row">
-                      <div style={{ flex:1 }}>
-                        <p style={{ fontSize:"13px", fontWeight:700, color:"#fff", fontFamily:"Manrope,sans-serif", marginBottom:"2px" }}>{n.label}</p>
-                        <p style={{ fontSize:"12px", color:"rgba(255,255,255,.4)" }}>{n.sub}</p>
-                      </div>
-                      <button className={`toggle ${notifs[n.key] ? "on" : "off"}`}
-                        onClick={() => setNotifs(p => ({...p, [n.key]:!p[n.key]}))}/>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Security */}
-              <div style={{ flex:"1 1 300px" }}>
-                <div className="p-card" style={{ marginBottom:"20px" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"18px" }}>
-                    <Shield size={15} color="#F5A623"/>
-                    <h3 style={{ fontSize:"14px", fontWeight:800, color:"#fff", fontFamily:"Manrope,sans-serif" }}>Security</h3>
-                  </div>
-                  {[
-                    { icon:<Lock size={14}/>,  label:"Change Password",   sub:"Update your account password",          action:() => setShowPwModal(true) },
-                    { icon:<Shield size={14}/>,label:"Two-Factor Auth",    sub:"Add extra security to your account",    action:() => {} },
-                    { icon:<User size={14}/>,  label:"Active Sessions",    sub:"View and manage active login sessions", action:() => {} },
-                  ].map((s,i) => (
-                    <div key={i} className="setting-row" onClick={s.action}>
-                      <div style={{ display:"flex", alignItems:"center", gap:"10px" }}>
-                        <div style={{ width:"32px", height:"32px", borderRadius:"9px", background:"rgba(245,166,35,.1)", display:"flex", alignItems:"center", justifyContent:"center", color:"#F5A623" }}>
-                          {s.icon}
-                        </div>
-                        <div>
-                          <p style={{ fontSize:"13px", fontWeight:700, color:"#fff", fontFamily:"Manrope,sans-serif", marginBottom:"1px" }}>{s.label}</p>
-                          <p style={{ fontSize:"11px", color:"rgba(255,255,255,.4)" }}>{s.sub}</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={14} color="rgba(255,255,255,.3)"/>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Danger zone */}
-                <div className="p-card" style={{ border:"1.5px solid rgba(239,68,68,.15)" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"14px" }}>
-                    <AlertTriangle size={15} color="#f87171"/>
-                    <h3 style={{ fontSize:"14px", fontWeight:800, color:"#f87171", fontFamily:"Manrope,sans-serif" }}>Danger Zone</h3>
-                  </div>
-                  <button style={{
-                    width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between",
-                    background:"rgba(239,68,68,.07)", border:"1px solid rgba(239,68,68,.2)",
-                    borderRadius:"10px", padding:"12px 14px", cursor:"pointer", transition:"all .22s"
-                  }}
-                    onMouseOver={e => { e.currentTarget.style.background="rgba(239,68,68,.14)"; e.currentTarget.style.borderColor="rgba(239,68,68,.4)"; }}
-                    onMouseOut={e =>  { e.currentTarget.style.background="rgba(239,68,68,.07)"; e.currentTarget.style.borderColor="rgba(239,68,68,.2)"; }}
-                    onClick={() => navigate("/login")}
-                  >
-                    <div style={{ display:"flex", alignItems:"center", gap:"10px" }}>
-                      <LogOut size={15} color="#f87171"/>
-                      <div style={{ textAlign:"left" }}>
-                        <p style={{ fontSize:"13px", fontWeight:700, color:"#f87171", fontFamily:"Manrope,sans-serif" }}>Sign Out</p>
-                        <p style={{ fontSize:"11px", color:"rgba(248,113,113,.6)" }}>Sign out from your account</p>
-                      </div>
-                    </div>
-                    <ChevronRight size={14} color="#f87171"/>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {showPwModal && <ChangePasswordModal onClose={() => setShowPwModal(false)}/>}
-      </div>
+      )}
     </>
   );
 }
