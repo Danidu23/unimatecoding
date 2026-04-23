@@ -1,0 +1,366 @@
+.occupancy-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.dashboard-header {
+    margin-bottom: 0;
+}
+
+.dashboard-header h2 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    color: var(--text-primary);
+}
+
+.dashboard-header p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.dashboard-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    background: var(--bg-card);
+    padding: 16px;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-card);
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-group label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.control-group select,
+.control-group .form-input,
+.control-group .react-datepicker-wrapper,
+.control-group .react-datepicker__input-container input {
+    width: 100%;
+}
+
+.control-group select,
+.control-group .form-input,
+.control-group .react-datepicker__input-container input {
+    padding: 12px 14px;
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    font-family: inherit;
+}
+
+.control-group select:focus,
+.control-group .form-input:focus,
+.control-group .react-datepicker__input-container input:focus {
+    outline: none;
+    border-color: var(--border-primary);
+    box-shadow: 0 0 0 3px rgba(232, 184, 75, 0.12);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    color: var(--text-primary);
+    padding: 20px;
+    border-radius: var(--radius-xl);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.occupancy-chart {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-xl);
+    padding: 20px;
+}
+
+.occupancy-chart h3 {
+    margin: 0 0 16px 0;
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+.progress-bar {
+    height: 24px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.slots-list {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-xl);
+    padding: 20px;
+}
+
+.slots-list h3 {
+    margin: 0 0 16px 0;
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+.slots-header {
+    display: grid;
+    grid-template-columns: 100px 150px 150px 100px;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.slots-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.slot-item {
+    display: grid;
+    grid-template-columns: 100px 150px 150px 100px;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    align-items: center;
+    border-left: 3px solid var(--border-card);
+    transition: all var(--transition-fast);
+}
+
+.slot-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: var(--shadow-sm);
+}
+
+.slot-item.full {
+    border-left-color: var(--accent-red);
+}
+
+.slot-item.medium {
+    border-left-color: var(--accent-primary);
+}
+
+.slot-item.low {
+    border-left-color: var(--accent-green);
+}
+
+.slot-time {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.occupancy-visual {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.occupancy-bar-small {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    overflow: hidden;
+    flex: 1;
+}
+
+.occupancy-fill-small {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.occupancy-percent {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    min-width: 40px;
+    text-align: right;
+}
+
+.slot-capacity {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.slot-status {
+    text-align: right;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-badge.status-full {
+    background: var(--accent-red-bg);
+    color: var(--accent-red);
+}
+
+.status-badge.status-low {
+    background: var(--accent-green-bg);
+    color: var(--accent-green);
+}
+
+.status-badge.status-medium {
+    background: rgba(232, 184, 75, 0.12);
+    color: var(--accent-primary);
+}
+
+.legend-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-xl);
+    padding: 20px;
+}
+
+.legend-section h3 {
+    margin: 0 0 16px 0;
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+.legend-items {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    background: var(--bg-elevated);
+    border: 1px dashed var(--border-card);
+    border-radius: var(--radius-lg);
+}
+
+@media (max-width: 1024px) {
+    .dashboard-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .slots-header,
+    .slot-item {
+        grid-template-columns: 80px 1fr 100px 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .slots-header,
+    .slot-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .slots-header {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .slot-item {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .legend-items {
+        flex-direction: column;
+        gap: 12px;
+    }
+}

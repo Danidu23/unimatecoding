@@ -1,0 +1,150 @@
+.occupancy-legend {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.occupancy-legend h5 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.occupancy-indicators {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.indicator-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.indicator-item .icon {
+  font-size: 18px;
+}
+
+.occupancy-loading {
+  text-align: center;
+  padding: 12px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.slots-occupancy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.slot-occupancy-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 80px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  background: #1e293b;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.slot-occupancy-row.occupancy-low {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.slot-occupancy-row.occupancy-medium {
+  background: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.slot-occupancy-row.occupancy-full {
+  background: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+.slot-time {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.occupancy-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.occupancy-fill {
+  height: 100%;
+  background: #475569;
+  transition: width 0.3s ease;
+}
+
+.occupancy-fill.low {
+  background: linear-gradient(90deg, #4caf50, #7ec850);
+}
+
+.occupancy-fill.medium {
+  background: linear-gradient(90deg, #ffc107, #ffb300);
+}
+
+.occupancy-fill.full {
+  background: linear-gradient(90deg, #f44336, #e53935);
+}
+
+.occupancy-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.occupancy-info .icon {
+  font-size: 16px;
+}
+
+.occupancy-info .percentage {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.full-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #f44336;
+  background: rgba(244, 67, 54, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+  .occupancy-indicators {
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .slot-occupancy-row {
+    grid-template-columns: 70px 1fr 60px;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .slot-time {
+    font-size: 12px;
+  }
+}

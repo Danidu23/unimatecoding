@@ -1,0 +1,136 @@
+.priority-booking-form {
+  background: linear-gradient(135deg, #2a1b1b 0%, #1a0f0f 100%);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.priority-header {
+  margin-bottom: 12px;
+}
+
+.priority-header h4 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ef5350;
+}
+
+.priority-info {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.priority-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.priority-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #f44336;
+}
+
+.priority-checkbox label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e57373;
+  cursor: pointer;
+  margin: 0;
+}
+
+.priority-details {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.priority-details .form-group {
+  margin-bottom: 12px;
+}
+
+.priority-details .form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.priority-details .form-group select,
+.priority-details .form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 13px;
+  background: #0f172a;
+  color: #f1f5f9;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.priority-details .form-group select:focus,
+.priority-details .form-group textarea:focus {
+  outline: none;
+  border-color: #f44336;
+  background: #1e293b;
+}
+
+.priority-details .form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.priority-warning {
+  background: rgba(244, 67, 54, 0.1);
+  border-left: 3px solid #f44336;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.priority-warning .warning-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.priority-warning p {
+  margin: 0;
+  font-size: 12px;
+  color: #e57373;
+  line-height: 1.5;
+}
+
+.priority-warning strong {
+  font-weight: 700;
+  color: #ef5350;
+}
+
+@media (max-width: 768px) {
+  .priority-booking-form {
+    margin: 16px 0;
+    padding: 12px;
+  }
+}

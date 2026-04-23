@@ -1,0 +1,715 @@
+/* =========================================
+   SPORTS & SERVICES BOOKING SYSTEM
+   Global Design System - Dark Theme
+   
+   ========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+.sports-theme {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-card: #1c2333;
+  --bg-card-hover: #212d40;
+  --bg-elevated: #243044;
+  --bg-input: #1a2236;
+
+  --accent-primary: #e8b84b;
+  --accent-primary-dark: #c99d35;
+  --accent-primary-light: #f0c96a;
+  --accent-green: #2dd4a4;
+  --accent-green-bg: rgba(45, 212, 164, 0.1);
+  --accent-red: #ef4444;
+  --accent-red-bg: rgba(239, 68, 68, 0.1);
+  --accent-blue: #3b82f6;
+  --accent-blue-bg: rgba(59, 130, 246, 0.1);
+  --accent-orange: #f97316;
+  --accent-purple: #a855f7;
+
+  --text-primary: #e6edf3;
+  --text-secondary: #8b9ab5;
+  --text-muted: #555f6e;
+  --text-accent: #e8b84b;
+
+  --border-primary: rgba(139, 154, 181, 0.15);
+  --border-accent: rgba(232, 184, 75, 0.4);
+  --border-card: rgba(255, 255, 255, 0.06);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-accent: 0 4px 20px rgba(232, 184, 75, 0.25);
+  --shadow-glow: 0 0 30px rgba(232, 184, 75, 0.1);
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s ease;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sidebar-width: 260px;
+  --navbar-height: 70px;
+}
+
+.sports-theme {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+.sports-theme h1,
+.sports-theme h2,
+.sports-theme h3,
+.sports-theme h4,
+.sports-theme h5,
+.sports-theme h6 {
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text-primary);
+}
+
+.sports-theme h1 { font-size: clamp(1.75rem, 3vw, 2.25rem); }
+.sports-theme h2 { font-size: clamp(1.35rem, 2.5vw, 1.75rem); }
+.sports-theme h3 { font-size: clamp(1.1rem, 2vw, 1.35rem); }
+.sports-theme h4 { font-size: 1.1rem; }
+.sports-theme h5 { font-size: 0.95rem; }
+
+.sports-theme p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.sports-theme,
+.sports-theme *,
+.sports-theme *::before,
+.sports-theme *::after {
+  box-sizing: border-box;
+}
+
+.sports-theme a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sports-theme button {
+  cursor: pointer;
+  font-family: var(--font-sans);
+  border: none;
+  outline: none;
+}
+
+.sports-theme input,
+.sports-theme select,
+.sports-theme textarea {
+  font-family: var(--font-sans);
+  outline: none;
+}
+
+.sports-theme img {
+  max-width: 100%;
+  display: block;
+}
+
+.sports-theme ul,
+.sports-theme ol {
+  list-style: none;
+}
+
+.sports-theme .app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.sports-theme .main-content {
+  flex: 1;
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.sports-theme .page-header {
+  margin-bottom: 32px;
+}
+
+.sports-theme .page-header h1 {
+  margin-bottom: 6px;
+}
+
+.sports-theme .page-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.sports-theme .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sports-theme .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+}
+
+.sports-theme .btn-primary {
+  background: var(--accent-primary);
+  color: #0d1117;
+}
+
+.sports-theme .btn-primary:hover {
+  background: var(--accent-primary-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-accent);
+}
+
+.sports-theme .btn-primary:active {
+  transform: translateY(0);
+}
+
+.sports-theme .btn-secondary {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+}
+
+.sports-theme .btn-secondary:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.sports-theme .btn-danger {
+  background: var(--accent-red-bg);
+  color: var(--accent-red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.sports-theme .btn-danger:hover {
+  background: var(--accent-red);
+  color: white;
+}
+
+.sports-theme .btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+}
+
+.sports-theme .btn-ghost:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+  background: var(--bg-card);
+}
+
+.sports-theme .btn-sm {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+}
+
+.sports-theme .btn-lg {
+  padding: 14px 32px;
+  font-size: 1rem;
+}
+
+.sports-theme .btn-full {
+  width: 100%;
+}
+
+.sports-theme .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.sports-theme .card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.sports-theme .card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-primary);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.sports-theme .card-body {
+  padding: 20px;
+}
+
+.sports-theme .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.sports-theme .form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sports-theme .form-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  width: 100%;
+  transition: all var(--transition-fast);
+}
+
+.sports-theme .form-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(232, 184, 75, 0.15);
+}
+
+.sports-theme .form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.sports-theme .form-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sports-theme .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sports-theme .badge-pending {
+  background: rgba(232, 184, 75, 0.15);
+  color: var(--accent-primary);
+  border: 1px solid rgba(232, 184, 75, 0.3);
+}
+
+.sports-theme .badge-approved {
+  background: var(--accent-green-bg);
+  color: var(--accent-green);
+  border: 1px solid rgba(45, 212, 164, 0.3);
+}
+
+.sports-theme .badge-rejected {
+  background: var(--accent-red-bg);
+  color: var(--accent-red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.sports-theme .badge-cancelled {
+  background: rgba(139, 154, 181, 0.1);
+  color: var(--text-muted);
+  border: 1px solid var(--border-primary);
+}
+
+.sports-theme .badge-completed {
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.sports-theme .badge-indoor {
+  background: rgba(168, 85, 247, 0.12);
+  color: var(--accent-purple);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+}
+
+.sports-theme .badge-outdoor {
+  background: rgba(45, 212, 164, 0.1);
+  color: var(--accent-green);
+  border: 1px solid rgba(45, 212, 164, 0.3);
+}
+
+.sports-theme .badge-popular {
+  background: rgba(232, 184, 75, 0.15);
+  color: var(--accent-primary);
+  border: 1px solid rgba(232, 184, 75, 0.35);
+}
+
+.sports-theme .badge-almost-full {
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--accent-orange);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.sports-theme .search-bar {
+  position: relative;
+}
+
+.sports-theme .search-bar input {
+  padding-left: 44px;
+}
+
+.sports-theme .search-bar .search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.sports-theme .filter-tabs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sports-theme .filter-tab {
+  padding: 7px 18px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--border-primary);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.sports-theme .filter-tab:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.sports-theme .filter-tab.active {
+  background: var(--accent-primary);
+  color: #0d1117;
+  border-color: var(--accent-primary);
+}
+
+.sports-theme .grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.sports-theme .grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 24px;
+}
+
+.sports-theme .spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-primary);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: sports-spin 0.7s linear infinite;
+}
+
+@keyframes sports-spin {
+  to { transform: rotate(360deg); }
+}
+
+.sports-theme .loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 20px;
+  color: var(--text-secondary);
+}
+
+.sports-theme .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.sports-theme .empty-state-icon {
+  font-size: 3rem;
+  opacity: 0.3;
+}
+
+.sports-theme .alert {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.sports-theme .alert-success {
+  background: var(--accent-green-bg);
+  color: var(--accent-green);
+  border: 1px solid rgba(45, 212, 164, 0.3);
+}
+
+.sports-theme .alert-error {
+  background: var(--accent-red-bg);
+  color: var(--accent-red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.sports-theme .alert-warning {
+  background: rgba(232, 184, 75, 0.1);
+  color: var(--accent-primary);
+  border: 1px solid rgba(232, 184, 75, 0.3);
+}
+
+.sports-theme .alert-info {
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.sports-theme .divider {
+  height: 1px;
+  background: var(--border-card);
+  margin: 24px 0;
+}
+
+.sports-theme .stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sports-theme .stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.sports-theme .stat-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sports-theme .stat-change {
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sports-theme .stat-change.up {
+  color: var(--accent-green);
+}
+
+.sports-theme .stat-change.down {
+  color: var(--accent-red);
+}
+
+.sports-theme .table-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.sports-theme .table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sports-theme .table th {
+  padding: 14px 20px;
+  text-align: left;
+  font-size: 0.77rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-card);
+}
+
+.sports-theme .table td {
+  padding: 16px 20px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  vertical-align: middle;
+}
+
+.sports-theme .table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+
+.sports-theme .table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.sports-theme .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: sports-fadeIn var(--transition-fast);
+}
+
+.sports-theme .modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  max-width: 520px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: sports-slideUp var(--transition-normal);
+}
+
+.sports-theme .modal-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--border-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sports-theme .modal-body {
+  padding: 24px;
+}
+
+.sports-theme .modal-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+@keyframes sports-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sports-slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.sports-theme .react-datepicker-wrapper {
+  width: 100%;
+}
+
+.sports-theme .react-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+.sports-theme .react-datepicker {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-primary) !important;
+  font-family: var(--font-sans) !important;
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+}
+
+.sports-theme .react-datepicker__header {
+  background: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-card) !important;
+}
+
+.sports-theme .react-datepicker__current-month,
+.sports-theme .react-datepicker__day-name {
+  color: var(--text-primary) !important;
+}
+
+.sports-theme .react-datepicker__day {
+  color: var(--text-secondary) !important;
+}
+
+.sports-theme .react-datepicker__day:hover {
+  background: var(--accent-primary) !important;
+  color: #000 !important;
+  border-radius: 6px !important;
+}
+
+.sports-theme .react-datepicker__day--selected {
+  background: var(--accent-primary) !important;
+  color: #000 !important;
+  border-radius: 6px !important;
+  font-weight: 700;
+}
+
+.sports-theme .react-datepicker__day--disabled {
+  color: var(--text-muted) !important;
+}
+
+.sports-theme .react-datepicker__navigation-icon::before {
+  border-color: var(--text-secondary) !important;
+}
+
+@media (max-width: 768px) {
+  .sports-theme .main-content {
+    padding: 20px 16px;
+  }
+
+  .sports-theme .grid-3,
+  .sports-theme .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .sports-theme .modal {
+    margin: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    position: fixed;
+    bottom: 0;
+    max-width: 100%;
+  }
+
+  .sports-theme .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+}
