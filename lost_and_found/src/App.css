@@ -1,0 +1,10 @@
+/* Empty to prevent conflicts with index.css */
+
+.form-select, .form-select option {
+  color: white !important;
+  background-color: #1e293b !important;
+}
+
+.form-select:focus {
+  background-color: #1e293b !important;
+}
