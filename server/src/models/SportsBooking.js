@@ -9,6 +9,14 @@ const bookingSchema = new mongoose.Schema({
     endTime: { type: String, required: true }, // 'HH:mm'
     participants: { type: Number, default: 1 },
     status: { type: String, enum: ['pending', 'approved', 'rejected', 'completed', 'cancelled'], default: 'pending' },
+    attendanceStatus: { 
+        type: String, 
+        enum: ['pending', 'checked-in', 'completed', 'no-show'], 
+        default: 'pending' 
+    },
+    qrCode: { type: String },
+    checkInTime: { type: Date },
+    feedbackSubmitted: { type: Boolean, default: false },
     cancelDeadline: { type: Date, required: true },
     cancelReason: { type: String },
     rejectReason: { type: String },

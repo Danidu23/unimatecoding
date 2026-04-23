@@ -38,6 +38,7 @@ import SportsAdminReportsPage from './pages/sports/AdminReportsPage'
 import SportsAdminLimitsPage from './pages/sports/AdminLimitsPage'
 import SportsAdminPriorityReviewPage from './pages/sports/AdminPriorityReviewPage'
 import SportsAdminOccupancyDashboardPage from './pages/sports/AdminOccupancyDashboard'
+import SportsAdminCheckInPage from './pages/sports/AdminCheckInPage'
 
 
 import ClubsPage from './pages/clubs/ClubsPage'
@@ -236,6 +237,7 @@ function App() {
             <Route path="/sports/admin/limits" element={<SportsAdminLimitsPage />} />
             <Route path="/sports/admin/priority" element={<SportsAdminPriorityReviewPage />} />
             <Route path="/sports/admin/occupancy" element={<SportsAdminOccupancyDashboardPage />} />
+            <Route path="/sports/admin/check-in" element={<SportsAdminCheckInPage />} />
           </Route>
         </Route>
 

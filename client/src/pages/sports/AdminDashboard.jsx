@@ -154,6 +154,7 @@ const AdminDashboard = () => {
               { label: '📅 Manage Slots', path: '/sports/admin/slots' },
               { label: '⚙️ Limits & Rules', path: '/sports/admin/limits' },
               { label: '📊 View Reports', path: '/sports/admin/reports' },
+              { label: '📷 Check-in Scanner', path: '/sports/admin/check-in' },
             ].map(n => (
               <button
                 key={n.path}

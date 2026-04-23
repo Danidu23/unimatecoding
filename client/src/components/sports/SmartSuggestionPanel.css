@@ -1,14 +1,14 @@
 .smart-suggestion-panel {
-    background: linear-gradient(135deg, #f0f4ff 0%, #e6e9ff 100%);
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border: 2px solid #5c7cfa;
     border-radius: 12px;
     padding: 20px;
     margin: 20px 0;
-    box-shadow: 0 4px 16px rgba(92, 124, 250, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .conflict-warning {
-    background: #ffebee;
+    background: rgba(211, 47, 47, 0.1);
     border: 1px solid #f44336;
     border-radius: 8px;
     padding: 12px;
@@ -35,7 +35,7 @@
 }
 
 .conflict-warning strong {
-    color: #c62828;
+    color: #ef5350;
     display: block;
     margin-bottom: 4px;
     font-size: 13px;
@@ -44,14 +44,14 @@
 .conflict-warning p {
     margin: 4px 0;
     font-size: 12px;
-    color: #d32f2f;
+    color: #e57373;
 }
 
 .conflict-warning ul {
     margin: 6px 0 0 0;
     padding-left: 18px;
     font-size: 12px;
-    color: #d32f2f;
+    color: #e57373;
 }
 
 .conflict-warning li {
@@ -89,14 +89,14 @@
 
 .smart-header h4 {
     margin: 0;
-    color: #2b3990;
+    color: #94a3b8;
     font-size: 1.1rem;
     font-weight: 700;
 }
 
 .smart-desc {
     font-size: 0.9rem;
-    color: #555;
+    color: #94a3b8;
     margin-bottom: 15px;
 }
 
@@ -107,8 +107,8 @@
 }
 
 .smart-card {
-    background: white;
-    border: 1px solid #d1d9ff;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     padding: 14px 16px;
     cursor: pointer;
@@ -129,7 +129,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(92, 124, 250, 0.05), transparent);
+    background: linear-gradient(135deg, rgba(92, 124, 250, 0.1), transparent);
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
@@ -137,8 +137,9 @@
 
 .smart-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(92, 124, 250, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     border-color: #5c7cfa;
+    background: #334155;
 }
 
 .smart-card:hover::before {
@@ -149,7 +150,7 @@
     font-size: 11px;
     font-weight: 700;
     color: #5c7cfa;
-    background: rgba(92, 124, 250, 0.1);
+    background: rgba(92, 124, 250, 0.2);
     width: 24px;
     height: 24px;
     border-radius: 50%;
@@ -161,7 +162,7 @@
 
 .smart-time {
     font-weight: 600;
-    color: #2c3e50;
+    color: #f1f5f9;
     font-size: 13px;
 }
 
@@ -173,11 +174,11 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: #f5f7fa;
+    background: #0f172a;
     padding: 8px 10px;
     border-radius: 6px;
     font-size: 12px;
-    color: #455a64;
+    color: #94a3b8;
 }
 
 .smart-occupancy .status-icon {
@@ -193,7 +194,7 @@
 
 .smart-occupancy .status-text small {
     font-size: 11px;
-    color: #78909c;
+    color: #64748b;
     font-weight: 400;
 }
 
@@ -211,9 +212,9 @@
 
 .slot-warning {
     font-size: 11px;
-    color: #d32f2f;
+    color: #f44336;
     font-weight: 600;
-    background: #ffebee;
+    background: rgba(244, 67, 54, 0.1);
     padding: 6px 8px;
     border-radius: 4px;
     text-align: center;
@@ -229,11 +230,11 @@
 .smart-panel-loading {
     padding: 24px;
     text-align: center;
-    color: #666;
-    background: white;
+    color: #94a3b8;
+    background: #1e293b;
     border-radius: 8px;
     margin: 20px 0;
-    border: 1px dashed #c3d2ff;
+    border: 1px dashed rgba(92, 124, 250, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -252,10 +253,10 @@
 
 .smart-error-message {
     padding: 16px;
-    background: #ffebee;
+    background: rgba(244, 67, 54, 0.1);
     border: 1px solid #ef5350;
     border-radius: 8px;
-    color: #c62828;
+    color: #ef5350;
     text-align: center;
     font-weight: 500;
     margin-top: 12px;
@@ -263,10 +264,10 @@
 
 .smart-empty-message {
     padding: 16px;
-    background: #e8f5e9;
+    background: rgba(76, 175, 80, 0.1);
     border: 1px solid #66bb6a;
     border-radius: 8px;
-    color: #2e7d32;
+    color: #81c784;
     text-align: center;
     font-weight: 500;
     margin-top: 12px;
@@ -274,12 +275,12 @@
 
 .smart-suggestion-panel.error {
     border-color: #ef5350;
-    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    background: linear-gradient(135deg, #2a1b1b 0%, #1a0f0f 100%);
 }
 
 .smart-suggestion-panel.empty {
-    border-color: #66bb6a;
-    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-color: #2e7d32;
+    background: linear-gradient(135deg, #1b2a1b 0%, #0f1a0f 100%);
 }
 
 @keyframes spin {

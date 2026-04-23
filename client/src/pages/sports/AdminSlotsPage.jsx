@@ -141,15 +141,21 @@ const AdminSlotsPage = () => {
 
           {selectedFac && (
             <div className="facility-info-card">
-              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                <p className="fi-title" style={{margin:0}}>Operating Hours</p>
+              <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gridColumn: 'span 2', marginBottom: '8px'}}>
+                <div>
+                  <p className="fi-title" style={{margin:0}}>Operating Hours</p>
+                  <p className="fi-value" style={{marginTop: '4px'}}>{selectedFac.operatingHours.open} – {selectedFac.operatingHours.close}</p>
+                </div>
                 {!isEditingFac && (
-                  <button className="btn btn-link btn-sm" style={{padding:0, fontSize: '0.8rem', color: 'var(--accent-primary)'}} onClick={() => setIsEditingFac(true)}>
-                    <FiEdit style={{marginRight: 4}} /> Edit Limits
+                  <button 
+                    className="edit-limits-btn" 
+                    onClick={() => setIsEditingFac(true)}
+                    title="Edit Facility Limits"
+                  >
+                    <FiEdit size={14} />
                   </button>
                 )}
               </div>
-              <p className="fi-value">{selectedFac.operatingHours.open} – {selectedFac.operatingHours.close}</p>
 
               <p className="fi-title">Capacity <span style={{fontSize:'0.7rem', color:'var(--text-muted)'}}>(persons/slot)</span></p>
               {isEditingFac ? (

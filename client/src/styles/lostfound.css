@@ -396,20 +396,22 @@
 }
 
 .form-label {
-  font-size:13px;
-  font-weight:700;
-  color:rgba(255,255,255,.7);
+  font-size:14px;
+  font-weight:800;
+  color:#ffffff !important;
   font-family:'Manrope',sans-serif;
+  display:block;
+  margin-bottom:6px;
 }
 
 .form-input,
 .form-select,
 .form-textarea {
-  background:rgba(255,255,255,.04);
-  border:1.5px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.06) !important;
+  border:1.5px solid rgba(255,255,255,.15) !important;
   border-radius:12px;
   padding:14px 16px;
-  color:#fff;
+  color:#ffffff !important;
   font-size:15px;
   font-family:'DM Sans',sans-serif;
   transition:all .2s;
@@ -420,8 +422,13 @@
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
-  border-color:rgba(245,166,35,.5);
-  background:rgba(245,166,35,.05);
+  border-color:rgba(245,166,35,.6) !important;
+  background:rgba(245,166,35,.08) !important;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
 }
 
 .form-textarea {

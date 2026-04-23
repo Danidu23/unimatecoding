@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { FiCalendar, FiClock, FiUsers, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiUsers, FiCheckCircle, FiAlertCircle, FiStar } from 'react-icons/fi';
 import api from '../../api/sportsApi';
 import { format, addDays } from 'date-fns';
 import SmartSuggestionPanel from '../../components/sports/SmartSuggestionPanel';
@@ -144,7 +144,28 @@ const BookingPage = () => {
                 <span key={t} className={`badge badge-${t.replace(' ', '-')}`}>{t}</span>
               ))}
             </div>
-            <h2>{facility.name}</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2>{facility.name}</h2>
+              {facility.averageRating > 0 && (
+                <div className="facility-rating" style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px', 
+                  color: 'var(--accent-primary)',
+                  fontSize: '1.1rem',
+                  fontWeight: '700',
+                  background: 'rgba(232, 184, 75, 0.1)',
+                  padding: '4px 12px',
+                  borderRadius: '20px'
+                }}>
+                  <FiStar fill="currentColor" size={18} />
+                  <span>{facility.averageRating}</span>
+                  <span style={{ color: 'var(--text-muted)', fontWeight: '400', fontSize: '0.85rem' }}>
+                    ({facility.numRatings} reviews)
+                  </span>
+                </div>
+              )}
+            </div>
             <p>{facility.description}</p>
             <div className="booking-facility-meta-row">
               <div className="bfm-item">

@@ -1,13 +1,18 @@
 import { useNavigate } from 'react-router-dom';
-import { FiArrowRight, FiCalendar, FiClock, FiTrendingUp } from 'react-icons/fi';
-import { GiWeightLiftingUp } from 'react-icons/gi';
-import { MdOutlineLocalHospital } from 'react-icons/md';
+import { FiArrowRight, FiCalendar } from 'react-icons/fi';
+import heroImage from '../../assets/hero-image.png';
+import sportsThumb from '../../assets/sports-thumb.png';
+import servicesThumb from '../../assets/services-thumb.png';
+import iconTrending from '../../assets/icon-trending.png';
+import iconClock from '../../assets/icon-clock.png';
+import iconCalendar from '../../assets/icon-calendar.png';
 import './HomePage.css';
 
+
 const QUICK_STATS = [
-  { label: 'Available Sports Slots', value: '24', icon: <FiTrendingUp />, color: 'accent' },
-  { label: 'Student Services',       value: '12', icon: <FiClock />,       color: 'green' },
-  { label: 'Facilities Available',   value: '9',  icon: <FiCalendar />,    color: 'blue' },
+  { label: 'Available Sports Slots', value: '24', icon: iconTrending, color: 'accent' },
+  { label: 'Student Services',       value: '12', icon: iconClock,    color: 'green' },
+  { label: 'Facilities Available',   value: '9',  icon: iconCalendar, color: 'blue' },
 ];
 
 const HomePage = () => {
@@ -47,16 +52,8 @@ const HomePage = () => {
         </div>
         <div className="hero-visual">
           <div className="hero-glow" />
-          <div className="hero-icon-grid">
-            <div className="hero-icon-card">⚽</div>
-            <div className="hero-icon-card highlight">🏋️</div>
-            <div className="hero-icon-card">🏏</div>
-            <div className="hero-icon-card">🏸</div>
-            <div className="hero-icon-card highlight">🎾</div>
-            <div className="hero-icon-card">🏀</div>
-            <div className="hero-icon-card">🏐</div>
-            <div className="hero-icon-card highlight">🩺</div>
-            <div className="hero-icon-card">💬</div>
+          <div className="hero-image-container">
+            <img src={heroImage} alt="Sports and Student Services" className="hero-image" />
           </div>
         </div>
       </section>
@@ -65,7 +62,9 @@ const HomePage = () => {
       <section className="home-stats">
         {QUICK_STATS.map((s, i) => (
           <div key={i} className={`home-stat-card stat-${s.color}`}>
-            <div className="home-stat-icon">{s.icon}</div>
+            <div className="home-stat-icon-wrap">
+              <img src={s.icon} alt={s.label} className="home-stat-img-icon" />
+            </div>
             <div>
               <div className="home-stat-value">{s.value}</div>
               <div className="home-stat-label">{s.label}</div>
@@ -76,7 +75,7 @@ const HomePage = () => {
 
       {/* Info Bar */}
       <div className="info-bar">
-        <span>⏰</span>
+        <img src={iconClock} alt="Info" className="info-bar-icon" />
         <span>Peak booking times: <strong>7–9 AM</strong> and <strong>5–7 PM</strong></span>
         <span className="info-bar-dot">•</span>
         <span>Sports cancellation: <strong>2 hrs before</strong></span>
@@ -100,8 +99,8 @@ const HomePage = () => {
             onClick={() => navigate('/sports/book/facilities')}
           >
             <div className="category-card-badge">🔥 Popular</div>
-            <div className="category-icon sports-icon">
-              <GiWeightLiftingUp />
+            <div className="category-image-wrap">
+              <img src={sportsThumb} alt="Sports" className="category-thumb" />
             </div>
             <h3 className="category-title">Sports Facilities</h3>
             <p className="category-desc">
@@ -121,8 +120,8 @@ const HomePage = () => {
             className="category-card"
             onClick={() => navigate('/sports/book/services')}
           >
-            <div className="category-icon service-icon">
-              <MdOutlineLocalHospital />
+            <div className="category-image-wrap">
+              <img src={servicesThumb} alt="Services" className="category-thumb" />
             </div>
             <h3 className="category-title">Student Services</h3>
             <p className="category-desc">

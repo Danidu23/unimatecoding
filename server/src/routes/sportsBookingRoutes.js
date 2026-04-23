@@ -5,7 +5,9 @@ const {
     getMyBookings,
     cancelBooking,
     getAllBookings,
-    updateBookingStatus
+    updateBookingStatus,
+    checkInBooking,
+    completeBooking
 } = require('../controllers/sportsBookingController');
 const { protect } = require('../middleware/authMiddleware');
 const { requireStudent, requireSportsAdmin } = require('../middleware/roleMiddleware');
@@ -18,5 +20,7 @@ router.put('/:id/cancel', protect, requireStudent, cancelBooking);
 // Admin routes
 router.get('/', protect, requireSportsAdmin, getAllBookings);
 router.put('/:id/status', protect, requireSportsAdmin, updateBookingStatus);
+router.put('/:id/check-in', protect, requireSportsAdmin, checkInBooking);
+router.put('/:id/complete', protect, requireSportsAdmin, completeBooking);
 
 module.exports = router;

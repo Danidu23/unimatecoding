@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiFilter, FiClock, FiUsers, FiSearch } from 'react-icons/fi';
+import { FiFilter, FiClock, FiUsers, FiSearch, FiStar } from 'react-icons/fi';
 import api from '../../api/sportsApi';
 import './FacilityListPage.css';
 
@@ -149,7 +149,25 @@ const FacilityCard = ({ item, getAvailabilityColor, onClick }) => {
 
       {/* Body */}
       <div className="facility-card-body">
-        <h3 className="facility-name">{item.name}</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <h3 className="facility-name">{item.name}</h3>
+          {item.averageRating > 0 && (
+            <div className="facility-rating" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '4px', 
+              color: 'var(--accent-primary)',
+              fontSize: '0.9rem',
+              fontWeight: '700'
+            }}>
+              <FiStar fill="currentColor" size={14} />
+              <span>{item.averageRating}</span>
+              <span style={{ color: 'var(--text-muted)', fontWeight: '400', fontSize: '0.75rem' }}>
+                ({item.numRatings})
+              </span>
+            </div>
+          )}
+        </div>
         <p className="facility-desc">{item.description}</p>
 
         <div className="facility-meta">

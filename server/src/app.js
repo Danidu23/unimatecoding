@@ -20,6 +20,7 @@ const sportsNotificationRoutes = require('./routes/sportsNotificationRoutes');
 const sportsReportRoutes = require('./routes/sportsReportRoutes');
 const sportsRulesRoutes = require('./routes/sportsRulesRoutes');
 const sportsSmartRoutes = require('./routes/sportsSmartRoutes');
+const sportsFeedbackRoutes = require('./routes/sportsFeedbackRoutes');
 
 const clubsRoutes = require('./routes/clubsRoutes');
 const clubApplicationRoutes = require('./routes/clubApplicationRoutes');
@@ -66,6 +67,7 @@ app.use('/api/sports/notifications', sportsNotificationRoutes);
 app.use('/api/sports/reports', sportsReportRoutes);
 app.use('/api/sports/rules', sportsRulesRoutes);
 app.use('/api/sports/smart', sportsSmartRoutes);
+app.use('/api/sports/feedback', sportsFeedbackRoutes);
 
 app.use('/api/clubs', clubsRoutes);
 app.use('/api/clubs/applications', clubApplicationRoutes);

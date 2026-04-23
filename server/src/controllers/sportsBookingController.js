@@ -3,6 +3,7 @@ const SportsSlot = require('../models/SportsSlot');
 const SportsGlobalRules = require('../models/SportsGlobalRules');
 const SportsNotification = require('../models/SportsNotification');
 const User = require('../models/User');
+const crypto = require('crypto');
 
 // Helper to get global rules falling back to defaults
 const getGlobalRules = async () => {
@@ -104,7 +105,9 @@ const createBooking = async (req, res) => {
             status: 'pending',
             cancelDeadline,
             isPriority: isPriority || false,
-            priorityReason: isPriority ? priorityReason : ''
+            priorityReason: isPriority ? priorityReason : '',
+            qrCode: crypto.randomBytes(16).toString('hex'),
+            attendanceStatus: 'pending'
         });
 
         // We DO NOT update slot.booked until it is approved. Wait, the system requirements say: 
@@ -314,10 +317,88 @@ const updateBookingStatus = async (req, res) => {
     }
 };
 
+// @desc    Check-in a booking via QR code
+// @route   PUT /api/bookings/:id/check-in
+// @access  Staff/Admin
+const checkInBooking = async (req, res) => {
+    try {
+        const { qrCode } = req.body;
+        const booking = await SportsBooking.findById(req.params.id)
+            .populate('facilityServiceId', 'name');
+
+        if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+        // Validate QR Code
+        if (booking.qrCode !== qrCode) {
+            return res.status(400).json({ message: 'Invalid QR code' });
+        }
+
+        // Check if already checked in
+        if (booking.attendanceStatus !== 'pending') {
+            return res.status(400).json({ message: `Already ${booking.attendanceStatus}` });
+        }
+
+        // Check time window (e.g., 15 mins before to 15 mins after start time)
+        const [year, month, day] = booking.date.split('-').map(Number);
+        const [hour, minute] = booking.startTime.split(':').map(Number);
+        const startTime = new Date(year, month - 1, day, hour, minute);
+        
+        const now = new Date();
+        const diffMinutes = (now - startTime) / (1000 * 60);
+
+        if (diffMinutes < -15) {
+            return res.status(400).json({ message: 'Too early for check-in. Please wait until 15 mins before start time.' });
+        }
+        if (diffMinutes > 15) {
+            booking.attendanceStatus = 'no-show';
+            await booking.save();
+            return res.status(400).json({ message: 'Check-in window has passed. Marked as No-show.' });
+        }
+
+        booking.attendanceStatus = 'checked-in';
+        booking.checkInTime = now;
+        // Also update main status to show it's active/in-progress
+        booking.status = 'approved'; 
+        
+        await booking.save();
+
+        res.json({
+            message: 'Check-in successful. Enjoy your session!',
+            booking
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Manually complete a booking (or via automated task)
+// @route   PUT /api/bookings/:id/complete
+// @access  Staff/Admin
+const completeBooking = async (req, res) => {
+    try {
+        const booking = await SportsBooking.findById(req.params.id);
+        if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+        if (booking.attendanceStatus !== 'checked-in') {
+            return res.status(400).json({ message: 'Can only complete checked-in bookings' });
+        }
+
+        booking.status = 'completed';
+        booking.attendanceStatus = 'completed';
+        await booking.save();
+
+        res.json({ message: 'Booking marked as completed', booking });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createBooking,
     getMyBookings,
     cancelBooking,
     getAllBookings,
-    updateBookingStatus
+    updateBookingStatus,
+    checkInBooking,
+    completeBooking
 };

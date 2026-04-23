@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCalendar, FiFilter, FiX, FiAlertTriangle } from 'react-icons/fi';
-import api from '../../api/sportsApi';
 import { format, parseISO, isBefore } from 'date-fns';
+import api from '../../api/sportsApi';
+import SportsQRCodeModal from '../../components/sports/SportsQRCodeModal';
+import SportsFeedbackForm from '../../components/sports/SportsFeedbackForm';
+import { FiCalendar, FiFilter, FiX, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
 import './MyBookingsPage.css';
 
 const STATUS_FILTERS = ['All', 'Pending', 'Approved', 'Rejected', 'Completed', 'Cancelled'];
@@ -16,6 +18,8 @@ const MyBookingsPage = () => {
   const [cancelling, setCancelling] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [showQR, setShowQR] = useState(null);
+  const [showFeedback, setShowFeedback] = useState(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -139,6 +143,12 @@ const MyBookingsPage = () => {
                     <div className="bi-meta-item">
                       🕐 {booking.startTime} – {booking.endTime}
                     </div>
+                    {booking.attendanceStatus && booking.attendanceStatus !== 'pending' && (
+                      <div className="bi-meta-item" style={{ color: 'var(--accent-green)' }}>
+                        <FiCheckCircle />
+                        <span>{booking.attendanceStatus.replace('-', ' ')}</span>
+                      </div>
+                    )}
                     {booking.participants > 1 && (
                       <div className="bi-meta-item">
                         👥 {booking.participants} participants
@@ -165,7 +175,16 @@ const MyBookingsPage = () => {
 
                 <div className="booking-item-right">
                   {!isCompleted && !isCancelled && booking.status !== 'rejected' && (
-                    <>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {booking.status === 'approved' && booking.attendanceStatus === 'pending' && (
+                        <button 
+                          className="btn btn-primary btn-sm"
+                          onClick={() => setShowQR(booking)}
+                        >
+                          Show QR Code
+                        </button>
+                      )}
+
                       {cancellable ? (
                         <button
                           className="btn btn-danger btn-sm"
@@ -179,10 +198,23 @@ const MyBookingsPage = () => {
                           <span>Cancellation deadline passed</span>
                         </div>
                       )}
-                    </>
+                    </div>
                   )}
                   {isCompleted && (
-                    <span className="booking-readonly-label">Read-only</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {!booking.feedbackSubmitted ? (
+                        <button 
+                          className="btn btn-primary btn-sm"
+                          onClick={() => setShowFeedback(booking)}
+                        >
+                          Rate Experience
+                        </button>
+                      ) : (
+                        <span className="booking-readonly-label" style={{ color: 'var(--accent-green)' }}>
+                          Feedback Submitted
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -235,6 +267,23 @@ const MyBookingsPage = () => {
           </div>
         </div>
       )}
+      {/* Modals */}
+      <SportsQRCodeModal 
+        isOpen={!!showQR}
+        onClose={() => setShowQR(null)}
+        booking={showQR}
+      />
+
+      <SportsFeedbackForm
+        isOpen={!!showFeedback}
+        onClose={() => setShowFeedback(null)}
+        booking={showFeedback}
+        onSubmitted={() => {
+          setBookings(prev => 
+            prev.map(b => b._id === showFeedback._id ? { ...b, feedbackSubmitted: true } : b)
+          );
+        }}
+      />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 .occupancy-legend {
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8eef7 100%);
-  border: 1px solid #dfe8f3;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 20px;
@@ -10,7 +10,7 @@
   margin: 0 0 12px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #2c3e50;
+  color: #f1f5f9;
 }
 
 .occupancy-indicators {
@@ -25,7 +25,7 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #5a6c7d;
+  color: #94a3b8;
 }
 
 .indicator-item .icon {
@@ -35,7 +35,7 @@
 .occupancy-loading {
   text-align: center;
   padding: 12px;
-  color: #7f8c8d;
+  color: #94a3b8;
   font-size: 13px;
 }
 
@@ -52,43 +52,43 @@
   gap: 12px;
   align-items: center;
   padding: 10px 12px;
-  background: white;
+  background: #1e293b;
   border-radius: 8px;
-  border: 1px solid #ecf0f1;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.2s ease;
 }
 
 .slot-occupancy-row.occupancy-low {
-  background: rgba(76, 175, 80, 0.05);
-  border-color: rgba(76, 175, 80, 0.2);
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.3);
 }
 
 .slot-occupancy-row.occupancy-medium {
-  background: rgba(255, 193, 7, 0.05);
-  border-color: rgba(255, 193, 7, 0.2);
+  background: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
 }
 
 .slot-occupancy-row.occupancy-full {
-  background: rgba(244, 67, 54, 0.05);
-  border-color: rgba(244, 67, 54, 0.2);
+  background: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.3);
 }
 
 .slot-time {
   font-size: 13px;
   font-weight: 600;
-  color: #2c3e50;
+  color: #f1f5f9;
 }
 
 .occupancy-bar {
   height: 6px;
-  background: #ecf0f1;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 3px;
   overflow: hidden;
 }
 
 .occupancy-fill {
   height: 100%;
-  background: #95a5a6;
+  background: #475569;
   transition: width 0.3s ease;
 }
 
@@ -119,14 +119,14 @@
 .occupancy-info .percentage {
   font-size: 12px;
   font-weight: 600;
-  color: #2c3e50;
+  color: #f1f5f9;
 }
 
 .full-badge {
   font-size: 10px;
   font-weight: 700;
   color: #f44336;
-  background: rgba(244, 67, 54, 0.1);
+  background: rgba(244, 67, 54, 0.2);
   padding: 2px 6px;
   border-radius: 4px;
   text-transform: uppercase;

@@ -14,7 +14,9 @@ const facilityServiceSchema = new mongoose.Schema({
     active: { type: Boolean, default: true },
     image: { type: String },
     tags: [{ type: String }],
-    provider: { type: String } // e.g., 'Dr. Smith', optional
+    provider: { type: String }, // e.g., 'Dr. Smith', optional
+    averageRating: { type: Number, default: 0 },
+    numRatings: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.models.SportsFacilityService || mongoose.model('SportsFacilityService', facilityServiceSchema);
