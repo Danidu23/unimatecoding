@@ -395,27 +395,67 @@ function ReliableServiceAd() {
   ];
 
   return (
-    <section ref={ref} style={{width:"100%",background:`url('https://images.unsplash.com/photo-1552664730-d307ca884978?w=1400&h=600&fit=crop')`,backgroundSize:"cover",backgroundPosition:"center",backgroundAttachment:"fixed",padding:"clamp(40px,8vw,60px) clamp(20px,6vw,60px)",textAlign:"center",position:"relative",overflow:"hidden"}}>
+    <section ref={ref} style={{width:"100%",background:`url('https://images.unsplash.com/photo-1552664730-d307ca884978?w=1400&h=600&fit=crop')`,backgroundSize:"cover",backgroundPosition:"center",backgroundAttachment:"fixed",padding:"clamp(60px,10vw,96px) clamp(20px,6vw,60px)",textAlign:"center",position:"relative",overflow:"hidden"}}>
       {/* Blurred Background Overlay */}
-      <div style={{position:"absolute",inset:0,background:`url('https://images.unsplash.com/photo-1552664730-d307ca884978?w=1400&h=600&fit=crop')`,backgroundSize:"cover",backgroundPosition:"center",filter:"blur(8px)",zIndex:0}}/>
-      {/* Background accent */}
-      <div style={{position:"absolute",top:"-40%",right:"-10%",width:"400px",height:"400px",background:"rgba(255,255,255,.1)",borderRadius:"50%",pointerEvents:"none"}}/>
-      <div style={{position:"absolute",bottom:"-30%",left:"-8%",width:"350px",height:"350px",background:"rgba(255,255,255,.08)",borderRadius:"50%",pointerEvents:"none"}}/>
-      
-      <div style={{position:"relative",zIndex:1}}>
-        <p style={{fontSize:"11px",color:"rgba(7,9,26,.6)",marginBottom:"12px",letterSpacing:"2.5px",textTransform:"uppercase",fontFamily:"Manrope,sans-serif",fontWeight:800}}>Why Choose Unimate</p>
-        <h2 style={{fontSize:"clamp(28px,4.5vw,48px)",fontWeight:900,color:"#07091a",marginBottom:"16px",letterSpacing:"-1px",fontFamily:"Manrope,sans-serif"}}>Your Reliable Campus Service Partner</h2>
-        <p style={{fontSize:"clamp(15px,2vw,18px)",color:"rgba(7,9,26,.75)",marginBottom:"48px",maxWidth:"600px",margin:"0 auto 48px",lineHeight:1.7,fontFamily:"DM Sans,sans-serif"}}>
+      <div style={{position:"absolute",inset:0,background:`url('https://images.unsplash.com/photo-1552664730-d307ca884978?w=1400&h=600&fit=crop')`,backgroundSize:"cover",backgroundPosition:"center",filter:"blur(15px)",zIndex:0}}/>
+      {/* Linear Gradient Overlay */}
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.3) 100%)",zIndex:1}}/>
+
+      {/* Floating Decorative Elements */}
+      <div style={{position:"absolute",top:"10%",left:"10%",width:"60px",height:"60px",background:"linear-gradient(45deg, rgba(245,166,35,0.2), rgba(249,186,60,0.3))",borderRadius:"50%",animation:"float 6s ease-in-out infinite",zIndex:1}}/>
+      <div style={{position:"absolute",top:"20%",right:"15%",width:"40px",height:"40px",background:"linear-gradient(45deg, rgba(245,166,35,0.15), rgba(249,186,60,0.25))",borderRadius:"50%",animation:"float 8s ease-in-out infinite reverse",zIndex:1}}/>
+      <div style={{position:"absolute",bottom:"15%",left:"20%",width:"50px",height:"50px",background:"linear-gradient(45deg, rgba(245,166,35,0.18), rgba(249,186,60,0.28))",borderRadius:"50%",animation:"float 7s ease-in-out infinite",zIndex:1}}/>
+      <div style={{position:"absolute",bottom:"25%",right:"10%",width:"35px",height:"35px",background:"linear-gradient(45deg, rgba(245,166,35,0.22), rgba(249,186,60,0.32))",borderRadius:"50%",animation:"float 9s ease-in-out infinite reverse",zIndex:1}}/>
+
+      {/* Background accent shapes */}
+      <div style={{position:"absolute",top:"-20%",right:"-5%",width:"300px",height:"300px",background:"linear-gradient(45deg, rgba(245,166,35,0.1), rgba(249,186,60,0.15))",borderRadius:"50%",pointerEvents:"none",animation:"glow 4s ease-in-out infinite alternate"}}/>
+      <div style={{position:"absolute",bottom:"-15%",left:"-5%",width:"250px",height:"250px",background:"linear-gradient(45deg, rgba(245,166,35,0.08), rgba(249,186,60,0.12))",borderRadius:"50%",pointerEvents:"none",animation:"glow 5s ease-in-out infinite alternate reverse"}}/>
+
+      <div style={{position:"relative",zIndex:2}}>
+        {/* Badge */}
+        <div style={{display:"inline-flex",alignItems:"center",gap:"8px",background:"linear-gradient(135deg, rgba(245,166,35,0.9), rgba(249,186,60,0.9))",border:"1px solid rgba(245,166,35,0.3)",borderRadius:"100px",padding:"8px 20px",marginBottom:"24px",boxShadow:"0 4px 20px rgba(245,166,35,0.3)"}}>
+          <div style={{width:"6px",height:"6px",borderRadius:"50%",background:"#07091a",animation:"pulse 2s infinite"}}/>
+          <span style={{fontSize:"11px",fontWeight:800,color:"#07091a",fontFamily:"Manrope,sans-serif",letterSpacing:"1px"}}>Why Choose Unimate</span>
+        </div>
+
+        {/* Main Heading with Gradient */}
+        <h2 style={{fontSize:"clamp(32px,5vw,56px)",fontWeight:900,color:"#07091a",marginBottom:"20px",letterSpacing:"-1.5px",fontFamily:"Manrope,sans-serif",background:"linear-gradient(135deg, #07091a 0%, #2d3748 50%, #07091a 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",textShadow:"0 2px 10px rgba(0,0,0,0.1)"}}>
+          Your Reliable Campus Service Partner
+        </h2>
+
+        {/* Description */}
+        <p style={{fontSize:"clamp(16px,2.2vw,20px)",color:"rgba(7,9,26,0.8)",marginBottom:"60px",maxWidth:"650px",margin:"0 auto 60px",lineHeight:1.7,fontFamily:"DM Sans,sans-serif",fontWeight:500}}>
           Trusted by thousands of students. Fast, secure, and reliable campus services at your fingertips.
         </p>
 
         {/* Benefits Grid */}
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:"24px",maxWidth:"1000px",margin:"0 auto"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:"32px",maxWidth:"1100px",margin:"0 auto"}}>
           {benefits.map((b,i)=>(
-            <div key={i} style={inView?{animation:`fadeUp .72s cubic-bezier(.22,.68,0,1.2) ${i*.12}s both`}:{opacity:0}}>
-              <div style={{marginBottom:"12px"}}>{b.icon}</div>
-              <h3 style={{fontSize:"16px",fontWeight:800,color:"#07091a",marginBottom:"8px",fontFamily:"Manrope,sans-serif"}}>{b.title}</h3>
-              <p style={{fontSize:"13px",color:"rgba(7,9,26,.7)",lineHeight:1.65}}>{b.desc}</p>
+            <div key={i} style={{
+              ...{opacity:0},
+              ...(inView ? {animation:`fadeUp .8s cubic-bezier(.22,.68,0,1.2) ${i*.15}s both`} : {}),
+              background:"rgba(255,255,255,0.9)",
+              borderRadius:"20px",
+              padding:"32px 28px",
+              textAlign:"center",
+              boxShadow:"0 8px 32px rgba(0,0,0,0.1)",
+              border:"1px solid rgba(255,255,255,0.2)",
+              transition:"transform 0.3s cubic-bezier(.22,.68,0,1.2), box-shadow 0.3s, border-color 0.3s",
+              cursor:"default"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
+              e.currentTarget.style.boxShadow = "0 20px 40px rgba(245,166,35,0.15)";
+              e.currentTarget.style.borderColor = "rgba(245,166,35,0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0) scale(1)";
+              e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,0,0,0.1)";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)";
+            }}>
+              <div style={{marginBottom:"20px",display:"flex",justifyContent:"center"}}>{b.icon}</div>
+              <h3 style={{fontSize:"18px",fontWeight:800,color:"#07091a",marginBottom:"12px",fontFamily:"Manrope,sans-serif"}}>{b.title}</h3>
+              <p style={{fontSize:"14px",color:"rgba(7,9,26,0.75)",lineHeight:1.6,fontFamily:"DM Sans,sans-serif"}}>{b.desc}</p>
             </div>
           ))}
         </div>
