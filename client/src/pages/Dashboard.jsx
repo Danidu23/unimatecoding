@@ -381,6 +381,53 @@ function HowItWorks() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   RELIABLE SERVICE ADVERTISEMENT
+═══════════════════════════════════════════════════════════════════════════ */
+function ReliableServiceAd() {
+  const [ref, inView] = useInView();
+  const benefits = [
+    {icon:"✓", title:"24/7 Support", desc:"Round-the-clock customer assistance available whenever you need help."},
+    {icon:"⚡", title:"Instant Updates", desc:"Real-time notifications keep you informed every step of the way."},
+    {icon:"🛡️", title:"Secure Payments", desc:"Bank-grade encryption protects all your transactions and data."},
+    {icon:"⭐", title:"4.8 Star Rating", desc:"Trusted by 10,000+ SLIT students across campus."}
+  ];
+  return (
+    <section ref={ref} style={{width:"100%",background:"linear-gradient(135deg,#F5A623 0%,#f9ba3c 100%)",padding:"clamp(60px,10vw,96px) clamp(20px,6vw,60px)",textAlign:"center",position:"relative",overflow:"hidden"}}>
+      {/* Background accent */}
+      <div style={{position:"absolute",top:"-40%",right:"-10%",width:"400px",height:"400px",background:"rgba(255,255,255,.1)",borderRadius:"50%",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",bottom:"-30%",left:"-8%",width:"350px",height:"350px",background:"rgba(255,255,255,.08)",borderRadius:"50%",pointerEvents:"none"}}/>
+      
+      <div style={{position:"relative",zIndex:1}}>
+        <p style={{fontSize:"11px",color:"rgba(7,9,26,.6)",marginBottom:"12px",letterSpacing:"2.5px",textTransform:"uppercase",fontFamily:"Manrope,sans-serif",fontWeight:800}}>Why Choose Unimate</p>
+        <h2 style={{fontSize:"clamp(28px,4.5vw,48px)",fontWeight:900,color:"#07091a",marginBottom:"16px",letterSpacing:"-1px",fontFamily:"Manrope,sans-serif"}}>Your Reliable Campus Service Partner</h2>
+        <p style={{fontSize:"clamp(15px,2vw,18px)",color:"rgba(7,9,26,.75)",marginBottom:"52px",maxWidth:"600px",margin:"0 auto 52px",lineHeight:1.7,fontFamily:"DM Sans,sans-serif"}}>
+          Trusted by thousands of students. Fast, secure, and reliable campus services at your fingertips.
+        </p>
+
+        {/* Benefits Grid */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:"24px",maxWidth:"1000px",margin:"0 auto 48px"}}>
+          {benefits.map((b,i)=>(
+            <div key={i} style={inView?{animation:`fadeUp .72s cubic-bezier(.22,.68,0,1.2) ${i*.12}s both`}:{opacity:0}}>
+              <div style={{fontSize:"32px",marginBottom:"12px"}}>{b.icon}</div>
+              <h3 style={{fontSize:"16px",fontWeight:800,color:"#07091a",marginBottom:"8px",fontFamily:"Manrope,sans-serif"}}>{b.title}</h3>
+              <p style={{fontSize:"13px",color:"rgba(7,9,26,.7)",lineHeight:1.65}}>{b.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA Button */}
+        <button style={{display:"inline-flex",alignItems:"center",gap:"8px",background:"#07091a",color:"#F5A623",border:"none",borderRadius:"12px",padding:"16px 36px",fontSize:"16px",fontWeight:800,fontFamily:"Manrope,sans-serif",cursor:"pointer",transition:"transform .22s, box-shadow .22s",boxShadow:"0 8px 24px rgba(7,9,26,.3)",position:"relative",overflow:"hidden"}}
+          onMouseOver={e => { e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.boxShadow="0 12px 32px rgba(7,9,26,.4)"; }}
+          onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 8px 24px rgba(7,9,26,.3)"; }}
+        >
+          Get Started Today <ArrowRight size={16}/>
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    ACTIVE ORDERS
 ═══════════════════════════════════════════════════════════════════════════ */
 function ActiveOrders() {
@@ -567,6 +614,7 @@ export default function Dashboard() {
         <WhyUnimate />
         <CoreServices />
         <HowItWorks />
+        <ReliableServiceAd />
         <ActiveOrders />
         <Testimonials />
         <Announcements />
