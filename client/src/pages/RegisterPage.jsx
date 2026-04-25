@@ -137,7 +137,7 @@ export default function RegisterPage() {
 
   const validate = () => {
     if (!form.name.trim()) return "Please enter your full name.";
-    if (!form.email.includes("@")) return "Please enter a valid email address.";
+    if (!form.email.includes("@gmail.com")) return "Please enter a valid email address.";
     if (!form.phone.trim()) return "Please enter your phone number.";
     if (form.phone && !/^\d{10}$/.test(form.phone.replace(/\s/g, ""))) return "Phone number must be 10 digits.";
     if (form.password.length < 8) return "Password must be at least 8 characters.";
@@ -254,7 +254,7 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="Kamal Perera"
                   value={form.name}
-                  onChange={e => set("name", e.target.value)}
+                  onChange={e => set("name", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
                   autoComplete="name"
                 />
               </div>
