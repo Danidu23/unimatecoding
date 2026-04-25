@@ -4,7 +4,8 @@ import {
   ArrowRight, Play, Clock, LayoutGrid, ShieldCheck,
   LogIn, LayoutList, Eye, Star, ChevronLeft, ChevronRight,
   Calendar, User, MapPin, Phone, Mail,
-  Facebook, Twitter, Instagram, Send, BellRing
+  Facebook, Twitter, Instagram, Send, BellRing,
+  CheckCircle, Zap
 } from "lucide-react";
 import unimateLogo from "../assets/unimatelogo.png";
 import AppHeader from "../components/AppHeader";
@@ -385,70 +386,18 @@ function HowItWorks() {
 ═══════════════════════════════════════════════════════════════════════════ */
 function ReliableServiceAd() {
   const [ref, inView] = useInView();
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const studentTestimonials = [
-    {
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop",
-      name: "Arua Silva",
-      course: "Computer Science",
-      quote: "Best campus app ever!"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&h=500&fit=crop",
-      name: "Kamal Perera",
-      course: "Software Engineering",
-      quote: "Life changing experience!"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&h=500&fit=crop",
-      name: "Nimasha Fernando",
-      course: "IT Management",
-      quote: "Super reliable service!"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&h=500&fit=crop",
-      name: "Rashmi Gunawardena",
-      course: "Business Administration",
-      quote: "Highly recommended!"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop",
-      name: "Samantha Dias",
-      course: "Information Technology",
-      quote: "Perfect for busy students!"
-    }
-  ];
 
   const benefits = [
-    {icon:"✓", title:"24/7 Support", desc:"Round-the-clock customer assistance available whenever you need help."},
-    {icon:"⚡", title:"Instant Updates", desc:"Real-time notifications keep you informed every step of the way."},
-    {icon:"🛡️", title:"Secure Payments", desc:"Bank-grade encryption protects all your transactions and data."},
-    {icon:"⭐", title:"4.8 Star Rating", desc:"Trusted by 10,000+ SLIT students across campus."}
+    {icon:<CheckCircle size={32} color="#F5A623"/>, title:"24/7 Support", desc:"Round-the-clock customer assistance available whenever you need help."},
+    {icon:<Zap size={32} color="#F5A623"/>, title:"Instant Updates", desc:"Real-time notifications keep you informed every step of the way."},
+    {icon:<ShieldCheck size={32} color="#F5A623"/>, title:"Secure Payments", desc:"Bank-grade encryption protects all your transactions and data."},
+    {icon:<Star size={32} color="#F5A623"/>, title:"4.8 Star Rating", desc:"Trusted by 10,000+ SLIT students across campus."}
   ];
 
-  // Auto-slide every 5 seconds
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % studentTestimonials.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const goToSlide = (idx) => {
-    setCurrentSlide(idx);
-  };
-
-  const nextSlide = () => {
-    setCurrentSlide(prev => (prev + 1) % studentTestimonials.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide(prev => (prev - 1 + studentTestimonials.length) % studentTestimonials.length);
-  };
-
   return (
-    <section ref={ref} style={{width:"100%",background:`linear-gradient(135deg,rgba(245,166,35,.85) 0%,rgba(249,186,60,.85) 100%), url('https://images.unsplash.com/photo-1552664730-d307ca884978?w=1400&h=600&fit=crop')`,backgroundSize:"cover",backgroundPosition:"center",backgroundAttachment:"fixed",padding:"clamp(60px,10vw,96px) clamp(20px,6vw,60px)",textAlign:"center",position:"relative",overflow:"hidden"}}>
+    <section ref={ref} style={{width:"100%",background:`url('https://images.unsplash.com/photo-1552664730-d307ca884978?w=1400&h=600&fit=crop')`,backgroundSize:"cover",backgroundPosition:"center",backgroundAttachment:"fixed",padding:"clamp(40px,8vw,60px) clamp(20px,6vw,60px)",textAlign:"center",position:"relative",overflow:"hidden"}}>
+      {/* Blurred Background Overlay */}
+      <div style={{position:"absolute",inset:0,background:`url('https://images.unsplash.com/photo-1552664730-d307ca884978?w=1400&h=600&fit=crop')`,backgroundSize:"cover",backgroundPosition:"center",filter:"blur(8px)",zIndex:0}}/>
       {/* Background accent */}
       <div style={{position:"absolute",top:"-40%",right:"-10%",width:"400px",height:"400px",background:"rgba(255,255,255,.1)",borderRadius:"50%",pointerEvents:"none"}}/>
       <div style={{position:"absolute",bottom:"-30%",left:"-8%",width:"350px",height:"350px",background:"rgba(255,255,255,.08)",borderRadius:"50%",pointerEvents:"none"}}/>
@@ -460,72 +409,16 @@ function ReliableServiceAd() {
           Trusted by thousands of students. Fast, secure, and reliable campus services at your fingertips.
         </p>
 
-        {/* Student Slideshow */}
-        <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:"24px",marginBottom:"52px",flexWrap:"wrap"}}>
-          {/* Previous Button */}
-          <button onClick={prevSlide} style={{background:"rgba(7,9,26,.15)",border:"none",borderRadius:"50%",width:"44px",height:"44px",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",transition:"all .22s",color:"#07091a",fontSize:"20px"}}
-            onMouseOver={e => { e.currentTarget.style.background="rgba(7,9,26,.25)"; e.currentTarget.style.transform="scale(1.1)"; }}
-            onMouseOut={e => { e.currentTarget.style.background="rgba(7,9,26,.15)"; e.currentTarget.style.transform="scale(1)"; }}
-          >
-            ‹
-          </button>
-
-          {/* Main Slideshow */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"16px",maxWidth:"600px"}}>
-            {/* Student Image */}
-            <div style={{position:"relative",width:"160px",height:"160px",borderRadius:"50%",overflow:"hidden",border:"4px solid rgba(7,9,26,.2)",boxShadow:"0 12px 40px rgba(7,9,26,.25)",transition:"all .5s ease"}}>
-              <img 
-                src={studentTestimonials[currentSlide].image}
-                alt={studentTestimonials[currentSlide].name}
-                style={{width:"100%",height:"100%",objectFit:"cover",opacity:1,animation:`fadeIn .5s ease`}}
-                onError={e => { e.target.src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop"; }}
-              />
-            </div>
-
-            {/* Student Info */}
-            <div style={{textAlign:"left",maxWidth:"280px"}}>
-              <p style={{fontSize:"16px",fontStyle:"italic",color:"#07091a",marginBottom:"16px",lineHeight:1.7,fontWeight:600,fontFamily:"DM Sans,sans-serif"}}>"{studentTestimonials[currentSlide].quote}"</p>
-              <div style={{fontSize:"15px",fontWeight:800,color:"#07091a",fontFamily:"Manrope,sans-serif",marginBottom:"4px"}}>{studentTestimonials[currentSlide].name}</div>
-              <div style={{fontSize:"12px",color:"rgba(7,9,26,.7)",fontFamily:"Manrope,sans-serif"}}>{studentTestimonials[currentSlide].course}</div>
-            </div>
-          </div>
-
-          {/* Next Button */}
-          <button onClick={nextSlide} style={{background:"rgba(7,9,26,.15)",border:"none",borderRadius:"50%",width:"44px",height:"44px",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",transition:"all .22s",color:"#07091a",fontSize:"20px"}}
-            onMouseOver={e => { e.currentTarget.style.background="rgba(7,9,26,.25)"; e.currentTarget.style.transform="scale(1.1)"; }}
-            onMouseOut={e => { e.currentTarget.style.background="rgba(7,9,26,.15)"; e.currentTarget.style.transform="scale(1)"; }}
-          >
-            ›
-          </button>
-        </div>
-
-        {/* Slide Indicators */}
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"8px",marginBottom:"52px"}}>
-          {studentTestimonials.map((_, i) => (
-            <button key={i} onClick={() => goToSlide(i)} style={{width:i===currentSlide?"24px":"10px",height:"10px",borderRadius:"100px",background:i===currentSlide?"rgba(7,9,26,.5)":"rgba(7,9,26,.2)",border:"none",cursor:"pointer",transition:"all .3s",opacity:i===currentSlide?1:0.6}}
-              onMouseOver={e => { e.currentTarget.style.opacity="1"; }}
-            />
-          ))}
-        </div>
-
         {/* Benefits Grid */}
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:"24px",maxWidth:"1000px",margin:"0 auto 48px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:"24px",maxWidth:"1000px",margin:"0 auto"}}>
           {benefits.map((b,i)=>(
             <div key={i} style={inView?{animation:`fadeUp .72s cubic-bezier(.22,.68,0,1.2) ${i*.12}s both`}:{opacity:0}}>
-              <div style={{fontSize:"32px",marginBottom:"12px"}}>{b.icon}</div>
+              <div style={{marginBottom:"12px"}}>{b.icon}</div>
               <h3 style={{fontSize:"16px",fontWeight:800,color:"#07091a",marginBottom:"8px",fontFamily:"Manrope,sans-serif"}}>{b.title}</h3>
               <p style={{fontSize:"13px",color:"rgba(7,9,26,.7)",lineHeight:1.65}}>{b.desc}</p>
             </div>
           ))}
         </div>
-
-        {/* CTA Button */}
-        <button style={{display:"inline-flex",alignItems:"center",gap:"8px",background:"#07091a",color:"#F5A623",border:"none",borderRadius:"12px",padding:"16px 36px",fontSize:"16px",fontWeight:800,fontFamily:"Manrope,sans-serif",cursor:"pointer",transition:"transform .22s, box-shadow .22s",boxShadow:"0 8px 24px rgba(7,9,26,.3)",position:"relative",overflow:"hidden"}}
-          onMouseOver={e => { e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.boxShadow="0 12px 32px rgba(7,9,26,.4)"; }}
-          onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 8px 24px rgba(7,9,26,.3)"; }}
-        >
-          Get Started Today <ArrowRight size={16}/>
-        </button>
       </div>
     </section>
   );
