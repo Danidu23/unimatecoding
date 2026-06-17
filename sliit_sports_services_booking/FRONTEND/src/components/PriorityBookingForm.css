@@ -1,0 +1,142 @@
+.priority-booking-form {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 2px solid #ff9800;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 0;
+}
+
+.priority-header {
+  margin-bottom: 12px;
+}
+
+.priority-header h4 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #e65100;
+}
+
+.priority-info {
+  margin: 0;
+  font-size: 12px;
+  color: #bf360c;
+  font-style: italic;
+}
+
+.priority-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.priority-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #ff9800;
+}
+
+.priority-checkbox label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #bf360c;
+  cursor: pointer;
+  margin: 0;
+}
+
+.priority-details {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.priority-details .form-group {
+  margin-bottom: 12px;
+}
+
+.priority-details .form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #bf360c;
+  margin-bottom: 6px;
+}
+
+.priority-details .form-group select,
+.priority-details .form-group textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ffb74d;
+  border-radius: 6px;
+  font-size: 12px;
+  background: white;
+  color: #2c3e50;
+  font-family: inherit;
+}
+
+.priority-details .form-group select:focus,
+.priority-details .form-group textarea:focus {
+  outline: none;
+  border-color: #ff9800;
+  box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+}
+
+.priority-details .form-group textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.priority-warning {
+  background: rgba(255, 152, 0, 0.1);
+  border-left: 3px solid #ff9800;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.priority-warning .warning-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.priority-warning p {
+  margin: 0;
+  font-size: 12px;
+  color: #bf360c;
+  line-height: 1.4;
+}
+
+.priority-warning strong {
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .priority-booking-form {
+    margin: 16px 0;
+    padding: 12px;
+  }
+
+  .priority-header h4 {
+    font-size: 14px;
+  }
+
+  .priority-warning {
+    font-size: 11px;
+    padding: 8px;
+  }
+}
